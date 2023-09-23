@@ -1,0 +1,35 @@
+{
+    "compilerOptions": {
+        "target": "esnext",
+        "module": "Node16",
+        "allowJs": true,
+        "jsx": "preserve",
+        "removeComments": true,
+        "resolveJsonModule": true,
+        "noUnusedLocals": false,
+        "sourceMap": true,
+        "strict": true,
+        "baseUrl": ".",
+        "forceConsistentCasingInFileNames": true,
+        "esModuleInterop": true,
+        "experimentalDecorators": true,
+        "emitDecoratorMetadata": true,
+        "moduleResolution": "Node16",
+        "skipLibCheck": true,
+        "outDir": "build",
+        "typeRoots": [
+            "../../node_modules/@types",
+            "./src/types"
+        ],
+        "lib": [
+            "esnext",
+            "dom"
+        ]
+    },
+    "include": [
+        "src/**/*"
+    ],
+    "exclude": [
+        "../../node_modules"
+    ]
+}

@@ -1,0 +1,31 @@
+{
+    "compilerOptions": {
+        "target": "esnext",
+        "module": "Node16",
+        "allowJs": true,
+        "removeComments": true,
+        "resolveJsonModule": true,
+        "typeRoots": [
+            "../../node_modules/@types"
+        ],
+        "sourceMap": true,
+        "outDir": "build",
+        "strict": true,
+        "lib": [
+            "esnext"
+        ],
+        "baseUrl": ".",
+        "forceConsistentCasingInFileNames": true,
+        "esModuleInterop": true,
+        "experimentalDecorators": true,
+        "emitDecoratorMetadata": true,
+        "moduleResolution": "Node16",
+        "skipLibCheck": true
+    },
+    "include": [
+        "src/**/*"
+    ],
+    "exclude": [
+        "../../node_modules"
+    ]
+}
