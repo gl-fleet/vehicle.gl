@@ -5,6 +5,8 @@ const env = encodeENV({
     name: pkg.name,
     version: pkg.version,
     mode: process.env.MODE,
+    port: 8443,
+    secret: process.env.TOKEN_SECRET ?? 'gearlink',
 })
 
 module.exports = {

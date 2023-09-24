@@ -6,8 +6,8 @@ const env = encodeENV({
     name: pkg.name,
     version: pkg.version,
     mode: process.env.MODE,
-    me: 'U001',
-    proxy: 'http://143.198.198.77:8443',
+    me: 'SV01',
+    proxy: 'http://143.198.198.77:8090',
     replication_debug: true,
     sequelize_debug: true,
 

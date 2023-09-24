@@ -1,21 +1,21 @@
-import dotenv from 'dotenv'
 import jwt from 'jsonwebtoken'
 import { Core, Host } from 'unet'
-import { Run, env, log } from 'utils'
+import { Run, decodeENV, log } from 'utils'
 import { Manage } from './pm2'
+
+const { name, version, mode, port, secret } = decodeENV()
+log.success(`"${name}" <${version}> module is running on "${process.pid}" / [${mode}] 🚀🚀🚀\n`)
+log.warn(`Secret: [${secret.slice(0, 8)}...]`)
 
 Run({
 
     onStart: (_: any) => {
 
-        dotenv.config()
-        const secret = String(env.TOKEN_SECRET ?? 'gearlink')
-        log.warn(`Secret: [${secret.slice(0, 8)}...]`)
-
+        /** Process Manage **/
         _.name = process.env.LERNA_PACKAGE_NAME
         _.manage = new Manage()
         _.proxy = new Core({
-            port: 8080,
+            port: Number(port),
             auth: (req: any, res: any, next: any) => {
                 try {
 
@@ -27,9 +27,9 @@ Run({
             }
         })
 
-        const API = new Host({ name: 'proxy', timeout: 30 * 1000, port: 4002 })
-
         /** Process Manage **/
+        const API = new Host({ name: 'proxy', timeout: 30 * 1000 })
+
         API.on('start', async ({ query }: any) => await _.manage.start(query.name))
         API.on('stop', async ({ query }: any) => await _.manage.stop(query.name))
         API.on('restart', async ({ query }: any) => await _.manage.restart(query.name))

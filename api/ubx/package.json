@@ -7,7 +7,7 @@
     "start": "ubin watch_api --npm",
     "build": "ubin build_api",
     "serve": "node ./dist/run.js",
-    "clear": "rimraf ./dist ./node_modules",
+    "clear": "rm -rf ./dist ./node_modules",
     "_serve": "pm2 start ecosystem.config.cjs",
     "_stop": "pm2 stop ecosystem.config.cjs",
     "_delete": "pm2 delete ecosystem.config.cjs"

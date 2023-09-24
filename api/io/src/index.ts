@@ -9,7 +9,7 @@ log.success(`"${env.npm_package_name}" <${version}> module is running on "${proc
 Safe(async () => {
 
     const api = new Host({ name })
-    const core = new Connection({ name: 'Replica-Master', proxy })
+    const core = new Connection({ name: 'io', proxy })
     const sequelize = new Sequelize({ dialect: 'sqlite', storage: '../../data.sqlite', logging: (msg) => debug === 'true' && log.info(`SQLITE: ${msg}`) })
 
     await sequelize.authenticate()
