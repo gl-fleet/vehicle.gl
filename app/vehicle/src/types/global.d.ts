@@ -12,6 +12,7 @@ declare global {
             proxy: Connection
             gsm: Connection
             ubx: Connection
+            io: Connection
         }
 
     }

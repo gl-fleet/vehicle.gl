@@ -25,6 +25,7 @@ export const initChunks = (
         me: me,
         name: 'chunks',
         channel: core,
+        limit: 25,
         table: Chunks,
         retain: [30, 'days'],
         debug: debug === 'true',

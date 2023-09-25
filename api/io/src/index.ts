@@ -14,6 +14,6 @@ Safe(async () => {
 
     await sequelize.authenticate()
     initChunks(api, core, sequelize, me, debug)
-    await sequelize.sync({ force: true })
+    await sequelize.sync({ force: false })
 
 })

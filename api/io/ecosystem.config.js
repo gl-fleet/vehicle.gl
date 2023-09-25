@@ -7,7 +7,7 @@ const env = encodeENV({
     version: pkg.version,
     mode: process.env.MODE,
     me: 'SV01',
-    proxy: 'http://143.198.198.77:8090',
+    proxy: 'http://139.59.115.158',
     replication_debug: true,
     sequelize_debug: true,
 
@@ -27,8 +27,6 @@ module.exports = {
 
             name: env.u_name,
             script: "./dist/run.js",
-            exec_mode: "cluster",
-            nstances: 1,
             log_date_format: "YYYY-MM-DD HH:mm:ss.SSS",
             env: env
 

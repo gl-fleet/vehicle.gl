@@ -17,6 +17,7 @@ const cfg: iArgs = {
         proxy: new Connection({ name: 'proxy', proxy }),
         gsm: new Connection({ name: 'gsm', proxy }),
         ubx: new Connection({ name: 'ubx', proxy }),
+        io: new Connection({ name: 'io', proxy }),
     },
 }
 
