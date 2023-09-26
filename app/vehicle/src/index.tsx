@@ -1,6 +1,7 @@
 import { React, Render } from 'uweb'
 import { Connection } from 'unet/web'
-import { Safe, Win, Doc, KeyValue, log } from 'utils/web'
+import { UTM } from 'uweb/utils'
+import { Safe, Loop, Win, Doc, KeyValue, log } from 'utils/web'
 
 import Main from './main'
 import Settings from './settings'
@@ -27,6 +28,20 @@ cfg.io.gsm.on('GSM', (args: any) => cfg.event.emit('GSM', args))
 cfg.io.ubx.on('RTCM', (args: any) => cfg.event.emit('RTCM', args))
 
 cfg.io.ubx.on('GPS-calc', (arg: any) => cfg.event.emit('GPS-calc', arg))
+
+Loop(() => {
+
+    const utm = [541117.5903320312, 4837981.773193359, 1548.672485351562]
+    const ll = UTM.convertUtmToLatLng(utm[0], utm[1], "48", "T")
+    cfg.event.emit('GPS-calc', {
+        MP: { x: utm[0], y: utm[1], z: utm[2] },
+        camera: { top: { x: utm[0], y: utm[1], z: utm[2] + 100 } },
+        coords: { front: [ll.lat, ll.lng, 0] },
+        map: [ll.lat, ll.lng, 0],
+        rotate: [0, 0, 0],
+    })
+
+}, 500)
 
 cfg.io.ubx.on('connect', () => { log.success('[Connected]') })
 cfg.io.ubx.on('disconnect', () => { log.warn('[Disconnected]') })

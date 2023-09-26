@@ -1,4 +1,4 @@
-import { Safe, Jfy, Sfy, Loop, decodeENV, log, env } from 'utils'
+import { Safe, Jfy, Sfy, Loop, Delay, decodeENV, log, env } from 'utils'
 import { Host, NetClient } from 'unet'
 import { Serial, F9P_Parser } from 'ucan'
 import { Calculus } from './calculus'
@@ -14,6 +14,8 @@ const LOG: any = log                   /** Making log as any:type **/
 const Calculate = new Calculus(cf)
 const Movement = new MoveDetect(Number(cf.threshold[1]))
 const API = new Host({ name: cf.name }) /** Exposing data **/
+
+const simulate = false
 
 Safe(() => {
 
@@ -62,10 +64,38 @@ Safe(() => {
     })
     RTCM.onInfo = (t, { type, message }) => LOG[type](message) && API.emit('RTCM', { state: t, type, message })
 
+    simulate && Loop(() => {
+
+        const _ = [
+            '$GNGGA,024825.00,4343.20595,N,10534.12570,E,2,12,1.08,1499.5,M,-38.6,M,,0000*5B',
+            '$PUBX,00,024825.00,4343.20595,N,10534.12570,E,1460.937,D3,2.3,3.4,0.029,0.00,-0.030,,1.08,1.86,1.54,13,0,0*4A',
+            '$GNGGA,024826.50,4343.20598,N,10534.12568,E,2,12,1.08,1499.5,M,-38.6,M,,0000*59',
+            '$PUBX,00,024826.00,4343.20597,N,10534.12569,E,1460.907,D3,2.3,3.4,0.017,0.00,-0.005,,1.08,1.86,1.54,13,0,0*4B',
+        ]
+
+        const process = (name: string, chunk: any) => {
+
+            log.res(`Serial[GPS2]: Message size ${chunk.length}`)
+            const parsed = Parser_2.parse(chunk)
+            if (parsed) {
+                API.emit(name.toUpperCase(), { state: 'success', type: 'success', message: 'GPS2 connected!', data: parsed })
+                GPS['name'] = parsed
+            }
+
+        }
+
+        Delay(() => process('gps1', _[0]), 100)
+        Delay(() => process('gps1', _[1]), 100)
+
+        Delay(() => process('gps2', _[2]), 110)
+        Delay(() => process('gps2', _[3]), 110)
+
+    }, 2000)
+
     /** GPS-Parser-Initialize **/
     Loop(() => {
 
-        const { gps1, gps2 } = GPS
+        let { gps1, gps2 } = GPS
 
         if (!gps1.fix || !gps2.fix) { return 0 }
 

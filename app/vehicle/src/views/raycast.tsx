@@ -34,8 +34,11 @@ export const MiddleInfo = (cfg: iArgs) => {
 
         const { event } = cfg
 
-        event.on('3D-Range', ([name, range]) => setD3([name, range]))
-        event.on('2D-Range', ([name, range]) => setD2([name, range]))
+        event.on('raycast', (distance: number) => {
+            setD3(['Distance', N(distance)])
+            setD2(['Direction', distance >= 0 ? 'CUT' : 'FILL'])
+        })
+
         ref.current = new ThreeView({
             containerId: 'center-view',
             isDarkMode: cfg.isDarkMode,
@@ -44,9 +47,7 @@ export const MiddleInfo = (cfg: iArgs) => {
             polrHelper: true,
         })
 
-        ref.current.onReady(() => {
-            console.log('ready')
-        })
+        ref.current.onReady(() => { console.log('ready') })
 
     }, [])
 
@@ -70,8 +71,8 @@ export const MiddleInfo = (cfg: iArgs) => {
             </Row>
         ) : (
             <Row gutter={16} style={{ position: 'absolute', width: '100%', padding: 16, fontWeight: 800, overflow: 'hidden' }}>
-                <Col span={12}><Statistic title={`${D3[0]} / 3D`} value={D3[1]} suffix="m" valueStyle={{ fontSize: 28, color: c3 }} /></Col>
-                <Col span={12}><Statistic title={`${D2[0]} / 2D`} value={D2[1]} suffix="m" valueStyle={{ fontSize: 28, color: c2 }} /></Col>
+                <Col span={12}><Statistic title={`${D3[0]}`} value={D3[1]} suffix="m" valueStyle={{ fontSize: 28, color: c3 }} /></Col>
+                <Col span={12}><Statistic title={`${D2[0]}`} value={D2[1]} suffix="" valueStyle={{ fontSize: 28, color: c2 }} /></Col>
             </Row>
         )}
 

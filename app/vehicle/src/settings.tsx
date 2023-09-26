@@ -1,4 +1,4 @@
-import { React, Table, Typography, Collapse } from 'uweb'
+import { React, Table, Typography, Collapse, Button } from 'uweb'
 import { FolderOutlined, ReloadOutlined } from '@ant-design/icons'
 import { log } from 'utils/web'
 
@@ -49,7 +49,7 @@ export default ({ io: { io }, event, isDarkMode }: iArgs) => {
         },
         {
             title: '',
-            render: ({ type, name }: any) => <Text key="enter" onClick={() => event.emit(type, name)} style={{ display: 'block', textAlign: 'center' }}>Open</Text>
+            render: ({ type, name }: any) => <Button size={'small'} onClick={() => event.emit('dxf', name)} style={{ display: 'block', margin: 'auto' }}>Open</Button>
         },
     ]
 

@@ -9,7 +9,7 @@ const env = encodeENV({
     gps1: '/dev/uGPS1,115200,180', /** | path | baud | to_ground[cm] | **/
     gps2: '/dev/uGPS2,115200,180', /** | path | baud | to_ground[cm] | **/
     offset: '300,250,10,0',        /** | gps_dist[cm] | to_front[cm] | to_right[cm] | to_top[cm] | **/
-    threshold: '500,2.5,0',        /** | bad_gps[cm] | move_detect[m] | ... | **/
+    threshold: '1000,2.5,0',        /** | bad_gps[cm] | move_detect[m] | ... | **/
 })
 
 module.exports = {
