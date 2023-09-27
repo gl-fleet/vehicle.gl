@@ -18,7 +18,7 @@ export default (cfg: iArgs) => {
     const [isMapReady, Maptalks] = mapHook({ containerId: 'render_0', isDarkMode, conf: {} })
     const [isThreeReady, Three] = threeHook({ containerId: 'render_1', isDarkMode, conf: {} })
     const [isVehicleReady, Vehicle] = vehicleHook(isMapReady, Maptalks, isThreeReady, Three)
-    // const [dxf_loading, dxf_message] = dxfHook(cfg, isVehicleReady, Maptalks, Three)
+    const [dxf_loading, dxf_message] = dxfHook(cfg, isVehicleReady, Maptalks, Three)
 
     useEffect(() => {
 

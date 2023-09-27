@@ -34,7 +34,7 @@ export const dxfHook = (
             })
         })
 
-        event.on('dxf', (name) => {
+        event.on('dxf-geojson', (name) => {
 
             setState(true, `[${name}]: Fetching ...`)
 

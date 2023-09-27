@@ -49,7 +49,7 @@ export default ({ io: { io }, event, isDarkMode }: iArgs) => {
         },
         {
             title: '',
-            render: ({ type, name }: any) => <Button size={'small'} onClick={() => event.emit('dxf', name)} style={{ display: 'block', margin: 'auto' }}>Open</Button>
+            render: ({ type, name }: any) => <Button size={'small'} onClick={() => event.emit(type, name)} style={{ display: 'block', margin: 'auto' }}>Open</Button>
         },
     ]
 

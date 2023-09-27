@@ -16,16 +16,11 @@ export const MiddleInfo = (cfg: iArgs) => {
     const _w = Number((320 * 100 / iw).toFixed(0))
     const _h = Number((240 * 100 / ih).toFixed(0))
     const w = _w * iw / 100, h = _h * ih / 100
-    const b = 2 /** Border **/
 
-    const [D3, setD3] = useState(['*', 0])
-    const [D2, setD2] = useState(['*', 0])
-
-    const [status, setStatus] = useState({ _2D: '*', _3D: '*' })
+    const [status, setStatus] = useState({ EL: '*', DIF: 0 })
+    const [ray, setRay] = useState({ DIST: 0, DIR: '*' })
 
     useEffect(() => {
-
-        console.log(iw, ih)
 
         const N = (m: any, f = 2) => {
             const n = Number(m.toFixed(f))
@@ -35,8 +30,11 @@ export const MiddleInfo = (cfg: iArgs) => {
         const { event } = cfg
 
         event.on('raycast', (distance: number) => {
-            setD3(['Distance', N(distance)])
-            setD2(['Direction', distance >= 0 ? 'CUT' : 'FILL'])
+            setRay({ DIST: N(distance), DIR: distance >= 0 ? 'CUT ↓' : 'FILL ↑' })
+        })
+
+        event.on('GPS-calc', (arg: any) => {
+            setStatus({ EL: Number(arg.MP.z.toFixed(2)), DIF: 0 })
         })
 
         ref.current = new ThreeView({
@@ -57,9 +55,8 @@ export const MiddleInfo = (cfg: iArgs) => {
 
     }, [cfg.isDarkMode])
 
-    const c3 = colorize(Number(D3[1]), [10, 1, 0.5, 0.25, 0.1])
-    const c2 = colorize(Number(D2[1]), [10, 1, 0.5, 0.25, 0.1])
-    const s3 = colorize(Number(status._3D), [12.5, 10, 7.5, 5, 2.5])
+    const cd = colorize(Number(ray.DIST), [10, 1, 0.5, 0.25, 0.1])
+    const ca = colorize(Number(status.DIF), [12.5, 10, 7.5, 5, 2.5])
 
     return <Layout style={{ border: '2px solid red', left: '50%', top: '50%', position: 'absolute', textShadow: '0px 2px 3px #000', width: `${w}px`, height: `${h}px`, marginLeft: `-${w / 2 + 2}px`, marginTop: `-${h / 2 + 2}px`, padding: 0, zIndex: 1 }}>
 
@@ -71,13 +68,14 @@ export const MiddleInfo = (cfg: iArgs) => {
             </Row>
         ) : (
             <Row gutter={16} style={{ position: 'absolute', width: '100%', padding: 16, fontWeight: 800, overflow: 'hidden' }}>
-                <Col span={12}><Statistic title={`${D3[0]}`} value={D3[1]} suffix="m" valueStyle={{ fontSize: 28, color: c3 }} /></Col>
-                <Col span={12}><Statistic title={`${D2[0]}`} value={D2[1]} suffix="" valueStyle={{ fontSize: 28, color: c2 }} /></Col>
+                <Col span={12}><Statistic title={`Distance`} value={ray.DIST} suffix="m" valueStyle={{ fontSize: 28, color: cd }} /></Col>
+                <Col span={12}><Statistic title={`Direction`} value={ray.DIR} suffix="" valueStyle={{ fontSize: 28 }} /></Col>
             </Row>
         )}
 
         <Row gutter={16} style={{ fontWeight: 900, overflow: 'hidden', position: 'absolute', left: 16, right: 16, bottom: 16 }}>
-            <Col span={24}><Statistic title={`Acc & Diff / 3D`} value={status._3D} suffix="cm" valueStyle={{ fontSize: 24, color: s3 }} /></Col>
+            <Col span={12}><Statistic title={`Accuracy`} value={status.DIF} suffix="cm" valueStyle={{ fontSize: 28, color: ca }} /></Col>
+            <Col span={12}><Statistic title={`Elevation`} value={status.EL} suffix="" valueStyle={{ fontSize: 28 }} /></Col>
         </Row>
 
     </Layout>
