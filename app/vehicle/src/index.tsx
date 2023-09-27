@@ -31,6 +31,7 @@ cfg.io.ubx.on('GPS-calc', (arg: any) => cfg.event.emit('GPS-calc', arg))
 
 Loop(() => {
 
+    return null
     const utm = [541117.5903320312, 4837981.773193359, 1548.672485351562]
     const ll = UTM.convertUtmToLatLng(utm[0], utm[1], "48", "T")
     cfg.event.emit('GPS-calc', {
