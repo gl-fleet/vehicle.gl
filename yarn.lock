@@ -5671,9 +5671,9 @@ undefsafe@^2.0.5:
   resolved "https://registry.yarnpkg.com/undefsafe/-/undefsafe-2.0.5.tgz#38733b9327bdcd226db889fb723a6efd162e6e2c"
   integrity sha512-WxONCrssBM8TSPRqN5EmsjVrsv4A8X12J4ArBiiayv3DyyG3ZlIg6yysuuSYdZsVz3TKcTg2fd//Ujd4CHV1iA==
 
-unet@upacks/unet#1.1.15:
-  version "1.0.25"
-  resolved "https://codeload.github.com/upacks/unet/tar.gz/ecff76e8612c988913c1b052be92232d989fade1"
+unet@upacks/unet#1.1.16:
+  version "1.0.26"
+  resolved "https://codeload.github.com/upacks/unet/tar.gz/bf9b96c829240c2de655e9c11c8ad3e34308d255"
   dependencies:
     axios "^1.2.2"
     cors "^2.8.5"
