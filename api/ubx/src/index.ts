@@ -8,8 +8,8 @@ log.success(``) && log.success(`"${env.npm_package_name}" module is running on "
 
 const cf = decodeENV()
 const GPS: any = { gps1: {}, gps2: {} } /** Temporary GPS data store **/
-const VAC = Number(cf.threshold[0])     /** BAD GPS Threshold (cm) **/
-const LOG: any = log                   /** Making log as any:type **/
+const VAC = Number(cf.threshold[0])     /** Bad GPS Threshold (cm) **/
+const LOG: any = log                    /** Making log as any:type **/
 
 const Calculate = new Calculus(cf)
 const Movement = new MoveDetect(Number(cf.threshold[1]))
@@ -52,6 +52,7 @@ Safe(() => {
     /** RTCM-Initialize **/
     const base = { host: cf.host[0], port: Number(cf.host[1]), lastMessage: 0, reconnect: 0 }
     const RTCM = new NetClient(base, (client) => {
+
         ++base.reconnect && client.on('data', (chunk: any) => {
             RTCM.last = base.lastMessage = Date.now()
             log.res(`TCP_Client<${base.host}:${base.port}> Message size ${chunk.length}`)
@@ -59,6 +60,7 @@ Safe(() => {
             GPS1.emit(chunk)
             GPS2.emit(chunk)
         })
+
     })
     RTCM.onInfo = (t, { type, message }) => LOG[type](message) && API.emit('RTCM', { state: t, type, message })
 

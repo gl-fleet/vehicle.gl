@@ -14,7 +14,8 @@ export const initChunks = (
 ) => {
 
     /** Building a table */
-    const Chunks = SequelTable('chunks', sequelize, me, {
+    const alias = 'chunks'
+    const List = SequelTable(alias, sequelize, me, {
         meta: { type: DataTypes.TEXT, defaultValue: '' },
         offset: { type: DataTypes.INTEGER, defaultValue: 0 },
         data: { type: DataTypes.TEXT, defaultValue: '' },
@@ -23,31 +24,31 @@ export const initChunks = (
     /** Starting replication */
     const RepChunks = new ReplicaSlave({
         me: me,
-        name: 'chunks',
+        name: alias,
         channel: core,
         limit: 25,
-        table: Chunks,
+        table: List,
         retain: [30, 'days'],
         debug: debug === 'true',
         delay: 1000,
     })
 
     /** Exposing endpoints */
-    io.on("get-chunks", async ({ query }: any) => await Chunks.uget(query))
-    io.on("set-chunks", async ({ body }: any) => await Chunks.uset(body))
-    io.on("del-chunks", async ({ body }: any) => await Chunks.udel(body))
+    io.on(`set-${alias}`, async (req: any) => await List.uset(req.body))
+    io.on(`get-${alias}`, async (req: any) => await List.uget(req.query))
+    io.on(`del-${alias}`, async (req: any) => await List.udel(req.body))
 
-    io.on("get-chunks-merged", async ({ query }: any) => {
-        const rows = await Chunks.findAll({ where: { ...query, deletedAt: null }, order: [['offset', 'ASC']] })
+    io.on(`get-${alias}-merged`, async ({ query }: any) => {
+        const rows = await List.findAll({ where: { ...query, deletedAt: null }, order: [['offset', 'ASC']] })
         return Chunk.Merge(rows)
     })
 
-    io.on("get-chunks-distinct", async ({ }) => await Chunks.findAll({
+    io.on(`get-${alias}-distinct`, async ({ }) => await List.findAll({
         attributes: ['name', 'type', 'meta', 'src', 'dst', 'createdAt', 'updatedAt', [Sequelize.fn('COUNT', Sequelize.col('offset')), 'count']],
         where: { deletedAt: null }, order: [['updatedAt', 'DESC']],
         group: 'name',
     }))
 
-    return { Chunks, RepChunks }
+    return { List, RepChunks }
 
 }

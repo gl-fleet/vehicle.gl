@@ -1,6 +1,5 @@
 import { React, Table, Typography, Collapse, Button } from 'uweb'
 import { FolderOutlined, ReloadOutlined } from '@ant-design/icons'
-import { log } from 'utils/web'
 
 const { useEffect, useState } = React
 const { Title, Text } = Typography
@@ -62,8 +61,13 @@ export default ({ io: { io }, event, isDarkMode }: iArgs) => {
         },
         {
             key: '2',
-            label: 'This is panel header 2',
-            children: <Text>OK</Text>,
+            label: 'Fatigue Settings',
+            children: <Text type="warning">Permission denied!</Text>,
+        },
+        {
+            key: '3',
+            label: 'Configuration',
+            children: <Text type="warning">Permission denied!</Text>,
         },
     ]} bordered={false} defaultActiveKey={['1']} />
 

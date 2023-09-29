@@ -6,7 +6,7 @@ import { Sequelize } from 'sequelize'
 import { DataTypes, Model, ModelStatic } from 'sequelize'
 
 interface iModel {
-    uchange: () => {}
+    uchange: (cb: any, delay: number) => {}
     uget: (n: any) => {}
     uset: (n: any) => {}
     udel: (n: any) => {}
@@ -32,8 +32,10 @@ export const SequelTable = (table: string, sequelize: Sequelize, name: string, c
     delete colls['unique']
 
     const indexes: any = []
-    indexes.push({ unique: false, fields: ['type', 'src', 'dst', 'updatedAt'] })
+    indexes.push({ unique: false, fields: ['type', 'name', 'src', 'dst', 'updatedAt'] })
     unique && indexes.push({ unique: true, fields: unique })
+
+    log.info(`[${table}] -> ${Sfy(indexes)}`)
 
     const collection: ModelStatic<Model<any, any>> & any = sequelize.define(table, {
 
