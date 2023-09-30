@@ -26,7 +26,7 @@ export const initChunks = (
         me: me,
         name: alias,
         channel: core,
-        limit: 25,
+        limit: 10,
         table: List,
         retain: [30, 'days'],
         debug: debug === 'true',

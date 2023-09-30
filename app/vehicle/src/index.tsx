@@ -8,7 +8,9 @@ import Settings from './settings'
 
 import { EventEmitter } from "events"
 
-const proxy = false ? 'https://u002-gantulgak.as1.pitunnel.com/' : Win.location.origin
+const proxy = Win.location.origin
+const remote = 'https://u002-gantulgak.as1.pitunnel.com/'
+const debug = false
 
 const cfg: iArgs = {
     event: new EventEmitter(),
@@ -16,9 +18,9 @@ const cfg: iArgs = {
     proxy,
     io: {
         proxy: new Connection({ name: 'proxy', proxy }),
-        gsm: new Connection({ name: 'gsm', proxy }),
-        ubx: new Connection({ name: 'ubx', proxy }),
         io: new Connection({ name: 'io', proxy }),
+        gsm: new Connection({ name: 'gsm', proxy: debug ? remote : proxy }),
+        ubx: new Connection({ name: 'ubx', proxy: debug ? remote : proxy }),
     },
 }
 
@@ -29,7 +31,7 @@ cfg.io.ubx.on('RTCM', (args: any) => cfg.event.emit('RTCM', args))
 
 cfg.io.ubx.on('GPS-calc', (arg: any) => cfg.event.emit('GPS-calc', arg))
 
-false && Loop(() => {
+/* Loop(() => {
 
     const utm = [541117.5903320312, 4837981.773193359, 1548.672485351562]
     const ll = UTM.convertUtmToLatLng(utm[0], utm[1], "48", "T")
@@ -41,7 +43,7 @@ false && Loop(() => {
         rotate: [0, 0, 0],
     })
 
-}, 500)
+}, 500) */
 
 cfg.io.ubx.on('connect', () => { log.success('[Connected]') })
 cfg.io.ubx.on('disconnect', () => { log.warn('[Disconnected]') })

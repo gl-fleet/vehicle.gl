@@ -2,6 +2,7 @@ import { React, Typography, Layout, Row, Col, Statistic } from 'uweb'
 import { createGlobalStyle } from 'styled-components'
 import { Point, colorize } from 'uweb/utils'
 import { ThreeView } from 'uweb/three'
+import { Safe } from 'utils/web'
 
 const { useEffect, useState, useRef } = React
 const { Title, Text } = Typography
@@ -29,15 +30,17 @@ export const MiddleInfo = (cfg: iArgs) => {
 
         const { event } = cfg
 
-        event.on('raycast', (distance: number) => {
+        event.on('raycast', (distance: number) => Safe(() => {
             setRay({ DIST: N(distance), DIR: distance >= 0 ? 'CUT ↓' : 'FILL ↑' })
-        })
+        }))
 
-        event.on('GPS-calc', (arg: any) => {
+        event.on('GPS-calc', (arg: any) => Safe(() => {
+
             const { dist3D, distFix } = arg.status
             const difCM = Math.abs((dist3D * 100) - (distFix * 100)).toFixed(1)
             setStatus({ EL: Number(arg.MP.z.toFixed(2)), DIF: difCM })
-        })
+
+        }))
 
         ref.current = new ThreeView({
             containerId: 'center-view',

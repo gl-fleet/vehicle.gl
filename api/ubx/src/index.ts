@@ -31,6 +31,7 @@ Safe(() => {
             API.emit('GPS1', { state: 'success', type: 'success', message: 'GPS1 connected!', data: parsed })
             GPS.gps1 = parsed
         }
+
     })
 
     /** GPS-2-Initialize **/

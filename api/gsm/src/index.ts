@@ -33,11 +33,18 @@ Safe(() => {
 
     GSM.onInfo = (t, { type, message }) => LOG[type](message) && API.emit('GSM', { state: t, type, message })
 
-    GSM.on((chunk: any) => chunk[0] === '+' && Safe(() => {
+    GSM.on((chunk: any) => Safe(() => {
 
-        const parsed = AT_BEAUTIFY(chunk)
-        log.res(`Serial[GSM]: ${chunk} / ${Sfy(parsed ?? {})}`)
-        parsed && API.emit('GSM', { state: 'success', type: 'success', message: `Network connected!`, data: parsed })
+        log.res(`Serial[GSM]: Message size ${chunk.length}`)
+        log.info((chunk).toString())
+
+        if (chunk[0] === '+') {
+
+            const parsed = AT_BEAUTIFY(chunk)
+            log.res(`Serial[GSM]: ${chunk} / ${Sfy(parsed ?? {})}`)
+            parsed && API.emit('GSM', { state: 'success', type: 'success', message: `Network connected!`, data: parsed })
+
+        }
 
     }))
 
