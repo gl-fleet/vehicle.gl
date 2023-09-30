@@ -8,7 +8,7 @@ import Settings from './settings'
 
 import { EventEmitter } from "events"
 
-const proxy = false ? 'https://u002-http-gantulgak.as1.pitunnel.com' : Win.location.origin
+const proxy = false ? 'https://u002-gantulgak.as1.pitunnel.com/' : Win.location.origin
 
 const cfg: iArgs = {
     event: new EventEmitter(),
@@ -29,7 +29,7 @@ cfg.io.ubx.on('RTCM', (args: any) => cfg.event.emit('RTCM', args))
 
 cfg.io.ubx.on('GPS-calc', (arg: any) => cfg.event.emit('GPS-calc', arg))
 
-/* Loop(() => {
+false && Loop(() => {
 
     const utm = [541117.5903320312, 4837981.773193359, 1548.672485351562]
     const ll = UTM.convertUtmToLatLng(utm[0], utm[1], "48", "T")
@@ -41,7 +41,7 @@ cfg.io.ubx.on('GPS-calc', (arg: any) => cfg.event.emit('GPS-calc', arg))
         rotate: [0, 0, 0],
     })
 
-}, 500) */
+}, 500)
 
 cfg.io.ubx.on('connect', () => { log.success('[Connected]') })
 cfg.io.ubx.on('disconnect', () => { log.warn('[Disconnected]') })

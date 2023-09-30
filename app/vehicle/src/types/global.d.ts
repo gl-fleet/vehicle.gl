@@ -3,6 +3,8 @@ import { Connection } from 'unet/web'
 
 declare global {
 
+    declare module 'maptalks.formats'
+
     interface iArgs {
 
         isDarkMode: boolean

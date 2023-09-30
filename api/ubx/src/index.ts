@@ -65,11 +65,14 @@ Safe(() => {
     RTCM.onInfo = (t, { type, message }) => LOG[type](message) && API.emit('RTCM', { state: t, type, message })
 
     /** GPS-Parser-Initialize **/
+    let prev = ''
     Loop(() => {
 
         let { gps1, gps2 } = GPS
 
-        if (!gps1.fix || !gps2.fix) { return 0 }
+        if (!gps1.fix || !gps2.fix) return 0
+        if (gps1.time === gps2.time && gps1.time !== prev) { prev = gps1.time }
+        else { return 0 }
 
         log.info(`GPS(1): ${gps1.fix} ${gps1.ele} ${gps1.vac} ${gps1.hac} `)
         log.info(`GPS(2): ${gps2.fix} ${gps2.ele} ${gps2.vac} ${gps2.hac} `)
@@ -88,6 +91,6 @@ Safe(() => {
 
         }
 
-    }, 750)
+    }, 100)
 
 })

@@ -1,6 +1,5 @@
 import { React } from 'uweb'
-import { MapView } from 'uweb/maptalks'
-import { log, Delay, Safe } from 'utils/web'
+import { MapView, maptalks } from 'uweb/maptalks'
 const { useEffect, useState, useRef } = React
 
 export const mapHook = ({ containerId, isDarkMode, conf }: {
@@ -22,7 +21,28 @@ export const mapHook = ({ containerId, isDarkMode, conf }: {
         })
 
         ref.current.onReady(() => {
+
             setReady(true)
+
+            /* Formats.osm('uhg.osm', (err: any, geojson: any) => {
+                new maptalks.VectorLayer('osm', geojson).addTo(ref.current.map)
+            }) */
+
+            /* var imageLayer = new maptalks.ImageLayer('images', [
+                {
+                    url: 'map.jpg',
+                    extent: [
+                        105.4393104965784,
+                        43.64676156188404,
+                        105.58264774633426,
+                        43.71038836371723,
+                    ],
+                    opacity: 0.5
+                }
+            ])
+
+            ref.current.map.addLayer(imageLayer) */
+
         })
 
     }, [])

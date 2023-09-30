@@ -34,7 +34,9 @@ export const MiddleInfo = (cfg: iArgs) => {
         })
 
         event.on('GPS-calc', (arg: any) => {
-            setStatus({ EL: Number(arg.MP.z.toFixed(2)), DIF: 0 })
+            const { dist3D, distFix } = arg.status
+            const difCM = Math.abs((dist3D * 100) - (distFix * 100)).toFixed(1)
+            setStatus({ EL: Number(arg.MP.z.toFixed(2)), DIF: difCM })
         })
 
         ref.current = new ThreeView({
@@ -45,7 +47,7 @@ export const MiddleInfo = (cfg: iArgs) => {
             polrHelper: true,
         })
 
-        ref.current.onReady(() => { console.log('ready') })
+        ref.current.onReady(() => { })
 
     }, [])
 
@@ -62,7 +64,7 @@ export const MiddleInfo = (cfg: iArgs) => {
 
         <Layout id="center-view" style={{ width: '100%', height: '100%' }}></Layout>
 
-        {Number(status._3D) >= 5 ? (
+        {Number(status.DIF) >= 5 ? (
             <Row gutter={16} style={{ position: 'absolute', width: '100%', padding: 16, fontWeight: 800, overflow: 'hidden' }}>
                 <Col span={24}><Statistic title={`Accuracy`} value={'Processing'} suffix="..." valueStyle={{ fontSize: 28, color: 'red' }} /></Col>
             </Row>
