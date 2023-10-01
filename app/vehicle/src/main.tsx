@@ -8,14 +8,16 @@ import { vehicleHook } from './hooks/vehicle'
 import { dxfHook } from './hooks/dxf'
 
 import { DeviceListView } from './views/device'
-import { MiddleInfo } from './views/raycast'
+import { MiddleInfo } from './views/middle'
+import { TopLeft } from './views/topleft'
+import { camera_angle } from './utils/geometry'
 
 const { useEffect, useState, useRef } = React
 
 export default (cfg: iArgs) => {
 
     const { isDarkMode, event } = cfg
-    const [isMapReady, Maptalks] = mapHook({ containerId: 'render_0', isDarkMode, conf: {} })
+    const [isMapReady, Maptalks] = mapHook({ containerId: 'render_0', isDarkMode, conf: { zoom: 20 } })
     const [isThreeReady, Three] = threeHook({ containerId: 'render_1', isDarkMode, conf: {} })
     const [isVehicleReady, Vehicle] = vehicleHook(isMapReady, Maptalks, isThreeReady, Three)
     const [dxf_loading, dxf_message] = dxfHook(cfg, isVehicleReady, Maptalks, Three)
@@ -28,12 +30,18 @@ export default (cfg: iArgs) => {
 
         const point = new Point({ Maptalks, Three })
 
+        Three.on('tick', (s: any) => {
+            event.emit('alert', { key: 'tick', message: s, onclose: 'tick-back' })
+        })
+
         event.on('GPS-calc', (arg: any) => {
 
-            const { M, A, B, C, D, TL, TM, TR, BM, MP, camera } = arg
+            const { A, B, TL, TR, MP, camera, coords } = arg
 
-            Maptalks.view('TOP', arg)
-            Three.view('TOP', arg)
+            camera.right = camera_angle(arg)
+
+            true ? Maptalks.map.setCenter([coords.front[1], coords.front[0]]) : Maptalks.view('TOP', arg)
+            Three.view('RIGHT', arg)
             Vehicle.update(arg)
 
             point.update('left', 'red', [A.x, A.y, A.z])
@@ -48,10 +56,14 @@ export default (cfg: iArgs) => {
 
     return <Row id="main" style={{ height: '100%' }}>
 
-        <DeviceListView {...cfg} />
-        <MiddleInfo {...cfg} />
         <Col id='render_0' span={12} style={{ height: '100%' }} />
         <Col id='render_1' span={12} style={{ height: '100%' }} />
+
+        <>
+            <TopLeft {...cfg} />
+            <DeviceListView {...cfg} />
+            <MiddleInfo {...cfg} />
+        </>
 
     </Row>
 

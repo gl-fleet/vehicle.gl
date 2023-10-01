@@ -48,14 +48,14 @@ Safe(() => {
 
     }))
 
-    const call = async () => {
+    const call = () => {
 
-        await GSM.emit('AT+CSQ\r\n')
-        await GSM.emit('AT+COPS?\r\n')
+        Safe(async () => await GSM.emit('AT+CSQ\r\n'))
+        Safe(async () => await GSM.emit('AT+COPS?\r\n'))
 
     }
 
-    Delay(async () => { await call() }, 250)
-    Loop(async () => { await call() }, 5000)
+    Delay(() => call(), 250)
+    Loop(() => call(), 5000)
 
 })

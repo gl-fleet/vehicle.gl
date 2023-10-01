@@ -1,13 +1,18 @@
 import { React, Typography, Layout, Row, Col, Statistic } from 'uweb'
 import { createGlobalStyle } from 'styled-components'
 import { Point, colorize } from 'uweb/utils'
-import { ThreeView } from 'uweb/three'
-import { Safe } from 'utils/web'
+import { ThreeView, THREE } from 'uweb/three'
+import { Safe, Delay } from 'utils/web'
 
 const { useEffect, useState, useRef } = React
 const { Title, Text } = Typography
 
-const Style = createGlobalStyle``
+const Style = createGlobalStyle`
+    #render_1 > div {
+        left: 50% !important;
+        margin-left: -40px;
+    }
+`
 
 export const MiddleInfo = (cfg: iArgs) => {
 
@@ -48,6 +53,7 @@ export const MiddleInfo = (cfg: iArgs) => {
             simulate: true,
             axesHelper: true,
             polrHelper: true,
+            stats: null,
         })
 
         ref.current.onReady(() => { })
@@ -64,6 +70,8 @@ export const MiddleInfo = (cfg: iArgs) => {
     const ca = colorize(Number(status.DIF), [12.5, 10, 7.5, 5, 2.5])
 
     return <Layout style={{ border: '2px solid red', left: '50%', top: '50%', position: 'absolute', textShadow: '0px 2px 3px #000', width: `${w}px`, height: `${h}px`, marginLeft: `-${w / 2 + 2}px`, marginTop: `-${h / 2 + 2}px`, padding: 0, zIndex: 1 }}>
+
+        <Style />
 
         <Layout id="center-view" style={{ width: '100%', height: '100%' }}></Layout>
 

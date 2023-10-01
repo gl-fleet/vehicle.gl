@@ -1,5 +1,6 @@
 import { React } from 'uweb'
 import { MapView, maptalks } from 'uweb/maptalks'
+import { Formats } from 'maptalks.formats'
 const { useEffect, useState, useRef } = React
 
 export const mapHook = ({ containerId, isDarkMode, conf }: {
@@ -17,6 +18,9 @@ export const mapHook = ({ containerId, isDarkMode, conf }: {
             containerId,
             isDarkMode,
             simulate: false,
+            animateDuration: 250,
+            // urlTemplate: 'http://c.tile.openstreetmap.org/{z}/{x}/{y}.png',
+            urlTemplate: 'https://c.tile-cyclosm.openstreetmap.fr/cyclosm/{z}/{x}/{y}.png',
             ...conf,
         })
 
@@ -24,22 +28,24 @@ export const mapHook = ({ containerId, isDarkMode, conf }: {
 
             setReady(true)
 
-            /* Formats.osm('uhg.osm', (err: any, geojson: any) => {
+            /* Formats.osm('map.osm', (err: any, geojson: any) => {
                 new maptalks.VectorLayer('osm', geojson).addTo(ref.current.map)
             }) */
 
             /* var imageLayer = new maptalks.ImageLayer('images', [
                 {
-                    url: 'map.jpg',
+                    url: 'map.png',
                     extent: [
-                        105.4393104965784,
-                        43.64676156188404,
-                        105.58264774633426,
-                        43.71038836371723,
+                        105.44454645247312,
+                        43.64793879136907,
+                        105.58788370222896,
+                        43.70467742127167,
                     ],
                     opacity: 0.5
                 }
             ])
+
+            imageLayer.setZIndex(-1)
 
             ref.current.map.addLayer(imageLayer) */
 

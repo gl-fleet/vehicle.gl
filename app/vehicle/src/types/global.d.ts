@@ -3,7 +3,7 @@ import { Connection } from 'unet/web'
 
 declare global {
 
-    declare module 'maptalks.formats'
+    type tPoint = { x: number, y: number, z: number }
 
     interface iArgs {
 

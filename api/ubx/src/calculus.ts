@@ -14,9 +14,7 @@ export class Calculus {
 
         const { gps1, gps2, offset } = config
 
-        this.settings = {
-            rightFar: 50,
-        }
+        // this.settings = { rightFar: 50 }
         this.config = {
             left: Number(gps1[2]),
             right: Number(gps2[2]),
@@ -45,7 +43,7 @@ export class Calculus {
             const toRight = Number(this.config.offset?.y ?? '0') / 100
             const toTop = Number(this.config.offset?.z ?? '0') / 100
             const hightDiff = Math.abs(left - right)
-            const far = Number(this.settings.rightFar ?? '50')
+            // const far = Number(this.settings.rightFar ?? '50')
 
             /* LEFT */ const A = { x: gps1.est, y: gps1.nrt, z: gps1.ele - (left > right ? hightDiff : 0) }
             /* RIGH */ const B = { x: gps2.est, y: gps2.nrt, z: gps2.ele - (right > left ? hightDiff : 0) }
@@ -90,15 +88,15 @@ export class Calculus {
                     front: [LL_TM.lat, LL_TM.lng, TM.z],
                     back: [LL_BM.lat, LL_BM.lng, BM.z],
                 },
-                camera: {
+                /* camera: {
                     back: this.findPointInVector(TM, BM, far),
                     right: this.findPointInVector(TM, TR, far),
                     top: { ...this.findPointInVector(MP, BP, 0.001), z: this.findPointInVector(MP, BP, 0.001).z + far },
-                },
+                }, */
                 A, B, M, C, D,
-                BL, BM, BR,
                 TL, TM, TR,
                 MP,
+                BL, BM, BR,
                 left, right, width, height, hightDiff,
                 toFront, toRight, toTop,
             }
