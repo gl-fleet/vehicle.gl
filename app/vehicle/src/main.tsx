@@ -38,10 +38,8 @@ export default (cfg: iArgs) => {
 
             const { A, B, TL, TR, MP, camera, coords } = arg
 
-            camera.right = camera_angle(arg)
-
             true ? Maptalks.map.setCenter([coords.front[1], coords.front[0]]) : Maptalks.view('TOP', arg)
-            Three.view('RIGHT', arg)
+            Three.view('RIGHT', { ...arg, camera: { right: camera_angle(arg) } })
             Vehicle.update(arg)
 
             point.update('left', 'red', [A.x, A.y, A.z])
