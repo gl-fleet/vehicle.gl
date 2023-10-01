@@ -10,7 +10,7 @@ import { EventEmitter } from "events"
 
 const proxy = Win.location.origin
 const remote = 'https://u002-gantulgak.as1.pitunnel.com/'
-const debug = false
+const debug = true
 
 const cfg: iArgs = {
     event: new EventEmitter(),

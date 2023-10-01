@@ -1,8 +1,10 @@
 import { Safe, Jfy, Sfy, Loop, Delay, decodeENV, log, env } from 'utils'
 import { Host, NetClient } from 'unet'
 import { Serial, F9P_Parser } from 'ucan'
+
 import { Calculus } from './calculus'
 import { MoveDetect } from './movement'
+import { run_process } from './process'
 
 log.success(``) && log.success(`"${env.npm_package_name}" module is running on "${process.pid}" 🚀🚀🚀`)
 
@@ -93,5 +95,8 @@ Safe(() => {
         }
 
     }, 100)
+
+    /** Helper services */
+    run_process()
 
 })

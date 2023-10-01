@@ -4,6 +4,7 @@ import { Delay, log } from 'utils/web'
 
 import { MapView } from 'uweb/maptalks'
 import { THREE, ThreeView } from 'uweb/three'
+import { Safe } from 'utils'
 
 export type tItem = {
     Layer: string
@@ -164,8 +165,22 @@ export class Triangle {
     }
 
     removeAll = () => {
-        this.GroupThree.traverse((child: any) => { this.GroupThree.remove(child) })
-        this.GroupMaptalks.traverse((child: any) => { this.GroupMaptalks.remove(child) })
+
+        try {
+
+            const tNodes: any = []
+            const mNodes: any = []
+
+            this.GroupThree.traverse((child: any) => { tNodes.push(child) })
+            tNodes.forEach((node: any) => { node.removeFromParent() })
+
+            this.GroupMaptalks.traverse((child: any) => { mNodes.push(child) })
+            mNodes.forEach((node: any) => { node.removeFromParent() })
+
+        } catch (err: any) {
+            log.error(`[Triangle]: RemoveAll / ${err.message}`)
+        }
+
     }
 
     updateAll = (rows: tItem[]) => {
@@ -236,21 +251,35 @@ export class LineString {
     }
 
     removeAll = () => {
+
         try {
-            this.Three && this.GroupThree.traverse((child: any) => { this.GroupThree.remove(child) })
-            this.Maptalks && this.GroupMaptalks.traverse((child: any) => { this.GroupMaptalks.remove(child) })
-        } catch (err) { }
+
+            const tNodes: any = []
+            const mNodes: any = []
+
+            this.GroupThree.traverse((child: any) => { tNodes.push(child) })
+            tNodes.forEach((node: any) => { node.removeFromParent() })
+
+            this.GroupMaptalks.traverse((child: any) => { mNodes.push(child) })
+            mNodes.forEach((node: any) => { node.removeFromParent() })
+
+        } catch (err: any) {
+            log.error(`[LineString]: RemoveAll / ${err.message} [${typeof this.GroupThree},${typeof this.GroupMaptalks}]`)
+        }
+
     }
 
     updateAll = (rows: tItem[]) => {
 
+        this.removeAll()
+
         this.Three && this.Three.scene.remove(this.GroupThree)
         this.Maptalks && this.Maptalks.threeLayer.removeMesh(this.GroupMaptalks)
-        this.removeAll()
 
         this.add(rows)
         this.Three && this.Three.scene.add(this.GroupThree)
         this.Maptalks && this.Maptalks.threeLayer.addMesh(this.GroupMaptalks)
+
     }
 
 }
