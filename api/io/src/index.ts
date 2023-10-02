@@ -12,8 +12,15 @@ log.success(`"${env.npm_package_name}" <${version}> module is running on "${proc
 Safe(async () => {
 
     const api = new Host({ name })
-    const core = new Connection({ name: 'io', proxy })
+    const core = new Connection({ name: 'io', proxy, token: me })
     const sequelize = new Sequelize({ dialect: 'sqlite', storage: '../../data.sqlite', logging: (msg) => debug === 'true' && log.info(`SQLITE: ${msg}`) })
+
+    api.on('cloud:volatile', ({ body }: any) => {
+
+        const { channel, data } = body
+        core.emit(channel, data, true)
+
+    })
 
     await sequelize.authenticate()
 
