@@ -13,6 +13,7 @@ export const TopLeft = (cfg: iArgs) => {
 
         const icons: any = {
             tick: <CodeSandboxOutlined />,
+            tick_map: <CodeSandboxOutlined />,
             file: <FolderOpenOutlined />,
         }
 

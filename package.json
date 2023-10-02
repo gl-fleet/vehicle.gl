@@ -1,6 +1,6 @@
 {
   "name": "org",
-  "version": "0.0.28",
+  "version": "0.0.29",
   "license": "MIT",
   "private": true,
   "scripts": {
@@ -18,7 +18,7 @@
     "app/*"
   ],
   "dependencies": {
-    "ubin": "upacks/ubin#1.0.7",
+    "ubin": "upacks/ubin#1.1.4",
     "ucan": "upacks/ucan#1.0.4",
     "unet": "upacks/unet#1.1.17",
     "utils": "upacks/utils#1.1.4",

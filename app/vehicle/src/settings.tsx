@@ -4,7 +4,7 @@ import { FolderOutlined, ReloadOutlined } from '@ant-design/icons'
 const { useEffect, useState } = React
 const { Title, Text } = Typography
 
-export default ({ io: { io }, event, isDarkMode }: iArgs) => {
+export default ({ io: { io }, event }: iArgs) => {
 
     const [list, setList] = useState({ loading: false, data: [] })
     const getList = () => setList(() => {

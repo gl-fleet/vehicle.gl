@@ -55,6 +55,8 @@ const getIcon = (t: iMessage) => {
     return c[t] ?? <ExclamationCircleOutlined style={style} />
 }
 
+const f = (n: number, d: number = 2) => typeof n === 'number' ? n.toFixed(d) : '0.00'
+
 export const DeviceListView = (cfg: iArgs) => {
 
     const [gsm, setGSM] = useState({ state: 'loading', message: 'Loading ...', data: null })
@@ -95,7 +97,7 @@ export const DeviceListView = (cfg: iArgs) => {
                         : <>
                             <Text>GPS-1: </Text>
                             <Text style={{ color: gps1.data.vco }}>{(gps1.data.fix ?? '').toUpperCase()}</Text>
-                            <Text> / {gps1.data.est} / {gps1.data.nrt} / {gps1.data.ele} / V_{gps1.data.vac} H_{gps1.data.hac} / </Text>
+                            <Text> / {f(gps1.data.est)} / {f(gps1.data.nrt)} / {f(gps1.data.ele)} / V_{f(gps1.data.vac, 1)} H_{f(gps1.data.hac, 1)} / </Text>
                             <Text style={{ color: '#1668dc' }}>{gps1.data.sat}sats</Text>
                         </>,
                 },
@@ -106,7 +108,7 @@ export const DeviceListView = (cfg: iArgs) => {
                         : <>
                             <Text>GPS-2: </Text>
                             <Text style={{ color: gps2.data.vco }}>{(gps2.data.fix ?? '').toUpperCase()}</Text>
-                            <Text> / {gps2.data.est} / {gps2.data.nrt} / {gps2.data.ele} / V_{gps2.data.vac} H_{gps2.data.hac} / </Text>
+                            <Text> / {f(gps2.data.est)} / {f(gps2.data.nrt)} / {f(gps2.data.ele)} / V_{f(gps2.data.vac, 1)} H_{f(gps2.data.hac, 1)} / </Text>
                             <Text style={{ color: '#1668dc' }}>{gps2.data.sat}sats</Text>
                         </>,
                 },

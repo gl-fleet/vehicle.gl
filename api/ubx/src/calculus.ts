@@ -14,7 +14,6 @@ export class Calculus {
 
         const { gps1, gps2, offset } = config
 
-        // this.settings = { rightFar: 50 }
         this.config = {
             left: Number(gps1[2]),
             right: Number(gps2[2]),

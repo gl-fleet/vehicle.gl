@@ -1,16 +1,17 @@
 import { React, Render } from 'uweb'
 import { Connection } from 'unet/web'
-import { UTM } from 'uweb/utils'
+import { EventEmitter } from "events"
 import { Safe, Loop, Win, Doc, KeyValue, log } from 'utils/web'
 
 import Main from './main'
 import Settings from './settings'
 
-import { EventEmitter } from "events"
-
+const { name, version, mode } = Win.env
+const debug = mode === 'development'
 const proxy = Win.location.origin
 const remote = 'https://u002-gantulgak.as1.pitunnel.com/'
-const debug = true
+
+log.success(`${mode}: ${name} ${version}`)
 
 const cfg: iArgs = {
     event: new EventEmitter(),
@@ -31,6 +32,11 @@ cfg.io.ubx.on('RTCM', (args: any) => cfg.event.emit('RTCM', args))
 
 cfg.io.ubx.on('GPS-calc', (arg: any) => cfg.event.emit('GPS-calc', arg))
 
+const main = ({ isDarkMode }: { isDarkMode: boolean }) => <Main {...cfg} isDarkMode={isDarkMode} />
+const settings = ({ isDarkMode }: { isDarkMode: boolean }) => <Settings {...cfg} isDarkMode={isDarkMode} />
+
+Render(main, settings, { maxWidth: '100%' })
+
 /* Loop(() => {
 
     const utm = [541117.5903320312, 4837981.773193359, 1548.672485351562]
@@ -44,21 +50,3 @@ cfg.io.ubx.on('GPS-calc', (arg: any) => cfg.event.emit('GPS-calc', arg))
     })
 
 }, 500) */
-
-cfg.io.ubx.on('connect', () => { log.success('[Connected]') })
-cfg.io.ubx.on('disconnect', () => { log.warn('[Disconnected]') })
-cfg.io.ubx.on('connect_error', () => { log.error('[Connection:Error]') })
-
-const main = ({ isDarkMode }: { isDarkMode: boolean }) => {
-
-    return <Main {...cfg} isDarkMode={isDarkMode} />
-
-}
-
-const settings = ({ isDarkMode }: { isDarkMode: boolean }) => {
-
-    return <Settings {...cfg} isDarkMode={isDarkMode} />
-
-}
-
-Render(main, settings, { maxWidth: '100%' })

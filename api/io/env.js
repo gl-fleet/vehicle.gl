@@ -1,0 +1,1 @@
+var env = {"name":"io","mode":"development","proxy":"http://139.59.115.158","version":"1.0.1","replication_debug":"true","sequelize_debug":"true","me":"SV01"}

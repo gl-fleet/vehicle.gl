@@ -1,6 +1,7 @@
 import { React, Row, Col } from 'uweb'
-import { Loop, Delay, Safe, log } from 'utils/web'
-import { Point } from 'uweb/utils'
+import { Win, Loop, Delay, Safe, log } from 'utils/web'
+import { Tick, Point } from 'uweb/utils'
+import { createGlobalStyle } from 'styled-components'
 
 import { mapHook } from './hooks/map'
 import { threeHook } from './hooks/three'
@@ -13,6 +14,12 @@ import { TopLeft } from './views/topleft'
 import { camera_angle } from './utils/geometry'
 
 const { useEffect, useState, useRef } = React
+
+const n = Win.env.mode === 'development' ? [1, 0.75] : [0, 1]
+const Style = createGlobalStyle`
+    html, body { 
+        filter: grayscale(${n[0]}) brightness(${n[1]});
+    }`
 
 export default (cfg: iArgs) => {
 
@@ -30,15 +37,17 @@ export default (cfg: iArgs) => {
 
         const point = new Point({ Maptalks, Three })
 
-        Three.on('tick', (s: any) => {
-            event.emit('alert', { key: 'tick', message: s, onclose: 'tick-back' })
-        })
+        const tick = new Tick()
+        Three.on('tick', (s: any) => event.emit('alert', { key: 'tick', message: s, onclose: 'tick-back' }))
+        tick.on((s: number) => event.emit('alert', { key: 'tick_map', message: s > 0 ? `Will automatically reposition camera in ${s} seconds` : '', onclose: 'tick-back' }))
 
         event.on('GPS-calc', (arg: any) => {
 
-            const { A, B, TL, TR, MP, camera, coords } = arg
+            const { A, B, TL, TR, MP, coords } = arg
 
-            true ? Maptalks.map.setCenter([coords.front[1], coords.front[0]]) : Maptalks.view('TOP', arg)
+            if (Maptalks.map.isInteracting()) tick.set(10)
+            tick.can() && Maptalks.map.setCenter([coords.front[1], coords.front[0]])
+
             Three.view('RIGHT', { ...arg, camera: { right: camera_angle(arg) } })
             Vehicle.update(arg)
 
@@ -53,6 +62,8 @@ export default (cfg: iArgs) => {
     }, [isVehicleReady])
 
     return <Row id="main" style={{ height: '100%' }}>
+
+        <Style />
 
         <Col id='render_0' span={12} style={{ height: '100%' }} />
         <Col id='render_1' span={12} style={{ height: '100%' }} />

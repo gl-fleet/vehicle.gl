@@ -27,13 +27,8 @@ export const dxfHook = (
         const Polygon = new Triangle({ Maptalks, Three })
         const Lines = new LineString({ Maptalks, Three })
 
-
         event.on('GPS-calc', (arg: any) => {
-
-            Polygon.ray(arg.MP, ({ distance }: any) => {
-                event.emit('raycast', distance)
-            })
-
+            Polygon.ray(arg.MP, ({ distance }: any) => event.emit('raycast', distance))
         })
 
         event.on('dxf-geojson', (name) => {
@@ -47,11 +42,11 @@ export const dxfHook = (
 
                     setState(true, `[${name}]: Rendering ...`)
                     const { polygons, linestrings } = GeojsonParser(data)
+
                     Polygon.updateAll(polygons)
                     Lines.updateAll(linestrings)
 
                     Delay(() => setState(false, err ? `[${name}]: ${err.message}` : ''), 250)
-
                     event.emit('alert', { key: 'file', type: err ? 'error' : 'success', message: `File ${name} ${err ? err.message : 'is loaded'}` })
 
                 } catch (err: any) {
