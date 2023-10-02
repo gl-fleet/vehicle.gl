@@ -9,11 +9,6 @@ import { initHistory } from './history'
 const { name, version, mode, me, proxy, debug } = decodeENV()
 log.success(`"${env.npm_package_name}" <${version}> module is running on "${process.pid}" / [${mode}] 🚀🚀🚀\n`)
 
-import fs from 'fs'
-const file = `var env = ${Sfy(decodeENV())}`
-fs.writeFileSync('./env.js', file)
-console.log(file)
-
 Safe(async () => {
 
     const api = new Host({ name })

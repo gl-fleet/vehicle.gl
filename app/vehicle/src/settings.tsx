@@ -8,8 +8,10 @@ export default ({ io: { io }, event }: iArgs) => {
 
     const [list, setList] = useState({ loading: false, data: [] })
     const getList = () => setList(() => {
-        io.pull('get-chunks-distinct', {}, (e: any, data: []) => setList({ loading: false, data: data ?? [] }))
+
+        io.poll('get-chunks-distinct', {}, (e: any, data: []) => setList({ loading: false, data: data ?? [] }))
         return { loading: true, data: [] }
+
     })
 
     useEffect(() => {
@@ -53,6 +55,7 @@ export default ({ io: { io }, event }: iArgs) => {
     ]
 
     return <Collapse items={[
+
         {
             key: '1',
             label: 'Design Files',
@@ -69,6 +72,7 @@ export default ({ io: { io }, event }: iArgs) => {
             label: 'Configuration',
             children: <Text type="warning">Permission denied!</Text>,
         },
+
     ]} bordered={false} defaultActiveKey={['1']} />
 
 }

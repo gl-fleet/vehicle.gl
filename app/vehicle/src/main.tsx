@@ -15,7 +15,7 @@ import { camera_angle } from './utils/geometry'
 
 const { useEffect, useState, useRef } = React
 
-const n = Win.env.mode === 'development' ? [1, 0.75] : [0, 1]
+const n = Win.env.mode === 'development' ? [0.1, 0.9] : [0, 1]
 const Style = createGlobalStyle`
     html, body { 
         filter: grayscale(${n[0]}) brightness(${n[1]});

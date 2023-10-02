@@ -1,4 +1,4 @@
-import { Safe, Jfy, Sfy, Loop, Delay, decodeENV, log, env } from 'utils'
+import { Since, Safe, Jfy, Sfy, Loop, Delay, decodeENV, moment, log, env, dateFormat } from 'utils'
 import { Host, NetClient } from 'unet'
 import { Serial, F9P_Parser } from 'ucan'
 
@@ -69,6 +69,21 @@ Safe(() => {
 
     /** GPS-Parser-Initialize **/
     let prev = ''
+    const since = new Since(1000)
+
+    since.call(() => Safe(async () => {
+
+        /* const obj: any = {}
+        const sockets = await API.io.local.fetchSockets()
+        for (const x of sockets) {
+            log.warn(` -> ${x.handshake.headers.origin} / ${Date.now() - x.handshake.issued}`)
+            console.log(x.handshake)
+        } */
+
+    }))
+
+    Loop(() => since.add(), 2500)
+
     Loop(() => {
 
         let { gps1, gps2 } = GPS
@@ -90,6 +105,7 @@ Safe(() => {
         if (gps1.vac <= VAC && gps2.vac <= VAC) {
 
             calculated && API.emit('GPS-calc', calculated)
+            calculated && since.add()
             isMoved && API.emit('GPS-moved-calc', calculated)
 
         }

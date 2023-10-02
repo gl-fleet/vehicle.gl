@@ -1,7 +1,8 @@
 import { Host, Connection, ReplicaSlave } from 'unet'
 import { Sequelize, DataTypes } from 'sequelize'
-import { SequelTable } from './utils/sequel'
+import { SequelTable, Responsive } from './utils/sequel'
 import { Chunk } from './utils/merger'
+import { Loop, log } from 'utils'
 
 export const initChunks = (
 
@@ -48,6 +49,9 @@ export const initChunks = (
         where: { deletedAt: null }, order: [['updatedAt', 'DESC']],
         group: 'name',
     }))
+
+    /** Notification */
+    List.uchange(() => io.emit('get-chunks-distinct', true), 1000)
 
     return { List, RepChunks }
 
