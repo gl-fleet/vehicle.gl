@@ -1,6 +1,5 @@
 import { React } from 'uweb'
 import { ThreeView } from 'uweb/three'
-import { log, Delay, Safe } from 'utils/web'
 const { useEffect, useState, useRef } = React
 
 export const threeHook = ({ containerId, isDarkMode, conf }: {
@@ -23,9 +22,7 @@ export const threeHook = ({ containerId, isDarkMode, conf }: {
             ...conf,
         })
 
-        ref.current.onReady(() => {
-            setReady(true)
-        })
+        ref.current.onReady(() => setReady(true))
 
     }, [])
 

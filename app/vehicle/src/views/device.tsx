@@ -1,4 +1,6 @@
 import { React, Typography, Progress, Timeline } from 'uweb'
+import { ColorR2G } from 'uweb/utils'
+import { createGlobalStyle } from 'styled-components'
 import {
     CheckCircleOutlined,       // Success
     CheckOutlined,             // Info
@@ -6,10 +8,9 @@ import {
     CloseCircleOutlined,       // Error
     SyncOutlined,              // Loading
 } from '@ant-design/icons'
-import { createGlobalStyle } from 'styled-components'
 
 const { useEffect, useState } = React
-const { Title, Text } = Typography
+const { Text } = Typography
 
 const Style = createGlobalStyle`
     .ant-timeline > li {
@@ -66,11 +67,15 @@ export const DeviceListView = (cfg: iArgs) => {
 
     useEffect(() => {
 
-        const { event } = cfg
-        event.on('GSM', ({ state, message, data }) => setGSM({ state, message, data }))
-        event.on('GPS1', ({ state, message, data }) => setGPS1({ state, message, data }))
-        event.on('GPS2', ({ state, message, data }) => setGPS2({ state, message, data }))
-        event.on('RTCM', ({ state, message }) => setRTCM({ state, message }))
+        cfg.event.on('stream', (args: any) => {
+
+            const { data_gps1, data_gps2, data_gsm, data_rtcm } = args
+            typeof data_gps1 !== 'undefined' && setGPS1(data_gps1)
+            typeof data_gps2 !== 'undefined' && setGPS2(data_gps2)
+            typeof data_rtcm !== 'undefined' && setRTCM(data_rtcm)
+            typeof data_gsm !== 'undefined' && setGSM(data_gsm)
+
+        })
 
     }, [])
 
@@ -85,9 +90,9 @@ export const DeviceListView = (cfg: iArgs) => {
                     children: gsm.state !== 'success' ? <Text style={{ color: getColor(gsm.state) }}>{gsm.message}</Text>
                         : <Text>
                             <Text>Network: </Text>
-                            <Text style={{ color: '#52c41a' }}>{gsm.data.operator}</Text>
+                            <Text style={{ color: '#52c41a' }}>{gsm.operator ?? ''}</Text>
                             <Text> / </Text>
-                            <Text><Progress percent={gsm.data.quality} steps={5} /></Text>
+                            <Text><Progress percent={gsm.quality} steps={5} strokeColor={ColorR2G(gsm.quality, [30, 50, 70, 90, 100])} /></Text>
                         </Text>,
                 },
                 {

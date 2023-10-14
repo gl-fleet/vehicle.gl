@@ -1,6 +1,15 @@
-import { Host, NetServer, NetClient } from 'unet'
+import { Host, Connection, NetServer, NetClient } from 'unet'
 import { Serial, F9P_Parser } from 'ucan'
-import { Safe, Jfy, Sfy, Loop, Delay, env, log } from 'utils'
+import { decodeENV, Safe, Jfy, Sfy, Loop, Delay, env, log } from 'utils'
+
+
+const { name, version, mode } = decodeENV()
+log.success(`"${env.npm_package_name}" <${version}> module is running on "${process.pid}" / [${mode}] 🚀🚀🚀\n`)
+
+const DEV = mode === 'development', PROD = !DEV
+const API = new Host({ name: 'gsm' })
+const API_DATA = new Connection({ name: 'data', timeout: 500 })
+const publish = (channel: string, data: any) => Safe(async () => await API_DATA.set(channel, data))
 
 const AT_BEAUTIFY = (s: string) => {
 
@@ -20,18 +29,26 @@ const AT_BEAUTIFY = (s: string) => {
 
 }
 
-Safe(() => {
+DEV && Safe(() => { /** Simulate from remote **/
 
-    log.success(``) && log.success(`"${env.npm_package_name}" module is running on "${process.pid}" 🚀🚀🚀`)
+    const remote = 'https://u002-gantulgak.as1.pitunnel.com/'
+    const pi = new Connection({ name: 'gsm', proxy: remote })
+    pi.on('GSM', ({ data }: any) => {
+        API.emit('GSM', { state: 'success', type: 'success', message: `Network connected!`, data })
+        publish('data_gsm', { state: 'success', type: 'success', message: 'Network connected!', data })
+    })
+
+})
+
+PROD && Safe(() => {
 
     const cf = { path: '/dev/ttyS0', baud: 115200 }
-    const API = new Host({ name: 'gsm' })
     const GSM = new Serial()
     const LOG: any = log
 
     GSM.start(cf.path, cf.baud)
 
-    GSM.onInfo = (t, { type, message }) => LOG[type](message) && API.emit('GSM', { state: t, type, message })
+    GSM.onInfo = (t, { type, message }) => LOG[type](message) && publish('data_gsm', { state: t, type, message })
 
     GSM.on((chunk: any) => Safe(() => {
 
@@ -42,7 +59,7 @@ Safe(() => {
 
             const parsed = AT_BEAUTIFY(chunk)
             log.res(`Serial[GSM]: ${chunk} / ${Sfy(parsed ?? {})}`)
-            parsed && API.emit('GSM', { state: 'success', type: 'success', message: `Network connected!`, data: parsed })
+            parsed && publish('data_gsm', { state: 'success', type: 'success', message: `Network connected!`, data: parsed })
 
         }
 

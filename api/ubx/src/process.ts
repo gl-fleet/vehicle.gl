@@ -1,16 +1,12 @@
-import { Host, Connection, ReplicaSlave } from 'unet'
-import { Safe, log } from 'utils'
+import { log } from 'utils'
 
-/** 
- * The Process is used for generating required information based on raw data
- * **/
+type tChannel = 'update'
 
-export const run_process = () => Safe(() => {
+export class ProcessActivity {
 
-    // const remote = 'https://u002-gantulgak.as1.pitunnel.com/'
-    const UBX = new Connection({ name: 'ubx' })
+    public cbs: any = {}
 
-    const action: any = {
+    public action: any = {
         state: 'unknown',
         temp: 'started',
         size: 12,
@@ -21,7 +17,29 @@ export const run_process = () => Safe(() => {
         points: [],
     }
 
-    UBX.on('live-raw', ({ gps1, gps2 }: any) => {
+    constructor(conf: any) {
+        this.action = {
+            ...this.action,
+            ...conf,
+        }
+    }
+
+    on = (key: tChannel, cb: any) => {
+
+        this.cbs[key] = cb
+
+    }
+
+    emit = (key: tChannel, values: any): boolean => {
+
+        try {
+            if (typeof this.cbs[key] === 'undefined') return true
+            return this.cbs[key](values)
+        } catch { return false }
+
+    }
+
+    add = (gps: any) => {
 
         const getCardinalDirection = (angle: any) => {
             const directions = ['↑', '↗', '→', '↘', '↓', '↙', '←', '↖']
@@ -36,32 +54,32 @@ export const run_process = () => Safe(() => {
             }
         }
 
-        const angleOpposite = (n: number) => Math.abs(n - 180)
-        const angleDistance = (a: number, b: number) => Math.min(Math.abs(b - a), Math.abs((b + 360) - a))
         const angleAverage = (a: any, b: any) => ((a + b) / 2 + (Math.abs(b - a) > 180 ? 180 : 0)) % 360
 
-        action.points.push({
-            x: gps1.est,
-            y: gps1.nrt,
-            z: gps1.ele,
-            h: gps1.deg,
-            s: gps1.spd,
+        this.action.points.push({
+            x: gps.est,
+            y: gps.nrt,
+            z: gps.ele,
+            h: gps.deg,
+            s: gps.spd,
         })
 
-        const len = action.points.length
+        const len = this.action.points.length
 
-        if (action.points[len - 2] && action.points[len - 1]) { action.points[len - 1].d = getDistance(action.points[len - 2], action.points[len - 1]) }
+        if (this.action.points[len - 2] && this.action.points[len - 1]) {
+            this.action.points[len - 1].d = getDistance(this.action.points[len - 2], this.action.points[len - 1])
+        }
 
-        if (action.points.length > action.size) {
+        if (this.action.points.length > this.action.size) {
 
-            action.points.shift()
+            this.action.points.shift()
 
-            const { avg1, avg2, points, size, span, speed } = action
+            const { avg1, avg2, points, size, span, speed } = this.action
 
             avg1.s = 0, avg1.h = -1, avg1.z = 0, avg1.d = 0
             avg2.s = 0, avg2.h = -1, avg2.z = 0, avg2.d = 0
 
-            for (let i = 0; i < action.span; i++) {
+            for (let i = 0; i < this.action.span; i++) {
                 avg1.s += points[i].s
                 avg1.h = avg1.h >= 0 ? angleAverage(avg1.h, points[i].h) : points[i].h
                 avg1.z += points[i].z
@@ -72,7 +90,7 @@ export const run_process = () => Safe(() => {
             avg1.z = avg1.z / span
             avg1.d = avg1.d / span
 
-            for (let i = action.span; i < action.size; i++) {
+            for (let i = this.action.span; i < this.action.size; i++) {
                 avg2.s += points[i].s
                 avg2.h = avg2.h >= 0 ? angleAverage(avg2.h, points[i].h) : points[i].h
                 avg2.z += points[i].z
@@ -85,22 +103,22 @@ export const run_process = () => Safe(() => {
 
             const sym = getCardinalDirection(avg1.h) + getCardinalDirection(avg2.h)
 
-            if (avg1.s < speed.low && avg2.s > speed.high) { action.state = `speed_increasing [${sym}]` }
-            if (avg1.s > speed.high && avg2.s < speed.low) { action.state = `speed_decreasing [${sym}]` }
-            if (avg1.s < speed.low && avg2.s < speed.low) { action.state = `stopped [${sym}]` }
-            if (avg1.s > speed.high && avg2.s > speed.high) { action.state = `moving [${sym}]` }
+            if (avg1.s < speed.low && avg2.s > speed.high) { this.action.state = `speed_increasing [${sym}]` }
+            if (avg1.s > speed.high && avg2.s < speed.low) { this.action.state = `speed_decreasing [${sym}]` }
+            if (avg1.s < speed.low && avg2.s < speed.low) { this.action.state = `stopped [${sym}]` }
+            if (avg1.s > speed.high && avg2.s > speed.high) { this.action.state = `moving [${sym}]` }
 
-            if (action.state.indexOf(action.temp) === -1) {
+            if (this.action.state.indexOf(this.action.temp) === -1) {
 
-                const x = gps1.est, y = gps1.nrt, z = gps1.ele, h = gps1.deg, s = gps1.spd
-                /** State, East, North, Elevation, Heading, Speed **/
-                log.info(`[process] -> ${action.state},${x},${y},${z},${h},${s}`)
-                action.temp = action.state.split(' ')[0]
+                const x = gps.est, y = gps.nrt, z = gps.ele, h = gps.deg, s = gps.spd
+                log.warn(`[process] -> ${this.action.state},${x},${y},${z},${h},${s}`)
+                this.action.temp = this.action.state
+                this.emit('update', this.action)
 
             }
 
         }
 
-    })
+    }
 
-})
+}

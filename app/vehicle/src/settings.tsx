@@ -2,21 +2,18 @@ import { React, Table, Typography, Collapse, Button } from 'uweb'
 import { FolderOutlined, ReloadOutlined } from '@ant-design/icons'
 
 const { useEffect, useState } = React
-const { Title, Text } = Typography
+const { Text } = Typography
 
-export default ({ io: { io }, event }: iArgs) => {
+export default ({ api, event }: iArgs) => {
 
     const [list, setList] = useState({ loading: false, data: [] })
+
     const getList = () => setList(() => {
-
-        io.poll('get-chunks-distinct', {}, (e: any, data: []) => setList({ loading: false, data: data ?? [] }))
+        api.poll('get-chunks-distinct', {}, (e: any, data: []) => setList({ loading: false, data: data ?? [] }))
         return { loading: true, data: [] }
-
     })
 
-    useEffect(() => {
-        getList()
-    }, [])
+    useEffect(() => { getList() }, [])
 
     const columns = [
         {

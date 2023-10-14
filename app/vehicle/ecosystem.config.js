@@ -5,6 +5,9 @@ const env = encodeENV({
     name: pkg.name,
     version: pkg.version,
     mode: process.env.MODE,
+    tile: `${process.env.MODE === 'development' ?
+        'http://localhost:8443/tile/{z}/{x}/{y}.png' :
+        'http://10.3.141.1:8443/tile/{z}/{x}/{y}.png'}`
 })
 
 module.exports = {

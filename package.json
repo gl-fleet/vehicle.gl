@@ -1,13 +1,13 @@
 {
   "name": "org",
-  "version": "0.0.31",
+  "version": "0.0.32",
   "license": "MIT",
   "private": true,
   "scripts": {
     "start": "MODE=development nx run-many -t _serve",
+    "serve": "MODE=production nx run-many -t _serve",
     "build": "nx run-many -t build",
     "clear": "nx run-many -t clear",
-    "serve": "MODE=production nx run-many -t _serve",
     "stop": "nx run-many -t _stop",
     "delete": "nx run-many -t _delete",
     "release": "yarn version --patch && git add . && git push"
@@ -20,9 +20,9 @@
   "dependencies": {
     "ubin": "upacks/ubin#1.1.4",
     "ucan": "upacks/ucan#1.0.4",
-    "unet": "upacks/unet#1.1.19",
-    "utils": "upacks/utils#1.1.4",
-    "uweb": "upacks/uweb#1.1.16"
+    "unet": "upacks/unet#1.1.21",
+    "utils": "upacks/utils#1.1.5",
+    "uweb": "upacks/uweb#1.1.22"
   },
   "devDependencies": {
     "nx": "16.7.4"

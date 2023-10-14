@@ -4,7 +4,6 @@ import { Delay, log } from 'utils/web'
 
 import { MapView } from 'uweb/maptalks'
 import { THREE, ThreeView } from 'uweb/three'
-import { Safe } from 'utils'
 
 export type tItem = {
     Layer: string
@@ -25,7 +24,7 @@ export const GeojsonParser = (data: { features: any[] }) => {
 
         const { geometry, properties } = x
         const { type, coordinates } = geometry
-        const { Layer, SubClasses, EntityHandle } = properties
+        /* const { Layer, SubClasses, EntityHandle } = properties */
 
         type === 'LineString' && linestrings.push({ ...properties, Coords: coordinates })
         type === 'Polygon' && polygons.push({ ...properties, Coords: coordinates })
@@ -56,6 +55,9 @@ const stringToColour = (str: string) => {
 
 export class Triangle {
 
+    isM = false
+    isT = false
+
     Three
     Maptalks
     GroupThree = new THREE.Group()
@@ -72,7 +74,7 @@ export class Triangle {
 
     }
 
-    ray = ({ x, y, z }: any, cb: any) => {
+    ray = ([x, y, z]: number[], cb: any) => {
         try {
 
             /**
@@ -156,7 +158,7 @@ export class Triangle {
                 side: THREE.DoubleSide,
                 transparent: true,
                 opacity: 0.5,
-                color: "grey",
+                color: "orange",
             })
 
             group.add(new THREE.Mesh(geometry, material))

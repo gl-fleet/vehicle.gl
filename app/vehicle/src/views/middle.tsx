@@ -5,7 +5,6 @@ import { ThreeView, THREE } from 'uweb/three'
 import { Safe, Delay } from 'utils/web'
 
 const { useEffect, useState, useRef } = React
-const { Title, Text } = Typography
 
 const Style = createGlobalStyle`
     #render_1 > div {
@@ -39,12 +38,8 @@ export const MiddleInfo = (cfg: iArgs) => {
             setRay({ DIST: N(distance), DIR: distance >= 0 ? 'CUT ↓' : 'FILL ↑' })
         }))
 
-        event.on('GPS-calc', (arg: any) => Safe(() => {
-
-            const { dist3D, distFix } = arg.status
-            const difCM = Math.abs((dist3D * 100) - (distFix * 100)).toFixed(1)
-            setStatus({ EL: Number(arg.MP.z.toFixed(2)), DIF: difCM })
-
+        event.on('stream', ({ data_gps: { prec3d, utm } }) => Safe(() => {
+            setStatus({ EL: utm[2], DIF: prec3d })
         }))
 
         ref.current = new ThreeView({

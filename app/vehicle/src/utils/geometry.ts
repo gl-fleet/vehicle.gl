@@ -32,7 +32,7 @@ const camera_angles: any = {
 
     front_right_top: (far: number = 10, arg: any) => {
 
-        const { TL, TM, TR, BL, BM, BR } = arg
+        const { TM, TR, BM, BR } = arg
         const f_r = findPointInVector(TM, TR, far)
         const b_r = findPointInVector(BM, BR, far)
         const b_f = findPointInVector(b_r, f_r, far)
@@ -44,7 +44,7 @@ const camera_angles: any = {
 
     front_left_top: (far: number = 10, arg: any) => {
 
-        const { TL, TM, TR, BL, BM, BR } = arg
+        const { TL, TM, BL, BM } = arg
         const f_l = findPointInVector(TM, TL, far)
         const b_l = findPointInVector(BM, BL, far)
         const b_f = findPointInVector(b_l, f_l, far)
@@ -70,7 +70,7 @@ const camera_angles: any = {
 
     from_top: (far: number = 25, arg: any) => {
 
-        const { MP, BP, TM, BM } = arg
+        const { TM, BM } = arg
         return { ...findPointInVector(TM, BM, 0.001), z: findPointInVector(TM, BM, 0.001).z + far }
 
     }
@@ -117,9 +117,16 @@ export const camera_config = () => {
 
 }
 
-export const camera_angle = (arg: any) => {
+export const camera_angle = (arg: {
+
+    TL: number[], TM: number[], TR: number[],
+    BL: number[], BM: number[], BR: number[],
+
+}, asArray = false) => {
 
     const { type, far } = camera_config()
-    return camera_angles[views[type]](far, arg)
+    const c = camera_angles[views[type]](far, arg)
+    if (asArray) return [c.x, c.y, c.z]
+    else return c
 
 }

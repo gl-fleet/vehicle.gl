@@ -13,23 +13,15 @@ import { MiddleInfo } from './views/middle'
 import { TopLeft } from './views/topleft'
 import { camera_angle } from './utils/geometry'
 
-const { useEffect, useState, useRef } = React
-
-const n = Win.env.mode === 'development' ? [0.1, 0.9] : [0, 1]
-const Style = createGlobalStyle`
-    html, body { 
-        filter: grayscale(${n[0]}) brightness(${n[1]});
-    }`
-
 export default (cfg: iArgs) => {
 
     const { isDarkMode, event } = cfg
-    const [isMapReady, Maptalks] = mapHook({ containerId: 'render_0', isDarkMode, conf: { zoom: 20 } })
+    const [isMapReady, Maptalks] = mapHook({ containerId: 'render_0', isDarkMode, conf: { zoom: 19 } })
     const [isThreeReady, Three] = threeHook({ containerId: 'render_1', isDarkMode, conf: {} })
     const [isVehicleReady, Vehicle] = vehicleHook(isMapReady, Maptalks, isThreeReady, Three)
     const [dxf_loading, dxf_message] = dxfHook(cfg, isVehicleReady, Maptalks, Three)
 
-    useEffect(() => {
+    React.useEffect(() => {
 
         if (!isVehicleReady) return
 
@@ -38,32 +30,29 @@ export default (cfg: iArgs) => {
         const point = new Point({ Maptalks, Three })
 
         const tick = new Tick()
-        Three.on('tick', (s: any) => event.emit('alert', { key: 'tick', message: s, onclose: 'tick-back' }))
+        Three.on('tick', (s: any) => event.emit('alert', { key: 'tick_three', message: s, onclose: 'tick-back' }))
         tick.on((s: number) => event.emit('alert', { key: 'tick_map', message: s > 0 ? `Will automatically reposition camera in ${s} seconds` : '', onclose: 'tick-back' }))
 
-        event.on('GPS-calc', (arg: any) => {
+        event.on('stream', ({ data_gps }) => {
 
-            const { A, B, TL, TR, MP, coords } = arg
+            const { A, B } = data_gps
+            const { gps, utm, head } = data_gps
 
             if (Maptalks.map.isInteracting()) tick.set(10)
-            tick.can() && Maptalks.map.setCenter([coords.front[1], coords.front[0]])
+            tick.can() && Maptalks.map.setCenter(gps)
 
-            Three.view('RIGHT', { ...arg, camera: { right: camera_angle(arg) } })
-            Vehicle.update(arg)
+            Three.update(camera_angle(data_gps, true), utm)
+            Vehicle.update({ gps, utm, head })
 
             point.update('left', 'red', [A.x, A.y, A.z])
             point.update('right', 'blue', [B.x, B.y, B.z])
-            point.update('TL', 'orange', [TL.x, TL.y, TL.z])
-            point.update('MP', 'green', [MP.x, MP.y, MP.z])
-            point.update('TR', 'orange', [TR.x, TR.y, TR.z])
+            point.update('origin', 'green', utm)
 
         })
 
     }, [isVehicleReady])
 
     return <Row id="main" style={{ height: '100%' }}>
-
-        <Style />
 
         <Col id='render_0' span={12} style={{ height: '100%' }} />
         <Col id='render_1' span={12} style={{ height: '100%' }} />
