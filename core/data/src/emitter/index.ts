@@ -139,8 +139,17 @@ export class Emitter {
     })
 
     parser_gsm = (e: any) => wr(() => ({
-        local: { state: e.state, quality: e.data.quality, message: e.message },
-        cloud: { state: e.state, quality: e.data.quality },
+        local: {
+            state: e.state,
+            quality: e.data.quality,
+            operator: e.data.operator,
+            message: e.message,
+        },
+        cloud: {
+            state: e.state,
+            quality: e.data.quality,
+            operator: e.data.operator,
+        },
     }))
 
     parser_rtcm = (e: any) => wr(() => ({

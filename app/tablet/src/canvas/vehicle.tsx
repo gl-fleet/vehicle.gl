@@ -1,0 +1,41 @@
+import { MapView } from 'uweb/maptalks'
+import { ThreeView } from 'uweb/three'
+import { Vehicle, Toyota, Drill, Dozer } from 'uweb/utils'
+import { Win } from 'utils/web'
+
+export class Vehicles {
+
+    public can: Vehicle | undefined
+    public ready = false
+    public cb = (sms: string) => null
+
+    constructor(Maptalks: MapView, Three: ThreeView) {
+
+        const { type, body } = Win.env
+
+        let GLTF: any = null
+        GLTF = type === 'Toyota' ? Toyota : GLTF
+        GLTF = type === 'Drill' ? Drill : GLTF
+        GLTF = type === 'Dozer' ? Dozer : GLTF
+
+        const args: any = {
+            size: Number(body[0]) ?? null,
+            x: Number(body[1]) ?? null,
+            y: Number(body[2]) ?? null,
+            z: Number(body[3]) ?? null,
+        }
+
+        GLTF !== null && GLTF(args).then((Truck: any) => {
+
+            this.can = new Vehicle({ Truck, Maptalks, Three })
+            this.ready = true
+            this.cb('ready')
+            console.log(args)
+
+        })
+
+    }
+
+    on = (cb: (sms: string) => any) => { this.cb = cb }
+
+}

@@ -71,7 +71,9 @@ const camera_angles: any = {
     from_top: (far: number = 25, arg: any) => {
 
         const { TM, BM } = arg
-        return { ...findPointInVector(TM, BM, 0.001), z: findPointInVector(TM, BM, 0.001).z + far }
+        const P = findPointInVector(TM, BM, 1)
+        P.z += far
+        return { ...P }
 
     }
 
@@ -114,6 +116,13 @@ export const camera_config = () => {
     const type = Number(KeyValue('camera_type') || '0')
     const far = Number(KeyValue('camera_far') || '25')
     return { type, far }
+
+}
+
+export const camera_set = (type: string, far: string) => {
+
+    KeyValue('camera_type', type)
+    KeyValue('camera_far', far)
 
 }
 

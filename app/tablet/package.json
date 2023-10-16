@@ -1,0 +1,21 @@
+{
+  "name": "tablet",
+  "version": "1.0.0",
+  "main": "index.js",
+  "license": "MIT",
+  "scripts": {
+    "start": "ubin watch_app --npm",
+    "build": "ubin build_app --bundle --port 3002",
+    "serve": "node ./dist/run.js",
+    "clear": "rm -rf ./dist ./node_modules",
+    "_serve": "pm2 start ecosystem.config.js",
+    "_stop": "pm2 stop ecosystem.config.js",
+    "_delete": "pm2 delete ecosystem.config.js"
+  },
+  "dependencies": {
+    "events": "^3.3.0",
+    "react-json-view": "^1.21.3",
+    "styled-components": "^6.0.8"
+  },
+  "devDependencies": {}
+}

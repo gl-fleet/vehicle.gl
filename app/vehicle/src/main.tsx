@@ -19,6 +19,7 @@ export default (cfg: iArgs) => {
     const [isMapReady, Maptalks] = mapHook({ containerId: 'render_0', isDarkMode, conf: { zoom: 19 } })
     const [isThreeReady, Three] = threeHook({ containerId: 'render_1', isDarkMode, conf: {} })
     const [isVehicleReady, Vehicle] = vehicleHook(isMapReady, Maptalks, isThreeReady, Three)
+
     const [dxf_loading, dxf_message] = dxfHook(cfg, isVehicleReady, Maptalks, Three)
 
     React.useEffect(() => {
@@ -33,9 +34,9 @@ export default (cfg: iArgs) => {
         Three.on('tick', (s: any) => event.emit('alert', { key: 'tick_three', message: s, onclose: 'tick-back' }))
         tick.on((s: number) => event.emit('alert', { key: 'tick_map', message: s > 0 ? `Will automatically reposition camera in ${s} seconds` : '', onclose: 'tick-back' }))
 
-        event.on('stream', ({ data_gps }) => {
+        event.on('stream', ({ data_gps }) => Safe(() => {
 
-            const { A, B } = data_gps
+            const { A, B, TM, BM } = data_gps
             const { gps, utm, head } = data_gps
 
             if (Maptalks.map.isInteracting()) tick.set(10)
@@ -44,11 +45,14 @@ export default (cfg: iArgs) => {
             Three.update(camera_angle(data_gps, true), utm)
             Vehicle.update({ gps, utm, head })
 
+            point.update('f_m', 'grey', [TM.x, TM.y, TM.z])
+            point.update('b_m', 'grey', [BM.x, BM.y, BM.z])
+
             point.update('left', 'red', [A.x, A.y, A.z])
             point.update('right', 'blue', [B.x, B.y, B.z])
             point.update('origin', 'green', utm)
 
-        })
+        }, 'STREAM.DATA_GPS'))
 
     }, [isVehicleReady])
 

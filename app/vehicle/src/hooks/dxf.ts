@@ -54,8 +54,8 @@ export const dxfHook = (
         const Polygon = new Triangle({ Maptalks, Three })
         const Lines = new LineString({ Maptalks, Three })
 
-        event.on('stream', ({ data_gps }) => {
-            Polygon.ray(data_gps.utm, ({ distance }: any) => {
+        event.on('stream', (data) => {
+            Polygon.ray(data.data_gps?.utm ?? [0, 0, 0], ({ distance }: any) => {
                 event.emit('raycast', distance)
             })
         })

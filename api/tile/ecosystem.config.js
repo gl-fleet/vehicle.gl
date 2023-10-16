@@ -1,13 +1,13 @@
 const { encodeENV } = require('utils')
 const pkg = require('./package.json')
+const enj = require('../../env.js')
 
 const env = encodeENV({
 
     name: pkg.name,
     version: pkg.version,
     mode: process.env.MODE,
-    persist: true,
-    path: "./tiles",
+    ...enj[pkg.name],
 
 })
 

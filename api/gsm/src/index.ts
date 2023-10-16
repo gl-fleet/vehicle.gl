@@ -1,11 +1,11 @@
 import { Host, Connection, NetServer, NetClient } from 'unet'
 import { Serial, F9P_Parser } from 'ucan'
-import { decodeENV, Safe, Jfy, Sfy, Loop, Delay, env, log } from 'utils'
+import { AsyncWait, decodeENV, Safe, Jfy, Sfy, Loop, Delay, env, log } from 'utils'
 
-
-const { name, version, mode } = decodeENV()
+const { name, version, mode, path } = decodeENV()
 log.success(`"${env.npm_package_name}" <${version}> module is running on "${process.pid}" / [${mode}] 🚀🚀🚀\n`)
 
+let temp = { operator: '****', quality: 0 }
 const DEV = mode === 'development', PROD = !DEV
 const API = new Host({ name: 'gsm' })
 const API_DATA = new Connection({ name: 'data', timeout: 500 })
@@ -31,22 +31,40 @@ const AT_BEAUTIFY = (s: string) => {
 
 DEV && Safe(() => { /** Simulate from remote **/
 
-    const remote = 'https://u002-gantulgak.as1.pitunnel.com/'
-    const pi = new Connection({ name: 'gsm', proxy: remote })
-    pi.on('GSM', ({ data }: any) => {
-        API.emit('GSM', { state: 'success', type: 'success', message: `Network connected!`, data })
-        publish('data_gsm', { state: 'success', type: 'success', message: 'Network connected!', data })
-    })
+    const drill = false
+
+    if (!drill /** latest supervisor **/) {
+
+        const remote = 'https://u002-gantulgak.as1.pitunnel.com/'
+        const pi = new Connection({ name: 'gsm', proxy: remote })
+        pi.on('GSM', ({ data }: any) => {
+            API.emit('GSM', { state: 'success', type: 'success', message: `Network connected!`, data })
+            publish('data_gsm', { state: 'success', type: 'success', message: 'Network connected!', data })
+        })
+
+    }
+
+    if (drill /** legacy drill **/) {
+
+        const pi = new Connection({ name: 'GSM', proxy: 'https://u001-gantulgak.pitunnel.com/', rejectUnauthorized: false })
+        pi.on('gsm', (e: any) => {
+
+            temp = { ...temp, ...e }
+            API.emit('GSM', { state: 'success', type: 'success', message: `Network connected!`, data: temp })
+            publish('data_gsm', { state: 'success', type: 'success', message: 'Network connected!', data: temp })
+
+        })
+
+    }
 
 })
 
 PROD && Safe(() => {
 
-    const cf = { path: '/dev/ttyS0', baud: 115200 }
     const GSM = new Serial()
     const LOG: any = log
 
-    GSM.start(cf.path, cf.baud)
+    GSM.start(path[0], Number(path[1]))
 
     GSM.onInfo = (t, { type, message }) => LOG[type](message) && publish('data_gsm', { state: t, type, message })
 
@@ -59,20 +77,24 @@ PROD && Safe(() => {
 
             const parsed = AT_BEAUTIFY(chunk)
             log.res(`Serial[GSM]: ${chunk} / ${Sfy(parsed ?? {})}`)
-            parsed && publish('data_gsm', { state: 'success', type: 'success', message: `Network connected!`, data: parsed })
+            if (parsed) {
+
+                temp = { ...temp, ...parsed }
+                publish('data_gsm', { state: 'success', type: 'success', message: `Network connected!`, data: temp })
+
+            }
 
         }
 
     }))
 
-    const call = () => {
+    Loop(() => Safe(async () => {
 
-        Safe(async () => await GSM.emit('AT+CSQ\r\n'))
-        Safe(async () => await GSM.emit('AT+COPS?\r\n'))
+        await AsyncWait(250)
+        await GSM.emit('AT+CSQ\r\n')
+        await AsyncWait(750)
+        await GSM.emit('AT+COPS?\r\n')
 
-    }
-
-    Delay(() => call(), 250)
-    Loop(() => call(), 5000)
+    }), 7500)
 
 })

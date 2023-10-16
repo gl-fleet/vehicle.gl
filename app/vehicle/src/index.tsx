@@ -19,8 +19,9 @@ const cfg: iArgs = {
     api: new Connection({ name: 'data', proxy }),
 }
 
+let i = 0
 cfg.api.on('stream', (args: any) => {
-    console.log(args)
+    (++i % 10 === 0) && console.log(args)
     cfg.event.emit('stream', args)
 })
 

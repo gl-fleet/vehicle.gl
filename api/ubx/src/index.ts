@@ -6,8 +6,9 @@ import { Calculus } from './calculus'
 import { ProcessActivity } from './process'
 
 const cf = decodeENV()
-const { version, mode } = decodeENV()
+const { version, mode, artist } = decodeENV()
 log.success(`"${env.npm_package_name}" <${version}> module is running on "${process.pid}" / [${mode}] 🚀🚀🚀\n`)
+log.warn(artist)
 
 const API_DATA = new Connection({ name: 'data', timeout: 500 })
 const GPS: any = { gps1: {}, gps2: {} } /** Temporary GPS data store **/
@@ -20,17 +21,38 @@ const DEV = cf.mode === 'development', PROD = !DEV
 
 DEV && Safe(() => {
 
-    const pi = new Connection({ name: 'ubx', proxy: 'https://u002-gantulgak.as1.pitunnel.com/', rejectUnauthorized: false })
+    const drill = false
 
-    pi.on('GPS1', ({ data }: any) => {
-        publish('data_gps1', { state: 'success', type: 'success', message: 'GPS1 connected!', data })
-        GPS.gps1 = data
-    })
+    if (!drill /** latest supervisor **/) {
 
-    pi.on('GPS2', ({ data }: any) => {
-        publish('data_gps2', { state: 'success', type: 'success', message: 'GPS2 connected!', data })
-        GPS.gps2 = data
-    })
+        const pi = new Connection({ name: 'ubx', proxy: 'https://u002-gantulgak.as1.pitunnel.com/', rejectUnauthorized: false })
+
+        pi.on('GPS1', ({ data }: any) => {
+            publish('data_gps1', { state: 'success', type: 'success', message: 'GPS1 connected!', data })
+            GPS.gps1 = data
+        })
+
+        pi.on('GPS2', ({ data }: any) => {
+            publish('data_gps2', { state: 'success', type: 'success', message: 'GPS2 connected!', data })
+            GPS.gps2 = data
+        })
+
+    }
+
+    if (drill /** legacy drill **/) {
+
+        const pi = new Connection({ name: 'UBX', proxy: 'https://u001-gantulgak.pitunnel.com/', rejectUnauthorized: false })
+        pi.on('live-raw', (e: any) => {
+
+            const { gps1, gps2 } = e
+            publish('data_gps1', { state: 'success', type: 'success', message: 'GPS1 connected!', data: gps1 })
+            publish('data_gps2', { state: 'success', type: 'success', message: 'GPS2 connected!', data: gps2 })
+            GPS.gps1 = gps1
+            GPS.gps2 = gps2
+
+        })
+
+    }
 
 })
 

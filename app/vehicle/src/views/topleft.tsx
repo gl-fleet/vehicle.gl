@@ -1,5 +1,11 @@
 import { React, Typography, Layout, Alert, FloatButton } from 'uweb'
-import { FolderOpenOutlined, ZoomInOutlined, ZoomOutOutlined, CodeSandboxOutlined } from '@ant-design/icons'
+import {
+    FolderOpenOutlined,
+    ZoomInOutlined,
+    ZoomOutOutlined,
+    CodeSandboxOutlined,
+    PushpinOutlined,
+} from '@ant-design/icons'
 import * as camera from '../utils/geometry'
 
 const { useEffect, useState } = React
@@ -68,6 +74,7 @@ export const TopLeft = (cfg: iArgs) => {
             <FloatButton onClick={() => camera.camera_zoom_in()} icon={<ZoomInOutlined />} />
             <FloatButton onClick={() => camera.camera_zoom_out()} icon={<ZoomOutOutlined />} />
             <FloatButton onClick={() => camera.camera_toggle()} icon={<CodeSandboxOutlined />} />
+            <FloatButton onClick={() => { }} icon={<PushpinOutlined />} />
         </FloatButton.Group>
 
         <Alert message={text} type="success" showIcon />

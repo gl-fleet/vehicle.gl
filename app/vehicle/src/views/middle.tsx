@@ -38,8 +38,10 @@ export const MiddleInfo = (cfg: iArgs) => {
             setRay({ DIST: N(distance), DIR: distance >= 0 ? 'CUT ↓' : 'FILL ↑' })
         }))
 
-        event.on('stream', ({ data_gps: { prec3d, utm } }) => Safe(() => {
-            setStatus({ EL: utm[2], DIF: prec3d })
+        event.on('stream', (data) => Safe(() => {
+            const EL = data?.data_gps?.utm[2] ?? 0
+            const DIF = data?.data_gps?.prec3d ?? 0
+            setStatus({ EL, DIF })
         }))
 
         ref.current = new ThreeView({

@@ -1,0 +1,11 @@
+Model Information:
+* title:	Crane Vehicle [Low-Poly]
+* source:	https://sketchfab.com/3d-models/crane-vehicle-low-poly-e09723a3d0ef4615ab41ea605b7fccc8
+* author:	HanSoloSnipe (https://sketchfab.com/HanSoloSnipe)
+
+Model License:
+* license type:	CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)
+* requirements:	Author must be credited. Commercial use is allowed.
+
+If you use this 3D model in your project be sure to copy paste this credit wherever you share it:
+This work is based on "Crane Vehicle [Low-Poly]" (https://sketchfab.com/3d-models/crane-vehicle-low-poly-e09723a3d0ef4615ab41ea605b7fccc8) by HanSoloSnipe (https://sketchfab.com/HanSoloSnipe) licensed under CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)

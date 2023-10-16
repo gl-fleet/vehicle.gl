@@ -1,12 +1,12 @@
 const pkg = require('./package.json')
 const { encodeENV } = require('utils')
+const enj = require('../../env.js')
 
 const env = encodeENV({
     name: pkg.name,
     version: pkg.version,
     mode: process.env.MODE,
-    port: 8443,
-    secret: process.env.TOKEN_SECRET ?? 'gearlink',
+    ...enj[pkg.name],
 })
 
 module.exports = {
