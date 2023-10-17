@@ -17,6 +17,16 @@ declare global {
 
     interface iGPSCalc { }
 
+    /**
+     * GeoJson - Item
+     */
+    type tItem = {
+        Layer: string
+        SubClasses: string
+        EntityHandle: string
+        Coords: any[]
+    }
+
 }
 
 export { }

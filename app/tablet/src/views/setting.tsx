@@ -7,16 +7,15 @@ const { Title, Text } = Typography
 export default ({ api, event }: iArgs) => {
 
     const [list, setList] = useState({ loading: false, data: [] })
-    const getList = () => setList(() => {
+
+    const fileList = () => setList(() => {
 
         api.poll('get-chunks-distinct', {}, (e: any, data: []) => setList({ loading: false, data: data ?? [] }))
         return { loading: true, data: [] }
 
     })
 
-    useEffect(() => {
-        getList()
-    }, [])
+    useEffect(() => fileList(), [])
 
     const columns = [
         {
@@ -50,7 +49,11 @@ export default ({ api, event }: iArgs) => {
         },
         {
             title: '',
-            render: ({ type, name }: any) => <Button size={'small'} onClick={() => event.emit(type, name)} style={{ display: 'block', margin: 'auto' }}>Open</Button>
+            render: ({ type, name }: any) => <Button
+                style={{ display: 'block', margin: 'auto' }}
+                size={'small'}
+                onClick={() => event.emit(type, name)}
+            >Open</Button>
         },
     ]
 
@@ -59,7 +62,7 @@ export default ({ api, event }: iArgs) => {
         {
             key: '1',
             label: 'Design Files',
-            extra: <ReloadOutlined onClick={(e: any) => { getList(); e.stopPropagation(); }} />,
+            extra: <ReloadOutlined onClick={(e: any) => { fileList(); e.stopPropagation(); }} />,
             children: <Table rowKey={'name'} loading={list.loading} dataSource={list.data ?? []} columns={columns} size={'small'} />
         },
         {
