@@ -7,8 +7,6 @@ import { Triangle } from '../helper/triangle'
 import { LineString } from '../helper/linestring'
 import { GeojsonParser } from '../helper/parsers'
 
-const { useEffect, useState, useRef } = React
-
 export class PlanDig {
 
     public ready = false
@@ -26,7 +24,6 @@ export class PlanDig {
             // Polygon.ray(data.data_gps?.utm ?? [0, 0, 0], ({ distance }: any) => event.emit('raycast', distance))
             Polygon.ray(data.data_gps?.utm ?? [0, 0, 0], (arg: any) => {
 
-                console.log(arg)
                 const { distance } = arg
                 event.emit('dig_plan_status', distance)
 

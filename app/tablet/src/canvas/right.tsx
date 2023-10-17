@@ -7,19 +7,22 @@ export class Right {
     public ready = false
     public cb = (sms: string) => null
 
-    constructor(id: string, mode: boolean) {
+    constructor(id: string, cfg: iArgs) {
 
         this.can = new ThreeView({
             containerId: id,
-            isDarkMode: mode,
+            isDarkMode: cfg.isDarkMode,
             simulate: false,
             axesHelper: true,
             polrHelper: true,
         })
 
         this.can.onReady(() => {
+
+            cfg.event.on('mode', (isDark: boolean) => this.can.setMode(isDark))
             this.ready = true
             this.cb('ready')
+
         })
 
     }

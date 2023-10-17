@@ -26,8 +26,8 @@ export default (cfg: iArgs) => {
 
         const { event, isDarkMode } = cfg
 
-        const lv = new Left('left', isDarkMode)
-        const rv = new Right('right', isDarkMode)
+        const lv = new Left('left', cfg)
+        const rv = new Right('right', cfg)
 
         lv.on((sms) => sms === 'ready' && render())
         rv.on((sms) => sms === 'ready' && render())
@@ -74,6 +74,8 @@ export default (cfg: iArgs) => {
         }
 
     }, [])
+
+    React.useEffect(() => { cfg.event.emit('mode', cfg.isDarkMode) }, [cfg.isDarkMode])
 
     return <Row id="main" style={{ height: '100%' }}>
 
