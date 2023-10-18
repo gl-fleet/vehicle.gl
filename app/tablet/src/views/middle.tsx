@@ -4,6 +4,9 @@ import { Point, colorize, ColorG2R, ColorR2G } from 'uweb/utils'
 import { ThreeView, THREE } from 'uweb/three'
 import { Safe, Delay, Loop } from 'utils/web'
 
+import { camera_angle } from '../helper/camera'
+import { Clynder } from '../helper/clynder'
+
 const { useEffect, useState, useRef } = React
 
 const Style = createGlobalStyle`
@@ -78,25 +81,6 @@ const PlanDigView = (cfg: iArgs) => {
 
     useEffect(() => {
 
-        const { event } = cfg
-
-        const N = (m: any, f = 2) => { const n = Number(m.toFixed(f)); return n >= 99 ? 99 : n; }
-
-        event.on('dig_plan_status', (distance: number) => Safe(() => {
-            event.emit('goto', 1)
-            setRay({ dis: N(distance), dir: distance >= 0 ? 'CUT ↓' : 'FILL ↑' })
-        }))
-
-        event.on('stream', (data) => Safe(() => {
-
-            const x = data?.data_gps?.utm[0] ?? 0
-            const y = data?.data_gps?.utm[1] ?? 0
-            const el = data?.data_gps?.utm[2] ?? 0
-            const di = data?.data_gps?.prec3d ?? 0
-            setStatus({ x, y, el, di })
-
-        }))
-
         ref.current = new ThreeView({
             containerId: 'center-view-1',
             isDarkMode: cfg.isDarkMode,
@@ -106,7 +90,28 @@ const PlanDigView = (cfg: iArgs) => {
             stats: null,
         })
 
-        ref.current.onReady(() => { })
+        ref.current.onReady(() => {
+
+            const { event } = cfg
+
+            const N = (m: any, f = 2) => { const n = Number(m.toFixed(f)); return n >= 99 ? 99 : n; }
+
+            event.on('dig_plan_status', (distance: number) => Safe(() => {
+                event.emit('goto', 1)
+                setRay({ dis: N(distance), dir: distance >= 0 ? 'CUT ↓' : 'FILL ↑' })
+            }))
+
+            event.on('stream', (data) => Safe(() => {
+
+                const x = data?.data_gps?.utm[0] ?? 0
+                const y = data?.data_gps?.utm[1] ?? 0
+                const el = data?.data_gps?.utm[2] ?? 0
+                const di = data?.data_gps?.prec3d ?? 0
+                setStatus({ x, y, el, di })
+
+            }))
+
+        })
 
     }, [])
 
@@ -154,42 +159,59 @@ const PlanShotView = (cfg: iArgs) => {
 
     useEffect(() => {
 
-        const { event } = cfg
-
-        const N = (m: any, f = 2) => { const n = Number(m.toFixed(f)); return n >= 99 ? 99 : n; }
-
-        event.on('shot_plan_status', (distance: number) => Safe(() => {
-            event.emit('goto', 1)
-            setRay({ dis: N(distance), dir: distance >= 0 ? 'CUT ↓' : 'FILL ↑' })
-        }))
-
-        event.on('stream', (data) => Safe(() => {
-
-            const x = data?.data_gps?.utm[0] ?? 0
-            const y = data?.data_gps?.utm[1] ?? 0
-            const el = data?.data_gps?.utm[2] ?? 0
-            const di = data?.data_gps?.prec3d ?? 0
-            setStatus({ x, y, el, di })
-
-        }))
-
         ref.current = new ThreeView({
             containerId: 'center-view-2',
             isDarkMode: cfg.isDarkMode,
             simulate: true,
             axesHelper: true,
             polrHelper: true,
+            arroHelper: true,
             stats: null,
         })
 
-        ref.current.onReady(() => { })
+        ref.current.onReady(() => {
+
+            const { event } = cfg
+
+            const N = (m: any, f = 2) => { const n = Number(m.toFixed(f)); return n >= 99 ? 99 : n; }
+
+            const clynder = new Clynder({ Maptalks: undefined, Three: ref.current })
+
+            event.on('shot_plan_status', (e: any) => Safe(() => {
+
+                event.emit('goto', 2)
+                const { d, v, n } = e
+                console.log(e)
+                setRay({ dis: N(d), dir: n })
+
+                ref.current.arroHelper.direction(v[0], v[1], v[2])
+                // clynder.updateAll([v])
+
+            }))
+
+            event.on('stream', ({ data_gps }) => Safe(() => {
+
+                const { utm, prec3d } = data_gps
+
+                const x = utm[0] ?? 0
+                const y = utm[1] ?? 0
+                const el = utm[2] ?? 0
+                const di = prec3d ?? 0
+
+                setStatus({ x, y, el, di })
+
+                ref.current.update(camera_angle(data_gps, true), utm)
+
+            }))
+
+        })
 
     }, [])
 
     useEffect(() => { ref.current.setMode && ref.current.setMode(cfg.isDarkMode) }, [cfg.isDarkMode])
 
     const ac = ColorG2R(Number(_.di), [2.5, 5, 7.5, 10, 12.5])
-    const dc = ColorG2R(Number(ray.dis), [10, 25, 50, 100, 500])
+    const dc = ColorG2R(Number(ray.dis), [0.10, 0.25, 0.50, 1, 5])
     const fontSize = 24
 
     return <Layout id="center-view-0" style={{ width: '100%', height: '100%' }}>
@@ -205,8 +227,8 @@ const PlanShotView = (cfg: iArgs) => {
         </Row> : <>
 
             <Row gutter={16} style={{ position: 'absolute', width: '100%', padding: 16, fontWeight: 800, overflow: 'hidden' }}>
-                <Col span={24}><Statistic title={`Distance`} value={ray.dis} suffix="cm" valueStyle={{ fontSize, color: dc }} /></Col>
-                <Col span={24}><Statistic title={`Direction`} value={ray.dir} suffix="" valueStyle={{ fontSize }} /></Col>
+                <Col span={24}><Statistic title={`Distance[3D]`} value={ray.dis} suffix="m" valueStyle={{ fontSize, color: dc }} /></Col>
+                <Col span={24}><Statistic title={`Name`} value={ray.dir} suffix="" valueStyle={{ fontSize }} /></Col>
             </Row>
 
             <Row gutter={16} style={{ fontWeight: 900, overflow: 'hidden', position: 'absolute', left: 16, right: 16, bottom: 16 }}>

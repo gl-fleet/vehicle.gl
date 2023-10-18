@@ -17,15 +17,22 @@ declare global {
 
     interface iGPSCalc { }
 
-    /**
-     * GeoJson - Item
-     */
+    // DXF - Item
     type tItem = {
         Layer: string
         SubClasses: string
         EntityHandle: string
         Coords: any[]
     }
+
+    // CSV - Item
+    type csvItems = [
+        string /** Name */,
+        number /** North */,
+        number /** East */,
+        number /** Elevation */,
+        number /** Depth */,
+    ]
 
 }
 

@@ -1,5 +1,5 @@
 
-export const GeojsonParser = (data: { features: any[] }) => {
+export const DXF_GeoJson_Parser = (data: { features: any[] }) => {
 
     const { features } = data
 
@@ -24,5 +24,23 @@ export const GeojsonParser = (data: { features: any[] }) => {
         polygons,
         linestrings,
     }
+
+}
+
+export const CSV_GeoJson_Parser = (data: { features: any[] }): csvItems[] => {
+
+    try {
+
+        const { features } = data
+
+        return features.map((e: any) => {
+            const { field_1, field_2, field_3, field_4, field_5 } = e.properties
+            return [field_1, Number(field_3), Number(field_2), Number(field_4), Number(field_5)]
+        })
+
+    } catch (err) {
+        return []
+    }
+
 
 }

@@ -21,7 +21,7 @@ const DEV = cf.mode === 'development', PROD = !DEV
 
 DEV && Safe(() => {
 
-    const drill = false
+    const drill = true
 
     if (!drill /** latest supervisor **/) {
 

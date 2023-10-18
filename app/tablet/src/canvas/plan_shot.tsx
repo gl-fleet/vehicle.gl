@@ -1,7 +1,8 @@
 import { MapView } from 'uweb/maptalks'
 import { ThreeView } from 'uweb/three'
 
-import { GeojsonParser } from '../helper/parsers'
+import { Clynder } from '../helper/clynder'
+import { CSV_GeoJson_Parser } from '../helper/parsers'
 
 export class PlanShot {
 
@@ -12,41 +13,42 @@ export class PlanShot {
 
         const { api, event } = cfg
 
-        /* const Polygon = new Triangle({ Maptalks, Three })
-        const Lines = new LineString({ Maptalks, Three }) */
+        const clynder = new Clynder({ Maptalks, Three })
 
         event.on('stream', (data) => {
-            // Polygon.ray(data.data_gps?.utm ?? [0, 0, 0], ({ distance }: any) => event.emit('raycast', distance))
+
+            const { d, v, n } = clynder.nearest(data.data_gps?.utm ?? [0, 0, 0], 500 /** Within 500 meters **/) //
+            n && n !== '*' && event.emit('shot_plan_status', { d, v, n })
+
         })
 
-        event.on('dxf-dispose', () => {
-            /* Polygon.removeAll()
-            Lines.removeAll() */
+        event.on('csv-dispose', () => {
+            clynder.removeAll()
         })
 
-        event.on('plan_shot', (name) => {
+        event.on('csv-geojson', (name) => {
 
-            event.emit('alert', { key: 'file', message: `File:${name} is loading ...` })
+            event.emit('alert', { key: name, message: `File:${name} is loading ...` })
 
             api.pull('get-chunks-merged', { name }, (err: any, data: any) => {
 
                 try {
 
-                    /* const { polygons, linestrings } = GeojsonParser(data)
-                    Polygon.updateAll(polygons)
-                    Lines.updateAll(linestrings) */
+                    const rows = CSV_GeoJson_Parser(data)
+
+                    clynder.updateAll(rows)
 
                     event.emit('alert', {
-                        key: 'file',
+                        key: name,
                         type: err ? 'error' : 'success',
                         message: `File ${name} ${err ? err.message : 'is loaded'}`,
-                        onclose: 'dxf-dispose',
+                        onclose: 'csv-dispose',
                     })
 
                 } catch (err: any) {
 
                     event.emit('alert', {
-                        key: 'file',
+                        key: name,
                         type: 'error',
                         message: `[${name}] ${err.message}`
                     })

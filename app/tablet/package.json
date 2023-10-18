@@ -13,6 +13,7 @@
     "_delete": "pm2 delete ecosystem.config.js"
   },
   "dependencies": {
+    "@seregpie/three.text-sprite": "^3.2.0",
     "events": "^3.3.0",
     "react-json-view": "^1.21.3",
     "styled-components": "^6.0.8"

@@ -31,7 +31,7 @@ const AT_BEAUTIFY = (s: string) => {
 
 DEV && Safe(() => { /** Simulate from remote **/
 
-    const drill = false
+    const drill = true
 
     if (!drill /** latest supervisor **/) {
 

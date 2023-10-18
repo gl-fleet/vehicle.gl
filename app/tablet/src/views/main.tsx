@@ -77,7 +77,12 @@ export default (cfg: iArgs) => {
 
     React.useEffect(() => { cfg.event.emit('mode', cfg.isDarkMode) }, [cfg.isDarkMode])
 
-    return <Row id="main" style={{ height: '100%' }}>
+    const hide = location.href.indexOf('hide') !== -1 ? {
+        opacity: 0.25,
+        filter: 'sepia(1)',
+    } : {}
+
+    return <Row id="main" style={{ height: '100%', ...hide }}>
 
         <Col id='left' span={12} style={{ height: '100%' }} />
         <Col id='right' span={12} style={{ height: '100%' }} />
