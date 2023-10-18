@@ -72,7 +72,7 @@ const camera_angles: any = {
 
         const { TM, BM, utm } = arg
         const MP = { x: utm[0], y: utm[1], z: utm[2] }
-        const P = findPointInVector(MP, BM, 1)
+        const P = findPointInVector(MP, BM, 0.01)
         P.z += far
         return { ...P }
 
@@ -136,6 +136,20 @@ export const camera_angle = (arg: {
 
     const { type, far } = camera_config()
     const c = camera_angles[views[type]](far, arg)
+    if (asArray) return [c.x, c.y, c.z]
+    else return c
+
+}
+
+export const camera_angle_custom = (arg: {
+
+    TL: number[], TM: number[], TR: number[],
+    BL: number[], BM: number[], BR: number[],
+
+}, type: number, far: number, asArray = false) => {
+
+    const c = camera_angles[views[type]](far, arg)
+
     if (asArray) return [c.x, c.y, c.z]
     else return c
 

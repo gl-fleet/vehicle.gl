@@ -2,9 +2,10 @@ import { React, Typography, Layout, Row, Col, Statistic, Carousel } from 'uweb'
 import { createGlobalStyle } from 'styled-components'
 import { Point, colorize, ColorG2R, ColorR2G } from 'uweb/utils'
 import { ThreeView, THREE } from 'uweb/three'
+import { MapView } from 'uweb/maptalks'
 import { Safe, Delay, Loop } from 'utils/web'
 
-import { camera_angle } from '../helper/camera'
+import { camera_angle, camera_angle_custom } from '../helper/camera'
 import { Clynder } from '../helper/clynder'
 
 const { useEffect, useState, useRef } = React
@@ -155,7 +156,7 @@ const PlanShotView = (cfg: iArgs) => {
 
     const [_, setStatus] = useState({ x: '', y: '', el: '*', di: 0 })
     const [ray, setRay] = useState({ dis: 0, dir: '*' })
-    const ref: any = useRef(null)
+    const ref: any = useRef()
 
     useEffect(() => {
 
@@ -171,21 +172,22 @@ const PlanShotView = (cfg: iArgs) => {
 
         ref.current.onReady(() => {
 
-            const { event } = cfg
-
             const N = (m: any, f = 2) => { const n = Number(m.toFixed(f)); return n >= 99 ? 99 : n; }
 
-            const clynder = new Clynder({ Maptalks: undefined, Three: ref.current })
+            const { event } = cfg
+            const right: ThreeView = ref.current
+            const clynder = new Clynder({ Maptalks: undefined, Three: right })
+            const cly = clynder.get('clynder_target', 0.01)
+            right.scene.add(cly)
+
+            let m = { d: 0, v: [0, 0, 0], n: '*' }
 
             event.on('shot_plan_status', (e: any) => Safe(() => {
 
                 event.emit('goto', 2)
                 const { d, v, n } = e
-                console.log(e)
                 setRay({ dis: N(d), dir: n })
-
-                ref.current.arroHelper.direction(v[0], v[1], v[2])
-                // clynder.updateAll([v])
+                m = e
 
             }))
 
@@ -200,7 +202,17 @@ const PlanShotView = (cfg: iArgs) => {
 
                 setStatus({ x, y, el, di })
 
-                ref.current.update(camera_angle(data_gps, true), utm)
+                if (m && m.n !== '*') {
+
+                    const { d, v, n } = m
+
+                    const cam_far = ((d > 10000 ? 2.5 : (0.75 >= d ? 0.75 : d)) * 1.5)
+                    ref.current.update(camera_angle_custom(data_gps, 4, cam_far, true), utm)
+
+                    ref.current.arroHelper.direction(v[0], v[1], el)
+                    cly.position.set(v[0], v[1], el - 0.01)
+
+                }
 
             }))
 
@@ -292,7 +304,7 @@ export default (cfg: iArgs) => {
 
     }, [])
 
-    return <Layout style={{ border: '2px solid red', left: '50%', top: '50%', position: 'absolute', textShadow: '0px 2px 3px #000', width: `${w}px`, height: `${h}px`, marginLeft: `-${w / 2 + 2}px`, marginTop: `-${h / 2 + 2}px`, padding: 0, zIndex: 1 }}>
+    return <Layout style={{ border: '2px solid grey', left: '50%', top: '50%', position: 'absolute', textShadow: '0px 2px 3px #000', width: `${w}px`, height: `${h}px`, marginLeft: `-${w / 2 + 2}px`, marginTop: `-${h / 2 + 2}px`, padding: 0, zIndex: 1 }}>
         <Style />
         <Carousel beforeChange={(e: number) => { cfg.event.emit('_goto', e) }} dotPosition={'right'} effect="fade" ref={ref => { slider.current = ref }} >
             <div><div style={{ width: w, height: h - 4, background }}><BasicView {...cfg} /></div></div>

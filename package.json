@@ -1,6 +1,6 @@
 {
   "name": "org",
-  "version": "0.0.36",
+  "version": "0.0.37",
   "license": "MIT",
   "private": true,
   "scripts": {
@@ -22,7 +22,7 @@
     "ucan": "upacks/ucan#1.0.4",
     "unet": "upacks/unet#1.1.21",
     "utils": "upacks/utils#1.1.5",
-    "uweb": "upacks/uweb#1.1.22"
+    "uweb": "upacks/uweb#1.1.29"
   },
   "devDependencies": {
     "nx": "16.7.4"

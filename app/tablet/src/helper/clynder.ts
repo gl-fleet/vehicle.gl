@@ -39,6 +39,22 @@ export class Clynder {
 
     }
 
+    get = (name: string, height: number) => {
+
+        const div = 50
+        const color = '#1668dc'
+        const geometry = new THREE.CylinderGeometry(0.2, 0.2, height, 32, 1, false)
+        const material = new THREE.MeshBasicMaterial({ color })
+        const cylinder = new THREE.Mesh(geometry, material)
+        cylinder.rotateX(Math.PI / 2)
+        cylinder.name = name
+        // cylinder.z = elevation
+        // cylinder.position.set(...aU)
+        // this.GroupThree.add(cylinder)
+        return cylinder
+
+    }
+
     add = (rows: csvItems[]) => {
 
         try {
