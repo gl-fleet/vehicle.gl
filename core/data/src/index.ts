@@ -3,6 +3,7 @@ import { Host, Connection } from 'unet'
 import { decodeENV, Collect, Safe, env, log } from 'utils'
 
 import { Emitter } from './emitter'
+import { Canvas } from './canvas'
 import { Persist } from './persist'
 
 const { name, version, mode, me, proxy, token } = decodeENV()
@@ -21,6 +22,7 @@ const cf = {
 const run = () => {
 
     const emitter = new Emitter(cf)
+    const canvas = new Canvas(cf)
     const persist = new Persist(cf)
 
     emitter.on('pub_cloud', (data: any) => {

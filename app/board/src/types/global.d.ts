@@ -3,8 +3,6 @@ import { Connection } from 'unet/web'
 
 declare global {
 
-    type tPoint = { x: number, y: number, z: number }
-
     interface iArgs {
 
         isDarkMode: boolean
@@ -14,8 +12,6 @@ declare global {
         api: Connection
 
     }
-
-    interface iGPSCalc { }
 
 }
 

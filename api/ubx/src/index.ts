@@ -6,7 +6,7 @@ import { Calculus } from './calculus'
 import { ProcessActivity } from './process'
 
 const cf = decodeENV()
-const { version, mode, artist } = decodeENV()
+const { me, version, mode, artist } = decodeENV()
 log.success(`"${env.npm_package_name}" <${version}> module is running on "${process.pid}" / [${mode}] 🚀🚀🚀\n`)
 log.warn(artist)
 
@@ -21,9 +21,7 @@ const DEV = cf.mode === 'development', PROD = !DEV
 
 DEV && Safe(() => {
 
-    const drill = true
-
-    if (!drill /** latest supervisor **/) {
+    if (me === 'SV101' /** latest supervisor **/) {
 
         const pi = new Connection({ name: 'ubx', proxy: 'https://u002-gantulgak.as1.pitunnel.com/', rejectUnauthorized: false })
 
@@ -39,7 +37,7 @@ DEV && Safe(() => {
 
     }
 
-    if (drill /** legacy drill **/) {
+    if (me === 'DR101'  /** legacy drill **/) {
 
         const pi = new Connection({ name: 'UBX', proxy: 'https://u001-gantulgak.pitunnel.com/', rejectUnauthorized: false })
         pi.on('live-raw', (e: any) => {

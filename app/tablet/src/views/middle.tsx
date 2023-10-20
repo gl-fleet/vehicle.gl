@@ -304,7 +304,7 @@ export default (cfg: iArgs) => {
 
     }, [])
 
-    return <Layout style={{ border: '2px solid grey', left: '50%', top: '50%', position: 'absolute', textShadow: '0px 2px 3px #000', width: `${w}px`, height: `${h}px`, marginLeft: `-${w / 2 + 2}px`, marginTop: `-${h / 2 + 2}px`, padding: 0, zIndex: 1 }}>
+    return <Layout style={{ border: '2px solid grey', left: '50%', top: '50%', position: 'absolute', width: `${w}px`, height: `${h}px`, marginLeft: `-${w / 2 + 2}px`, marginTop: `-${h / 2 + 2}px`, padding: 0, zIndex: 1 }}>
         <Style />
         <Carousel beforeChange={(e: number) => { cfg.event.emit('_goto', e) }} dotPosition={'right'} effect="fade" ref={ref => { slider.current = ref }} >
             <div><div style={{ width: w, height: h - 4, background }}><BasicView {...cfg} /></div></div>

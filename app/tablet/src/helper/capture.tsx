@@ -54,10 +54,10 @@ export const useWebcam = ({ loop, size, src }: {
 
 }
 
-export const useScreenshot = ({ loop, size, src }: {
+export const useScreenshot = ({ loop, size, canvas_selector }: {
     loop: number,
     size: [number, number],
-    src?: string,
+    canvas_selector?: string,
 }): [string, any] => {
 
     const [imgUrl, setImgUrl] = useState('')
@@ -66,13 +66,12 @@ export const useScreenshot = ({ loop, size, src }: {
     useEffect(() => {
 
         log.warn(`[useWebcam] Starting ...`)
-        const video = document.createElement("video")
-        const canvas = document.createElement("canvas")
-        canvas.width = size[0]
-        canvas.height = size[1]
 
         const capture = () => {
-            const map: any = document.querySelector("#render_0 canvas")
+            const map: any = document.querySelector(canvas_selector ?? '')
+            const context = map.getContext("experimental-webgl", { preserveDrawingBuffer: true })
+            console.log(map)
+            setImgUrl(map.toDataURL())
         }
 
         if (loop > 0) Loop(() => capture(), loop)
@@ -81,18 +80,5 @@ export const useScreenshot = ({ loop, size, src }: {
     }, [])
 
     return [imgUrl, execCapture.current]
-
-}
-
-const get_screen = () => {
-
-    const img: any = document.querySelector("#view_1")
-
-    Delay(() => Safe(() => {
-
-        const map: any = document.querySelector("#render_0 canvas")
-        Loop(() => { img.src = map.toDataURL() }, 2500)
-
-    }), 2500)
 
 }

@@ -1,5 +1,5 @@
 import { React, Typography, Progress, Timeline } from 'uweb'
-import { ColorR2G } from 'uweb/utils'
+import { ColorG2R, ColorR2G } from 'uweb/utils'
 import { createGlobalStyle } from 'styled-components'
 import {
     CheckCircleOutlined,       // Success
@@ -33,8 +33,8 @@ const Style = createGlobalStyle`
 
 type iMessage = 'success' | 'info' | 'error' | 'warning' | 'loading'
 
-const getColor = (t: iMessage) => {
-    const c = {
+const getColor = (t: iMessage | any) => {
+    const c: any = {
         'success': '#52c41a',
         'info': 'blue',
         'error': 'red',
@@ -44,9 +44,9 @@ const getColor = (t: iMessage) => {
     return c[t] ?? 'grey'
 }
 
-const getIcon = (t: iMessage) => {
+const getIcon = (t: iMessage | any) => {
     const style = { fontSize: '12px', background: 'transparent' }
-    const c = {
+    const c: any = {
         'success': <CheckCircleOutlined style={style} />,
         'info': <CheckOutlined style={style} />,
         'warning': <ExclamationCircleOutlined style={style} />,
@@ -60,10 +60,10 @@ const f = (n: number, d: number = 2) => typeof n === 'number' ? n.toFixed(d) : '
 
 export default (cfg: iArgs) => {
 
-    const [gsm, setGSM] = useState({ state: 'loading', message: 'Loading ...', data: null })
-    const [gps1, setGPS1] = useState({ state: 'loading', message: 'Loading ...', data: null })
-    const [gps2, setGPS2] = useState({ state: 'loading', message: 'Loading ...', data: null })
-    const [rtcm, setRTCM] = useState({ state: 'loading', message: 'Loading ...', data: null })
+    const [gsm, setGSM] = useState<any>({ state: 'loading', message: 'Loading ...', data: null })
+    const [gps1, setGPS1] = useState<any>({ state: 'loading', message: 'Loading ...', data: null })
+    const [gps2, setGPS2] = useState<any>({ state: 'loading', message: 'Loading ...', data: null })
+    const [rtcm, setRTCM] = useState<any>({ state: 'loading', message: 'Loading ...', data: null })
 
     useEffect(() => {
 
@@ -79,10 +79,13 @@ export default (cfg: iArgs) => {
 
     }, [])
 
+    const sat1c = ColorR2G(Number(gps1.data?.sat), [18, 20, 22, 25, 100])
+    const sat2c = ColorR2G(Number(gps2.data?.sat), [18, 20, 22, 25, 100])
+
     return <>
         <Style />
         <Timeline
-            style={{ minWidth: 480, zIndex: 1, position: 'absolute', left: 28, bottom: 0, fontWeight: 800, textShadow: '0px 1px 3px #000', color: '#fff' }}
+            style={{ minWidth: 480, zIndex: 1, position: 'absolute', left: 28, bottom: 0, fontWeight: 800, color: '#fff' }}
             items={[
                 {
                     color: getColor(gsm.state),
@@ -101,9 +104,9 @@ export default (cfg: iArgs) => {
                     children: gps1.state !== 'success' ? <Text style={{ color: getColor(gps1.state) }}>{gps1.message}</Text>
                         : <>
                             <Text>GPS-1: </Text>
-                            <Text style={{ color: gps1.data.vco }}>{(gps1.data.fix ?? '').toUpperCase()}</Text>
-                            <Text> / {f(gps1.data.est)} / {f(gps1.data.nrt)} / {f(gps1.data.ele)} / V_{f(gps1.data.vac, 1)} H_{f(gps1.data.hac, 1)} / </Text>
-                            <Text style={{ color: '#1668dc' }}>{gps1.data.sat}sats</Text>
+                            <Text style={{ color: gps1.data?.vco }}>{(gps1.data.fix ?? '').toUpperCase()}</Text>
+                            <Text style={{ color: sat1c }}> {gps1.data.sat}_SATS</Text>
+                            <Text> / {f(gps1.data.est)} / {f(gps1.data.nrt)} / {f(gps1.data.ele)} / V_{f(gps1.data.vac, 1)} H_{f(gps1.data.hac, 1)} </Text>
                         </>,
                 },
                 {
@@ -113,8 +116,8 @@ export default (cfg: iArgs) => {
                         : <>
                             <Text>GPS-2: </Text>
                             <Text style={{ color: gps2.data.vco }}>{(gps2.data.fix ?? '').toUpperCase()}</Text>
-                            <Text> / {f(gps2.data.est)} / {f(gps2.data.nrt)} / {f(gps2.data.ele)} / V_{f(gps2.data.vac, 1)} H_{f(gps2.data.hac, 1)} / </Text>
-                            <Text style={{ color: '#1668dc' }}>{gps2.data.sat}sats</Text>
+                            <Text style={{ color: sat2c }}> {gps2.data.sat}_SATS</Text>
+                            <Text> / {f(gps2.data.est)} / {f(gps2.data.nrt)} / {f(gps2.data.ele)} / V_{f(gps2.data.vac, 1)} H_{f(gps2.data.hac, 1)} </Text>
                         </>,
                 },
                 {

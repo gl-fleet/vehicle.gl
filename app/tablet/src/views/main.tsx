@@ -2,10 +2,11 @@ import { React, Row, Col } from 'uweb'
 import { ThreeView } from 'uweb/three'
 import { MapView } from 'uweb/maptalks'
 import { Point, Vehicle } from 'uweb/utils'
-import { Safe } from 'utils/web'
+import { Safe, Loop } from 'utils/web'
 
 import { camera_angle } from '../helper/camera'
 import { useWebcam } from '../helper/capture'
+import { useScreenshot } from '../helper/capture'
 
 import { Left } from '../canvas/left'
 import { Right } from '../canvas/right'
@@ -20,11 +21,19 @@ import Middle from '../views/middle'
 
 export default (cfg: iArgs) => {
 
-    const [wimg, wset] = useWebcam({ loop: 2500, size: [128, 128] })
+    const { api, event, isDarkMode, env } = cfg
+    const { webcam, screenshot } = env
+
+    console.log(webcam)
+    console.log(screenshot)
+
+    const [wimg, wset] = useWebcam({ loop: 5000, size: [128, 128] })
+    const [simg, sset] = useScreenshot({ loop: 5000, size: [128 * 3, 128 * 4], canvas_selector: '#right > canvas' })
+
+    React.useEffect(() => { webcam === 'true' && Safe(async () => await api.set('img-camera', { img: wimg }), 'SET.WECAM') }, [wimg])
+    React.useEffect(() => { screenshot === 'true' && Safe(async () => await api.set('img-map', { img: simg }), 'SET.SCREENSHOT') }, [wimg])
 
     React.useEffect(() => {
-
-        const { event, isDarkMode } = cfg
 
         const lv = new Left('left', cfg)
         const rv = new Right('right', cfg)

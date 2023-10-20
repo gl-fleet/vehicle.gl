@@ -1,7 +1,7 @@
 /*** *** *** @___ENV_FILE___ *** *** ***/
 
 const is_dev = process.env.MODE === 'development'
-const whoami = `SV101`
+const whoami = `DR101`
 
 module.exports = {
 
@@ -31,9 +31,9 @@ module.exports = {
     ubx: {
         me: whoami,
         host: "143.198.198.77,2101",
-        gps1: '/dev/uGPS1,115200,230',      /** | path | baud  | to_ground [cm] | **/
-        gps2: '/dev/uGPS2,115200,230',      /** | path | baud  | to_ground [cm] | **/
-        offset: '116.3,50,0,0',             /** | gps_dist[cm] | to_front  [cm] | to_right[cm] | to_top[cm] | **/
+        gps1: '/dev/uGPS1,115200,300',      /** | path | baud  | to_ground [cm] | **/
+        gps2: '/dev/uGPS2,115200,300',      /** | path | baud  | to_ground [cm] | **/
+        offset: '337.0,640,-115,0',         /** | gps_dist[cm] | to_front  [cm] | to_right[cm] | to_top[cm] | **/
         threshold: '1000,2.5,0',            /** | acc_gps [cm] | move_detect[m] | ... | **/
     },
 
@@ -47,11 +47,11 @@ module.exports = {
 
     tablet: {
         me: whoami,
-        type: 'Toyota',                     /** | Toyota | Drill | Dozer | -> GLTF type **/
-        body: `55,0,-100,0`,                /** | size: 50 | x: 0 | y: 0 | z: 0 | -> GLTF transformation (default) **/
+        type: 'Drill',                      /** | Toyota | Drill | Dozer | -> GLTF type **/
+        body: `55,0,0,0`,                   /** | size: 50 | x: 0 | y: 0 | z: 0 | -> GLTF transformation (default) **/
         tile: is_dev ? 'http://localhost:8443/tile/{z}/{x}/{y}.png' : 'http://10.3.141.1:8443/tile/{z}/{x}/{y}.png',
-        webcam: true,
-        screenshot: true,
+        webcam: false,
+        screenshot: false,
     },
 
     board: {

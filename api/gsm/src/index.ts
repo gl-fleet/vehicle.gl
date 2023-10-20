@@ -2,7 +2,7 @@ import { Host, Connection, NetServer, NetClient } from 'unet'
 import { Serial, F9P_Parser } from 'ucan'
 import { AsyncWait, decodeENV, Safe, Jfy, Sfy, Loop, Delay, env, log } from 'utils'
 
-const { name, version, mode, path } = decodeENV()
+const { me, name, version, mode, path } = decodeENV()
 log.success(`"${env.npm_package_name}" <${version}> module is running on "${process.pid}" / [${mode}] 🚀🚀🚀\n`)
 
 let temp = { operator: '****', quality: 0 }
@@ -31,9 +31,7 @@ const AT_BEAUTIFY = (s: string) => {
 
 DEV && Safe(() => { /** Simulate from remote **/
 
-    const drill = true
-
-    if (!drill /** latest supervisor **/) {
+    if (me === 'SV101' /** latest supervisor **/) {
 
         const remote = 'https://u002-gantulgak.as1.pitunnel.com/'
         const pi = new Connection({ name: 'gsm', proxy: remote })
@@ -44,7 +42,7 @@ DEV && Safe(() => { /** Simulate from remote **/
 
     }
 
-    if (drill /** legacy drill **/) {
+    if (me === 'DR101'  /** legacy drill **/) {
 
         const pi = new Connection({ name: 'GSM', proxy: 'https://u001-gantulgak.pitunnel.com/', rejectUnauthorized: false })
         pi.on('gsm', (e: any) => {
