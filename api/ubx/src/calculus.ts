@@ -12,12 +12,13 @@ export class Calculus {
 
     constructor(config: any) {
 
-        const { gps1, gps2, offset } = config
+        const { gps1, gps2, offset, expand } = config
 
         this.config = {
             left: Number(gps1[2]),
             right: Number(gps2[2]),
             distance: Number(offset[0]),
+            expand: Number(offset[4]),
             offset: {
                 x: Number(offset[1]),
                 y: Number(offset[2]),
@@ -37,12 +38,12 @@ export class Calculus {
             const left = Number(this.config.left ?? '0') / 100
             const right = Number(this.config.right ?? '0') / 100
             const width = Number(this.config.distance ?? '0') / 100
-            const height = Math.min(left, right)
             const toFront = Number(this.config.offset?.x ?? '0') / 100
             const toRight = Number(this.config.offset?.y ?? '0') / 100
             const toTop = Number(this.config.offset?.z ?? '0') / 100
+            const expand = (Number(this.config.expand ?? '0') / 100) * 2
+            const height = Math.min(left, right)
             const hightDiff = Math.abs(left - right)
-            // const far = Number(this.settings.rightFar ?? '50')
 
             /* LEFT */ const A = { x: gps1.est, y: gps1.nrt, z: gps1.ele - (left > right ? hightDiff : 0) }
             /* RIGH */ const B = { x: gps2.est, y: gps2.nrt, z: gps2.ele - (right > left ? hightDiff : 0) }
@@ -52,8 +53,8 @@ export class Calculus {
 
             const K0 = this.find4thPoint(M, A, C)
             const K1 = this.find4thPoint(M, B, C)
-            const { _L: _TL, _M: _TM, _R: _TR } = this.ms4findingGP(K0, K1, width, height) /** BM */
-            const { _L: BL, _M: BM, _R: BR } = this.ms4findingGP(A, B, width, height) /** TM */
+            const { _L: _TL, _M: _TM, _R: _TR } = this.ms4findingGP(K0, K1, width + expand, height) /** BM */
+            const { _L: BL, _M: BM, _R: BR } = this.ms4findingGP(A, B, width + expand, height) /** TM */
 
             const TL = this.findPointInVector(BL, { ..._TL }, toFront)
             const TM = this.findPointInVector(BM, { ..._TM }, toFront)
@@ -87,11 +88,6 @@ export class Calculus {
                     front: [LL_TM.lat, LL_TM.lng, TM.z],
                     back: [LL_BM.lat, LL_BM.lng, BM.z],
                 },
-                /* camera: {
-                    back: this.findPointInVector(TM, BM, far),
-                    right: this.findPointInVector(TM, TR, far),
-                    top: { ...this.findPointInVector(MP, BP, 0.001), z: this.findPointInVector(MP, BP, 0.001).z + far },
-                }, */
                 A, B, M, C, D,
                 TL, TM, TR,
                 MP,

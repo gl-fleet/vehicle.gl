@@ -6,9 +6,8 @@ import { Calculus } from './calculus'
 import { ProcessActivity } from './process'
 
 const cf = decodeENV()
-const { me, version, mode, artist } = decodeENV()
+const { me, version, mode } = decodeENV()
 log.success(`"${env.npm_package_name}" <${version}> module is running on "${process.pid}" / [${mode}] 🚀🚀🚀\n`)
-log.warn(artist)
 
 const API_DATA = new Connection({ name: 'data', timeout: 500 })
 const GPS: any = { gps1: {}, gps2: {} } /** Temporary GPS data store **/

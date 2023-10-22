@@ -25,7 +25,7 @@ const Style = createGlobalStyle`
 
 /*** *** *** @___MIDDLE_BASIC_VIEW___ *** *** ***/
 
-const BasicView = ({ event }: iArgs) => {
+const BasicView = ({ isDarkMode, event }: iArgs) => {
 
     const [_, setStatus] = useState({ x: '', y: '', el: '*', di: 0 })
 
@@ -46,7 +46,7 @@ const BasicView = ({ event }: iArgs) => {
     const ac = colorize(Number(_.di), [12.5, 10, 7.5, 5, 2.5])
     const fontSize = 24
 
-    return <Layout id="center-view-0" style={{ width: '100%', height: '100%' }}>
+    return <Layout id="center-view-0" style={{ background: 'transparent', width: '100%', height: '100%' }}>
 
         {Number(_.di) >= 5 ? <Row gutter={16} style={{ position: 'absolute', width: '100%', padding: 16, fontWeight: 800, overflow: 'hidden' }}>
 
@@ -268,7 +268,7 @@ export default (cfg: iArgs) => {
     const [slide, setSlide] = useState(0)
     const slider: any = useRef()
 
-    const background = cfg.isDarkMode ? 'rgba(0,0,0,0.25)' : '#bfb9b3'
+    const background = cfg.isDarkMode ? '#0e1219' : 'cornsilk'
 
     useEffect(() => {
 
@@ -304,7 +304,7 @@ export default (cfg: iArgs) => {
 
     }, [])
 
-    return <Layout style={{ border: '2px solid grey', left: '50%', top: '50%', position: 'absolute', width: `${w}px`, height: `${h}px`, marginLeft: `-${w / 2 + 2}px`, marginTop: `-${h / 2 + 2}px`, padding: 0, zIndex: 1 }}>
+    return <Layout style={{ background, border: '2px solid grey', left: '50%', top: '50%', position: 'absolute', width: `${w}px`, height: `${h}px`, marginLeft: `-${w / 2 + 2}px`, marginTop: `-${h / 2 + 2}px`, padding: 0, zIndex: 1 }}>
         <Style />
         <Carousel beforeChange={(e: number) => { cfg.event.emit('_goto', e) }} dotPosition={'right'} effect="fade" ref={ref => { slider.current = ref }} >
             <div><div style={{ width: w, height: h - 4, background }}><BasicView {...cfg} /></div></div>

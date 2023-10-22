@@ -30,7 +30,6 @@ export class Vehicles {
             this.can = new Vehicle({ Truck, Maptalks, Three })
             this.ready = true
             this.cb('ready')
-            console.log(args)
 
         })
 

@@ -79,8 +79,8 @@ export default (cfg: iArgs) => {
 
     }, [])
 
-    const sat1c = ColorR2G(Number(gps1.data?.sat), [18, 20, 22, 25, 100])
-    const sat2c = ColorR2G(Number(gps2.data?.sat), [18, 20, 22, 25, 100])
+    const sat1c = ColorR2G(Number(gps1.data?.sat), [18, 21, 24, 27, 30])
+    const sat2c = ColorR2G(Number(gps2.data?.sat), [18, 21, 24, 27, 30])
 
     return <>
         <Style />

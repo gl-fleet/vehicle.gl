@@ -21,17 +21,15 @@ import Middle from '../views/middle'
 
 export default (cfg: iArgs) => {
 
-    const { api, event, isDarkMode, env } = cfg
+    const { api, event, env } = cfg
     const { webcam, screenshot } = env
 
-    console.log(webcam)
-    console.log(screenshot)
+    const [wimg] = useWebcam({ loop: webcam === 'true' ? 5000 : -1, size: [128, 128] })
+    const [simg] = useScreenshot({ loop: screenshot === 'true' ? 5000 : -1, size: [128 * 3, 128 * 4], canvas_selector: '#left canvas' })
 
-    const [wimg, wset] = useWebcam({ loop: 5000, size: [128, 128] })
-    const [simg, sset] = useScreenshot({ loop: 5000, size: [128 * 3, 128 * 4], canvas_selector: '#right > canvas' })
-
-    React.useEffect(() => { webcam === 'true' && Safe(async () => await api.set('img-camera', { img: wimg }), 'SET.WECAM') }, [wimg])
-    React.useEffect(() => { screenshot === 'true' && Safe(async () => await api.set('img-map', { img: simg }), 'SET.SCREENSHOT') }, [wimg])
+    React.useEffect(() => { cfg.event.emit('mode', cfg.isDarkMode) }, [cfg.isDarkMode])
+    React.useEffect(() => { Safe(async () => await api.set('img-camera', { img: wimg }), 'SET.WECAM') }, [wimg])
+    React.useEffect(() => { Safe(async () => await api.set('img-map', { img: simg }), 'SET.SCREENSHOT') }, [wimg])
 
     React.useEffect(() => {
 
@@ -64,19 +62,22 @@ export default (cfg: iArgs) => {
 
             event.on('stream', ({ data_gps }) => Safe(() => {
 
-                const { A, B, TM, BM } = data_gps
+                const { A, B, TL, TM, TR, BL, BM, BR } = data_gps
                 const { gps, utm, head } = data_gps
 
                 itrc.is_left_ok() && left.map.setCenter(gps)
                 itrc.is_right_ok() && right.update(camera_angle(data_gps, true), utm)
                 vehicle.update({ gps, utm, head })
 
-                point.update('f_m', 'grey', [TM.x, TM.y, TM.z])
-                point.update('b_m', 'grey', [BM.x, BM.y, BM.z])
+                point.update('f_l', 'grey', [TL.x, TL.y, TL.z])
+                point.update('f_r', 'grey', [TR.x, TR.y, TR.z])
 
-                point.update('left', 'red', [A.x, A.y, A.z])
-                point.update('right', 'blue', [B.x, B.y, B.z])
-                point.update('origin', 'green', utm)
+                point.update('b_l', 'grey', [BL.x, BL.y, BL.z])
+                point.update('b_m', 'orange', [BM.x, BM.y, BM.z])
+                point.update('b_r', 'grey', [BR.x, BR.y, BR.z])
+
+                point.update('l_p', 'red', [A.x, A.y, A.z])
+                point.update('r_p', 'blue', [B.x, B.y, B.z])
 
             }, 'MAIN-LISTEN'))
 
@@ -84,14 +85,7 @@ export default (cfg: iArgs) => {
 
     }, [])
 
-    React.useEffect(() => { cfg.event.emit('mode', cfg.isDarkMode) }, [cfg.isDarkMode])
-
-    const hide = location.href.indexOf('hide') !== -1 ? {
-        opacity: 0.25,
-        filter: 'sepia(1)',
-    } : {}
-
-    return <Row id="main" style={{ height: '100%', ...hide }}>
+    return <Row id="main" style={{ height: '100%' }}>
 
         <Col id='left' span={12} style={{ height: '100%' }} />
         <Col id='right' span={12} style={{ height: '100%' }} />

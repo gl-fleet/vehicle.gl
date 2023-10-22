@@ -14,6 +14,8 @@ export const useWebcam = ({ loop, size, src }: {
 
     useEffect(() => {
 
+        if (loop === -1) return
+
         log.warn(`[useWebcam] Starting ...`)
         const video = document.createElement("video")
         const canvas = document.createElement("canvas")
@@ -64,6 +66,8 @@ export const useScreenshot = ({ loop, size, canvas_selector }: {
     const execCapture = useRef(() => { })
 
     useEffect(() => {
+
+        if (loop === -1) return
 
         log.warn(`[useWebcam] Starting ...`)
 

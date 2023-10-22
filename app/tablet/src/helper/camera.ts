@@ -141,16 +141,8 @@ export const camera_angle = (arg: {
 
 }
 
-export const camera_angle_custom = (arg: {
+export const camera_angle_custom = (type: number, far: number, revert_time: number) => {
 
-    TL: number[], TM: number[], TR: number[],
-    BL: number[], BM: number[], BR: number[],
-
-}, type: number, far: number, asArray = false) => {
-
-    const c = camera_angles[views[type]](far, arg)
-
-    if (asArray) return [c.x, c.y, c.z]
-    else return c
+    //
 
 }

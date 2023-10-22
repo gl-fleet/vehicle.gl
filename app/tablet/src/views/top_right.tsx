@@ -1,4 +1,4 @@
-import { React, Typography, Layout, Alert, FloatButton } from 'uweb'
+import { React, Layout, Alert, FloatButton } from 'uweb'
 import {
     FolderOpenOutlined,
     ZoomInOutlined,
@@ -13,7 +13,7 @@ const { useEffect, useState } = React
 export default (cfg: iArgs) => {
 
     const [text, setText] = useState(`...`)
-    const [alert, setAlert] = useState({})
+    const [alert, setAlert] = useState<any>({})
 
     useEffect(() => {
 
@@ -25,15 +25,11 @@ export default (cfg: iArgs) => {
             file: <FolderOpenOutlined />,
         }
 
-        event.on('stream', ({ data_activity }) => {
-            data_activity && setText(`Mode: Vehicle < ${data_activity.state} >`)
-        })
-
-        const showAlert = (key: string, type: string, message: string, onclose: string) => {
+        const showAlert = (key: string, type: any, message: string, onclose: string) => {
 
             if (message) {
 
-                const temp = alert
+                const temp: any = alert
                 temp[key] = <Alert
                     key={key}
                     icon={icons[key]}
@@ -53,17 +49,19 @@ export default (cfg: iArgs) => {
         const closeAlert = (key: string, onclose: string = 'none') => {
 
             event.emit(onclose, key)
-            const temp = alert
+            const temp: any = alert
             temp[key] = null
             delete temp[key]
             setAlert({ ...temp })
 
         }
 
+        event.on('stream', ({ data_activity }) => {
+            data_activity && setText(`Mode: Vehicle < ${data_activity.state} >`)
+        })
+
         event.on('alert', ({ key, type = 'success', message, onclose = 'none' }) => {
-
             showAlert(key, type, message, onclose)
-
         })
 
     }, [])
