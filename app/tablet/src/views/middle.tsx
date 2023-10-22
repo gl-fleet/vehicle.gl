@@ -15,6 +15,8 @@ const Style = createGlobalStyle`
     #right > div {
         left: 50% !important;
         margin-left: -40px;
+        top: unset !important;
+        bottom: 0;
     }
 
     .slick-slider button {

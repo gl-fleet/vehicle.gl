@@ -1,4 +1,4 @@
-import { React, Layout, Alert, FloatButton } from 'uweb'
+import { React, Layout, Alert, FloatButton, message } from 'uweb'
 import {
     FolderOpenOutlined,
     ZoomInOutlined,
@@ -14,6 +14,7 @@ export default (cfg: iArgs) => {
 
     const [text, setText] = useState(`...`)
     const [alert, setAlert] = useState<any>({})
+    const [messageApi, contextHolder] = message.useMessage()
 
     useEffect(() => {
 
@@ -68,11 +69,18 @@ export default (cfg: iArgs) => {
 
     return <Layout style={{ background: 'transparent', position: 'absolute', left: 16, top: 16, padding: 0, zIndex: 100 }}>
 
+        {contextHolder}
+
         <FloatButton.Group shape="circle" style={{ top: 24, zIndex: 10, height: 180 }}>
             <FloatButton onClick={() => camera.camera_zoom_in()} icon={<ZoomInOutlined />} />
             <FloatButton onClick={() => camera.camera_zoom_out()} icon={<ZoomOutOutlined />} />
             <FloatButton onClick={() => camera.camera_toggle()} icon={<CodeSandboxOutlined />} />
-            <FloatButton onClick={() => { }} icon={<PushpinOutlined />} />
+            <FloatButton onClick={() => {
+                messageApi.open({
+                    type: 'warning',
+                    content: 'Permission denied!',
+                })
+            }} icon={<PushpinOutlined />} />
         </FloatButton.Group>
 
         <Alert message={text} type="success" showIcon />
