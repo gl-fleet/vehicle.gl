@@ -14,44 +14,33 @@ const GPS: any = { gps1: {}, gps2: {} } /** Temporary GPS data store **/
 const VAC = Number(cf.threshold[0])     /** Bad GPS Threshold (cm) **/
 const Calculate = new Calculus(cf)
 const Process = new ProcessActivity({})
-const publish = (channel: string, data: any) => Safe(async () => await API_DATA.set(channel, data), `[${channel}]`)
 const LOG: any = log
 const DEV = cf.mode === 'development', PROD = !DEV
 
-DEV && Safe(() => {
+const publish = (channel: string, data: any) => Safe(async () => await API_DATA.set(channel, data), `[${channel}]`)
 
-    if (me === 'SV101' /** latest supervisor **/) {
+/** Simulate from DR101 **/
+DEV && Safe(() => me === 'DR101' && (new Connection({ name: 'UBX', proxy: 'https://u001-gantulgak.pitunnel.com/', rejectUnauthorized: false })).on('live-raw', (e: any) => {
 
-        const pi = new Connection({ name: 'ubx', proxy: 'https://u002-gantulgak.as1.pitunnel.com/', rejectUnauthorized: false })
+    const { gps1, gps2 } = e
+    publish('data_gps1', { state: 'success', type: 'success', message: 'GPS1 connected!', data: gps1 })
+    publish('data_gps2', { state: 'success', type: 'success', message: 'GPS2 connected!', data: gps2 })
+    GPS.gps1 = gps1
+    GPS.gps2 = gps2
 
-        pi.on('GPS1', ({ data }: any) => {
-            publish('data_gps1', { state: 'success', type: 'success', message: 'GPS1 connected!', data })
-            GPS.gps1 = data
-        })
+}), 'Simulate')
 
-        pi.on('GPS2', ({ data }: any) => {
-            publish('data_gps2', { state: 'success', type: 'success', message: 'GPS2 connected!', data })
-            GPS.gps2 = data
-        })
+/** Simulate from SV101 **/
+DEV && Safe(() => me === 'SV101' && (new Connection({ name: 'data', proxy: 'https://u002-gantulgak.as1.pitunnel.com/', rejectUnauthorized: false })).on('stream', (args: any) => {
 
-    }
+    const { data_gps1, data_gps2, data_gsm } = args
+    publish('data_gps1', data_gps1)
+    publish('data_gps2', data_gps2)
+    publish('data_gsm', { ...data_gsm, data: data_gsm })
+    GPS.gps1 = data_gps1.data
+    GPS.gps2 = data_gps2.data
 
-    if (me === 'DR101'  /** legacy drill **/) {
-
-        const pi = new Connection({ name: 'UBX', proxy: 'https://u001-gantulgak.pitunnel.com/', rejectUnauthorized: false })
-        pi.on('live-raw', (e: any) => {
-
-            const { gps1, gps2 } = e
-            publish('data_gps1', { state: 'success', type: 'success', message: 'GPS1 connected!', data: gps1 })
-            publish('data_gps2', { state: 'success', type: 'success', message: 'GPS2 connected!', data: gps2 })
-            GPS.gps1 = gps1
-            GPS.gps2 = gps2
-
-        })
-
-    }
-
-})
+}), 'Simulate')
 
 Safe(() => {
 
@@ -116,8 +105,7 @@ Safe(() => {
         if (gps1.time === gps2.time && gps1.time !== prev) { prev = gps1.time }
         else { return 0 }
 
-        log.info(`GPS(1): ${gps1.fix} ${gps1.ele} ${gps1.vac} ${gps1.hac} `)
-        log.info(`GPS(2): ${gps2.fix} ${gps2.ele} ${gps2.vac} ${gps2.hac} `)
+        (Date.now() % 5000 <= 1000) && log.success(`GPS(1): ${gps1.fix} ${gps1.ele} ${gps1.vac} ${gps1.hac} | GPS(2): ${gps2.fix} ${gps2.ele} ${gps2.vac} ${gps2.hac} `)
 
         Process.add(gps1)
 

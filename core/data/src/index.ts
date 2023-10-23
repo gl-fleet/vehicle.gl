@@ -21,16 +21,19 @@ const cf = {
 
 const run = () => {
 
-    const emitter = new Emitter(cf)
-    const canvas = new Canvas(cf)
-    const persist = new Persist(cf)
+    try {
 
-    emitter.on('pub_cloud', (data: any) => {
+        const emitter = new Emitter(cf)
+        const canvas = new Canvas(cf)
+        const persist = new Persist(cf)
 
-        persist.save_event({ type: 'status', name: 'device', data })
+        emitter.on('pub_cloud', (data: any) => {
 
-    })
+            persist.save_event({ type: 'status', name: 'device', data })
 
+        })
+
+    } catch (err) { console.log(err) }
 }
 
 Safe(async () => {

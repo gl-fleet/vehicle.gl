@@ -18,13 +18,17 @@ const cfg: iArgs = {
     api: new Connection({ name: 'data' }),
 }
 
-let i = 0; cfg.api.on('stream', (args: any) => {
-    (++i % 10 === 0) && console.log(args)
+cfg.api.on('stream', (args: any) => {
+
+    Date.now() % 5000 <= 1000 && console.log(args)
     cfg.event.emit('stream', args)
+
 })
 
 Render(
+
     ({ isDarkMode }: { isDarkMode: boolean }) => <Main {...cfg} isDarkMode={isDarkMode} />,
     ({ isDarkMode }: { isDarkMode: boolean }) => <Settings {...cfg} isDarkMode={isDarkMode} />,
     { maxWidth: '100%' },
+
 )

@@ -30,7 +30,9 @@ export class Emitter {
         local.on('status-local', () => {
 
             const obj: any = {}
-            Object.keys(this.data).map((key: string) => { obj[key] = this.data[key].out.local })
+            Object.keys(this.data).map((key: string) => {
+                if (this.data[key]?.out?.local) obj[key] = this.data[key].out.local
+            })
             const kb = (roughSizeOfObject(obj) / 1024).toFixed(1)
             obj.size = `[emitter.local] -> ${kb} kb to be sent to local!`
 
@@ -41,7 +43,9 @@ export class Emitter {
         local.on('status-cloud', () => {
 
             const obj: any = {}
-            Object.keys(this.data).map((key: string) => { obj[key] = this.data[key].out.cloud })
+            Object.keys(this.data).map((key: string) => {
+                if (this.data[key]?.out?.cloud) obj[key] = this.data[key].out.cloud
+            })
             const kb = (roughSizeOfObject(obj) / 1024).toFixed(1)
             obj.size = `[emitter.cloud] -> ${kb} kb to be sent to cloud!`
 
@@ -71,7 +75,9 @@ export class Emitter {
         if ((Date.now() - this.state.last_pub_local) >= this.delay.local) {
 
             const obj: any = {}
-            Object.keys(this.data).map((key: string) => { obj[key] = this.data[key].out.local })
+            Object.keys(this.data).map((key: string) => {
+                if (this.data[key]?.out?.local) obj[key] = this.data[key].out.local
+            })
             this.state.last_pub_local = Date.now()
             this.emit('pub_local', obj) && this.local.emit(this.channel, obj)
 
@@ -95,7 +101,9 @@ export class Emitter {
         if ((Date.now() - this.state.last_pub_cloud) >= this.delay.cloud) {
 
             const obj: any = {}
-            Object.keys(this.data).map((key: string) => { obj[key] = this.data[key].out.cloud })
+            Object.keys(this.data).map((key: string) => {
+                if (this.data[key]?.out?.cloud) obj[key] = this.data[key].out.cloud
+            })
             this.state.last_pub_cloud = Date.now()
 
             // this.cloud.emit(this.channel, obj)
@@ -203,13 +211,22 @@ export class Emitter {
 
             this.local.on(key, ({ body }) => {
 
-                const p = this.data[key]
-                if (p && (Date.now() - p.time) >= this.delay.parse) {
+                try {
 
-                    p.time = Date.now()
-                    p.inp = body
-                    p.out = p.parser(p.inp)
-                    publish(key)
+                    const p = this.data[key]
+                    if (p && (Date.now() - p.time) >= this.delay.parse) {
+
+                        p.time = Date.now()
+                        p.inp = body
+                        p.out = p.parser(p.inp)
+                        publish(key)
+
+                    }
+
+                } catch (err: any) {
+
+                    log.error(`[${key}] -> ${err.message}`)
+                    throw new Error(`[${key}] -> ${err.message}`)
 
                 }
 

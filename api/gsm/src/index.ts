@@ -7,7 +7,6 @@ log.success(`"${env.npm_package_name}" <${version}> module is running on "${proc
 
 let temp = { operator: '****', quality: 0 }
 const DEV = mode === 'development', PROD = !DEV
-const API = new Host({ name: 'gsm' })
 const API_DATA = new Connection({ name: 'data', timeout: 500 })
 const publish = (channel: string, data: any) => Safe(async () => await API_DATA.set(channel, data))
 
@@ -28,34 +27,6 @@ const AT_BEAUTIFY = (s: string) => {
     return null
 
 }
-
-DEV && Safe(() => { /** Simulate from remote **/
-
-    if (me === 'SV101' /** latest supervisor **/) {
-
-        const remote = 'https://u002-gantulgak.as1.pitunnel.com/'
-        const pi = new Connection({ name: 'gsm', proxy: remote })
-        pi.on('GSM', ({ data }: any) => {
-            API.emit('GSM', { state: 'success', type: 'success', message: `Network connected!`, data })
-            publish('data_gsm', { state: 'success', type: 'success', message: 'Network connected!', data })
-        })
-
-    }
-
-    if (me === 'DR101'  /** legacy drill **/) {
-
-        const pi = new Connection({ name: 'GSM', proxy: 'https://u001-gantulgak.pitunnel.com/', rejectUnauthorized: false })
-        pi.on('gsm', (e: any) => {
-
-            temp = { ...temp, ...e }
-            API.emit('GSM', { state: 'success', type: 'success', message: `Network connected!`, data: temp })
-            publish('data_gsm', { state: 'success', type: 'success', message: 'Network connected!', data: temp })
-
-        })
-
-    }
-
-})
 
 PROD && Safe(() => {
 
