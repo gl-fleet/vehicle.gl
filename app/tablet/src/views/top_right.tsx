@@ -58,7 +58,7 @@ export default (cfg: iArgs) => {
         }
 
         event.on('stream', ({ data_activity }) => {
-            data_activity && setText(`Mode: Vehicle < ${data_activity.state} >`)
+            data_activity && setText(`Mode: ${cfg.env.type} < ${data_activity.state} >`)
         })
 
         event.on('alert', ({ key, type = 'success', message, onclose = 'none' }) => {

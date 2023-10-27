@@ -20,13 +20,14 @@ const DEV = cf.mode === 'development', PROD = !DEV
 const publish = (channel: string, data: any) => Safe(async () => await API_DATA.set(channel, data), `[${channel}]`)
 
 /** Simulate from DR101 **/
-DEV && Safe(() => me === 'DR101' && (new Connection({ name: 'UBX', proxy: 'https://u001-gantulgak.pitunnel.com/', rejectUnauthorized: false })).on('live-raw', (e: any) => {
+DEV && Safe(() => me === 'DR101' && (new Connection({ name: 'data', proxy: 'https://u001-gantulgak.pitunnel.com/', rejectUnauthorized: false })).on('stream', (args: any) => {
 
-    const { gps1, gps2 } = e
-    publish('data_gps1', { state: 'success', type: 'success', message: 'GPS1 connected!', data: gps1 })
-    publish('data_gps2', { state: 'success', type: 'success', message: 'GPS2 connected!', data: gps2 })
-    GPS.gps1 = gps1
-    GPS.gps2 = gps2
+    const { data_gps1, data_gps2, data_gsm } = args
+    publish('data_gps1', data_gps1)
+    publish('data_gps2', data_gps2)
+    publish('data_gsm', { ...data_gsm, data: data_gsm })
+    GPS.gps1 = data_gps1.data
+    GPS.gps2 = data_gps2.data
 
 }), 'Simulate')
 
