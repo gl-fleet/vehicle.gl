@@ -12,7 +12,13 @@ export class Emitter {
 
     public channel: string = 'stream'
     public delay: any = { cloud: 1000, local: 500, parse: 100 }
-    public state: any = { last_pub_cloud: 0, last_pub_local: 0, prev_state: 'unk' }
+    public state: any = {
+        last_pub_cloud: 0,
+        is_cloud_pubing: false,
+        last_pub_local: 0,
+        is_local_pubing: false,
+        prev_state: 'unk',
+    }
     public data: any = {}
     public inj: any = {}
     public cbs: any = {}
@@ -78,6 +84,7 @@ export class Emitter {
             Object.keys(this.data).map((key: string) => {
                 if (this.data[key]?.out?.local) obj[key] = this.data[key].out.local
             })
+
             this.state.last_pub_local = Date.now()
             this.emit('pub_local', obj) && this.local.emit(this.channel, obj)
 
@@ -104,11 +111,17 @@ export class Emitter {
             Object.keys(this.data).map((key: string) => {
                 if (this.data[key]?.out?.cloud) obj[key] = this.data[key].out.cloud
             })
-            this.state.last_pub_cloud = Date.now()
 
-            // this.cloud.emit(this.channel, obj)
-            this.cloud.set(this.channel, obj).catch(e => log.error(`[Emitter] While sending to cloud / ${e.message}`))
+            this.state.last_pub_cloud = Date.now()
             !is_ignored(obj) && this.emit('pub_cloud', obj)
+
+            if (this.cloud.cio.connected && !this.state.is_cloud_pubing) {
+                this.state.is_cloud_pubing = true
+                this.cloud.set(this.channel, obj)
+                    .then(() => { })
+                    .catch(e => log.error(`[Emitter] While sending to cloud / ${e.message}`))
+                    .finally(() => { this.state.is_cloud_pubing = false })
+            }
 
         }
 

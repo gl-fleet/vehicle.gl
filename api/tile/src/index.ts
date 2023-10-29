@@ -53,7 +53,7 @@ const tileImageFetch = (url: string) => new Promise((resolve) => {
 
 Safe(() => {
 
-    const API = new Host({ name: 'tile' })
+    const API = new Host({ name: 'tile', port: 4091 })
 
     mkdir(`${path}`)
 

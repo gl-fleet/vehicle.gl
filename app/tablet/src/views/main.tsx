@@ -15,6 +15,7 @@ import { Interact } from '../canvas/interact'
 import { PlanDig } from '../canvas/plan_dig'
 import { PlanShot } from '../canvas/plan_shot'
 
+import Connection from '../views/connection'
 import TopRight from '../views/top_right'
 import BotLeft from '../views/bot_left'
 import Middle from '../views/middle'
@@ -90,6 +91,7 @@ export default (cfg: iArgs) => {
         <Col id='left' span={12} style={{ height: '100%' }} />
         <Col id='right' span={12} style={{ height: '100%' }} />
 
+        <Connection {...cfg} />
         <TopRight {...cfg} />
         <BotLeft {...cfg} />
         <Middle {...cfg} />

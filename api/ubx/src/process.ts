@@ -101,7 +101,7 @@ export class ProcessActivity {
             avg2.z = avg2.z / (size - span)
             avg2.d = avg2.d / (size - span)
 
-            const sym = getCardinalDirection(avg1.h) + getCardinalDirection(avg2.h)
+            const sym = getCardinalDirection(avg2.h) + getCardinalDirection(avg1.h)
 
             if (avg1.s < speed.low && avg2.s > speed.high) { this.action.state = `speed_increasing [${sym}]` }
             if (avg1.s > speed.high && avg2.s < speed.low) { this.action.state = `speed_decreasing [${sym}]` }

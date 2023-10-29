@@ -28,7 +28,7 @@ Run({
         })
 
         /** Process Manage **/
-        const API = new Host({ name: 'proxy', timeout: 30 * 1000 })
+        const API = new Host({ name: 'proxy', port: 8440, timeout: 30 * 1000 })
 
         API.on('start', async ({ query }: any) => await _.manage.start(query.name))
         API.on('stop', async ({ query }: any) => await _.manage.stop(query.name))
