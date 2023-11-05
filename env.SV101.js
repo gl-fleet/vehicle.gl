@@ -1,8 +1,8 @@
 /*** *** *** @___ENV_FILE___ *** *** ***/
 
-const whoami = `DR101`
+const whoami = `SV101`
 const is_dev = process.env.MODE === 'development'
-const ACCESS_TOKEN = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJuYW1lIjoiRFIxMDEiLCJ0eXBlIjoiZHJpbGwiLCJwcm9qZWN0IjoiQ3VsbGluYW4iLCJleHBpcmVzSW4iOiIxODBkIiwiaWF0IjoxNjk4MDQ2Njk0LCJleHAiOjE3MTM1OTg2OTR9.ZGf4qbXkte4AfLH_gwUpkXy1GuMNvsZASN2BNxK0tWY"
+const ACCESS_TOKEN = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJuYW1lIjoiU1YxMDEiLCJ0eXBlIjoidmVoaWNsZSIsInByb2plY3QiOiJWTVAiLCJleHBpcmVzSW4iOiIxODBkIiwiaWF0IjoxNjk3MTY2MDg5LCJleHAiOjE3MTI3MTgwODl9.VQwiGpUhM3A3yclra8KD3TEok3Eb1FXSAHywQJyZdJo"
 
 module.exports = {
 
@@ -32,9 +32,9 @@ module.exports = {
     ubx: {
         me: whoami,
         host: "143.198.198.77,2101",
-        gps1: '/dev/uGPS1,115200,300',      /** | path | baud  | to_ground [cm] | **/
-        gps2: '/dev/uGPS2,115200,300',      /** | path | baud  | to_ground [cm] | **/
-        offset: '337.0,640,-115,0,0',       /** | gps_dist[cm] | to_front  [cm] | to_right[cm] | to_top[cm] | expand[cm]  **/
+        gps1: '/dev/uGPS1,115200,230',      /** | path | baud  | to_ground [cm] | **/
+        gps2: '/dev/uGPS2,115200,230',      /** | path | baud  | to_ground [cm] | **/
+        offset: '116.3,250,0,0,44',         /** | gps_dist[cm] | to_front  [cm] | to_right[cm] | to_top[cm] | expand[cm] **/
         threshold: '1000,2.5,0',            /** | acc_gps [cm] | move_detect[m] | ... | **/
     },
 
@@ -48,8 +48,8 @@ module.exports = {
 
     tablet: {
         me: whoami,
-        type: 'Drill',                      /** | Toyota | Drill | Dozer | -> GLTF type **/
-        body: `55,0,0,0`,                   /** | size: 50 | x: 0 | y: 0 | z: 0 | -> GLTF transformation (default) **/
+        type: 'Toyota',                     /** | Toyota | Drill | Dozer | -> GLTF type **/
+        body: `54,0,0,0`,                   /** | size: 50 | x: 0 | y: 0 | z: 0 | -> GLTF transformation (default) +x goes right **/
         tile: is_dev ? 'http://localhost:8443/tile/{z}/{x}/{y}.png' : 'http://10.3.141.1:8443/tile/{z}/{x}/{y}.png',
         webcam: false,
         screenshot: false,

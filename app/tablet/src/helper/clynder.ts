@@ -22,15 +22,21 @@ export class Clynder {
 
     nearest = ([x, y, z]: number[], m: number = 500) => {
 
-        let v = { d: m, v: [0, 0, 0], n: '*' }
+        let v = { d2: m, d3: m, v: [0, 0, 0], n: '*' }
 
         const dist = (A: any, B: any) => { try { return Math.sqrt(Math.pow(B.x - A.x, 2) + Math.pow(B.y - A.y, 2) + Math.pow(B.z - A.z, 2)) } catch (error) { return -1 } }
 
         this.GroupThree.traverse((child: any) => {
             if (child.hasOwnProperty('z')) {
 
-                const d = dist({ x, y, z }, { ...child.position, z: child.z ?? 0 })
-                if (d < v.d) { v.d = d; v.v = [child.position.x, child.position.y, child.z ?? 0], v.n = child.name }
+                const d3 = dist({ x, y, z }, { ...child.position, z: child.z ?? 0 })
+                const d2 = dist({ x, y, z: 0 }, { ...child.position, z: 0 })
+                if (d3 < v.d3) {
+                    v.d3 = d3
+                    v.d2 = d2
+                    v.v = [child.position.x, child.position.y, child.z ?? 0]
+                    v.n = child.name
+                }
 
             }
         })

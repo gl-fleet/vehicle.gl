@@ -20,8 +20,11 @@ const Disconnect = createGlobalStyle`
         right: 0;
         width: 480px;
         height: 256px;
-        background: #fff;
+        background: #000;
         border-radius: 8px;
+    }
+    .ant-result-title {
+        color: #fff !important;
     }
 `
 

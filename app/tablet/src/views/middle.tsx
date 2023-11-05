@@ -157,7 +157,7 @@ const PlanDigView = (cfg: iArgs) => {
 const PlanShotView = (cfg: iArgs) => {
 
     const [_, setStatus] = useState({ x: '', y: '', el: '*', di: 0 })
-    const [ray, setRay] = useState({ dis: 0, dir: '*' })
+    const [ray, setRay] = useState({ d2: 0, d3: 0, dir: '*' })
     const ref: any = useRef()
 
     useEffect(() => {
@@ -182,13 +182,13 @@ const PlanShotView = (cfg: iArgs) => {
             const cly = clynder.get('clynder_target', 0.01)
             right.scene.add(cly)
 
-            let m = { d: 0, v: [0, 0, 0], n: '*' }
+            let m = { d2: 0, d3: 0, v: [0, 0, 0], n: '*' }
 
             event.on('shot_plan_status', (e: any) => Safe(() => {
 
                 event.emit('goto', 2)
-                const { d, v, n } = e
-                setRay({ dis: N(d), dir: n })
+                const { d2, d3, v, n } = e
+                setRay({ d2: N(d2), d3: N(d3), dir: n })
                 m = e
 
             }))
@@ -206,9 +206,9 @@ const PlanShotView = (cfg: iArgs) => {
 
                 if (m && m.n !== '*') {
 
-                    const { d, v, n } = m
+                    const { d2, d3, v, n } = m
 
-                    const cam_far = ((d > 10000 ? 2.5 : (0.75 >= d ? 0.75 : d)) * 1.5)
+                    const cam_far = ((d2 > 10000 ? 2.5 : (0.75 >= d2 ? 0.75 : d2)) * 1.5)
                     ref.current.update(camera_angle_custom(data_gps, 4, cam_far, true), utm)
 
                     ref.current.arroHelper.direction(v[0], v[1], el)
@@ -225,7 +225,8 @@ const PlanShotView = (cfg: iArgs) => {
     useEffect(() => { ref.current.setMode && ref.current.setMode(cfg.isDarkMode) }, [cfg.isDarkMode])
 
     const ac = ColorG2R(Number(_.di), [2.5, 5, 7.5, 10, 12.5])
-    const dc = ColorG2R(Number(ray.dis), [0.10, 0.25, 0.50, 1, 5])
+    const d3c = ColorG2R(Number(ray.d3), [0.10, 0.25, 0.50, 1, 5])
+    const d2c = ColorG2R(Number(ray.d2), [0.10, 0.25, 0.50, 1, 5])
     const fontSize = 24
 
     return <Layout id="center-view-0" style={{ width: '100%', height: '100%' }}>
@@ -241,7 +242,8 @@ const PlanShotView = (cfg: iArgs) => {
         </Row> : <>
 
             <Row gutter={16} style={{ position: 'absolute', width: '100%', padding: 16, fontWeight: 800, overflow: 'hidden' }}>
-                <Col span={24}><Statistic title={`Distance[3D]`} value={ray.dis} suffix="m" valueStyle={{ fontSize, color: dc }} /></Col>
+                <Col span={12}><Statistic title={`Distance[3D]`} value={ray.d3} suffix="m" valueStyle={{ fontSize, color: d3c }} /></Col>
+                <Col span={12}><Statistic title={`Distance[2D]`} value={ray.d2} suffix="m" valueStyle={{ fontSize, color: d2c }} /></Col>
                 <Col span={24}><Statistic title={`Name`} value={ray.dir} suffix="" valueStyle={{ fontSize }} /></Col>
             </Row>
 
