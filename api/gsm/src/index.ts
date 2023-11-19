@@ -24,6 +24,16 @@ const AT_BEAUTIFY = (s: string) => {
         return { operator }
     }
 
+    if (s.indexOf('+CPSI: ') !== -1) {
+        const CPSI = s.replace('+CPSI: ', '').split(',')
+        return { CPSI }
+    }
+
+    if (s.indexOf('+CGREG: ') !== -1) {
+        const CGREG = s.replace('+CGREG: ', '').split(',')
+        return { CGREG }
+    }
+
     return null
 
 }
@@ -39,13 +49,10 @@ PROD && Safe(() => {
 
     GSM.on((chunk: any) => Safe(() => {
 
-        log.res(`Serial[GSM]: Message size ${chunk.length}`)
-        log.info((chunk).toString())
-
         if (chunk[0] === '+') {
 
             const parsed = AT_BEAUTIFY(chunk)
-            log.res(`Serial[GSM]: ${chunk} / ${Sfy(parsed ?? {})}`)
+            log.res(`Serial[GSM]: ${chunk}`)
             if (parsed) {
 
                 temp = { ...temp, ...parsed }
@@ -59,11 +66,18 @@ PROD && Safe(() => {
 
     Loop(() => Safe(async () => {
 
-        await AsyncWait(250)
+        await AsyncWait(1250)
         await GSM.emit('AT+CSQ\r\n')
-        await AsyncWait(750)
+
+        await AsyncWait(1250)
         await GSM.emit('AT+COPS?\r\n')
 
-    }), 7500)
+        await AsyncWait(1250)
+        await GSM.emit('AT+CPSI?\r\n')
+
+        await AsyncWait(1250)
+        await GSM.emit('AT+CGREG?\r\n')
+
+    }), 1000 * 15)
 
 })
