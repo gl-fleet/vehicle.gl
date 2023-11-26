@@ -5,6 +5,7 @@ import {
     ZoomOutOutlined,
     CodeSandboxOutlined,
     PushpinOutlined,
+    RedoOutlined,
 } from '@ant-design/icons'
 import * as camera from '../helper/camera'
 
@@ -81,6 +82,7 @@ export default (cfg: iArgs) => {
                     content: 'Permission denied!',
                 })
             }} icon={<PushpinOutlined />} />
+            <FloatButton onClick={() => window.location.reload()} icon={<RedoOutlined />} />
         </FloatButton.Group>
 
         <Alert message={text} type="success" showIcon />
