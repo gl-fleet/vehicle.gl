@@ -40,7 +40,20 @@ export default (cfg: iArgs) => {
         lv.on((sms) => sms === 'ready' && render())
         rv.on((sms) => sms === 'ready' && render())
 
+        const fix_blank = () => {
+
+            const cv: any = document.querySelector('.maptalks-canvas-layer > canvas')
+            const ct: any = cv.getContext('2d')
+            Loop(() => {
+                const p = ct.getImageData(200, 200, 1, 1).data
+                console.log(p)
+            }, 5000)
+
+        }
+
         const render = () => lv.ready && rv.ready && Safe(() => {
+
+            fix_blank()
 
             const left = lv.can
             const right = rv.can

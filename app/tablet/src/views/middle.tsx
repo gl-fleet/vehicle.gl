@@ -120,8 +120,9 @@ const PlanDigView = (cfg: iArgs) => {
 
     useEffect(() => { ref.current.setMode && ref.current.setMode(cfg.isDarkMode) }, [cfg.isDarkMode])
 
+    const abs = Math.abs(Number(ray.dis))
     const ac = ColorG2R(Number(_.di), [2.5, 5, 7.5, 10, 12.5])
-    const dc = ColorG2R(Number(ray.dis), [10, 25, 50, 100, 500])
+    const dc = ColorG2R(abs, [0.1, 0.25, 0.5, 1, 5])
     const fontSize = 24
 
     return <Layout id="center-view-0" style={{ width: '100%', height: '100%' }}>
@@ -137,8 +138,8 @@ const PlanDigView = (cfg: iArgs) => {
         </Row> : <>
 
             <Row gutter={16} style={{ position: 'absolute', width: '100%', padding: 16, fontWeight: 800, overflow: 'hidden' }}>
-                <Col span={24}><Statistic title={`Distance`} value={ray.dis} suffix="cm" valueStyle={{ fontSize, color: dc }} /></Col>
-                <Col span={24}><Statistic title={`Direction`} value={ray.dir} suffix="" valueStyle={{ fontSize }} /></Col>
+                <Col span={24}><Statistic title={`Distance`} value={abs} suffix="m" valueStyle={{ fontSize, color: dc }} /></Col>
+                <Col span={24}><Statistic title={`Direction`} value={ray.dir} suffix="" valueStyle={{ fontSize, color: dc }} /></Col>
             </Row>
 
             <Row gutter={16} style={{ fontWeight: 900, overflow: 'hidden', position: 'absolute', left: 16, right: 16, bottom: 16 }}>
