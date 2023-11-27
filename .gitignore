@@ -1,7 +1,7 @@
 # gl-ignore 
 env.js
 env.*.js
-./api/tile/tiles/*
+/api/tile/tiles/*
 
 # Logs
 logs
