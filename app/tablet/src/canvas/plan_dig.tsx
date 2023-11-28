@@ -25,6 +25,7 @@ export class PlanDig {
 
                 const { distance } = arg
                 event.emit('dig_plan_status', distance)
+                api.set('value', { dig_plan: arg })
 
             })
 

@@ -2,7 +2,6 @@ import { React, Typography, Layout, Row, Col, Statistic, Carousel } from 'uweb'
 import { createGlobalStyle } from 'styled-components'
 import { Point, colorize, ColorG2R, ColorR2G } from 'uweb/utils'
 import { ThreeView, THREE } from 'uweb/three'
-import { MapView } from 'uweb/maptalks'
 import { Safe, Delay, Loop } from 'utils/web'
 
 import { camera_angle, camera_angle_custom } from '../helper/camera'
@@ -27,7 +26,7 @@ const Style = createGlobalStyle`
 
 /*** *** *** @___MIDDLE_BASIC_VIEW___ *** *** ***/
 
-const BasicView = ({ isDarkMode, event }: iArgs) => {
+const BasicView = ({ isDarkMode, event, api }: iArgs) => {
 
     const [_, setStatus] = useState({ x: '', y: '', el: '*', di: 0 })
 
@@ -100,8 +99,10 @@ const PlanDigView = (cfg: iArgs) => {
             const N = (m: any, f = 2) => { const n = Number(m.toFixed(f)); return n >= 99 ? 99 : n; }
 
             event.on('dig_plan_status', (distance: number) => Safe(() => {
+
                 event.emit('goto', 1)
                 setRay({ dis: N(distance), dir: distance >= 0 ? 'CUT ↓' : 'FILL ↑' })
+
             }))
 
             event.on('stream', (data) => Safe(() => {
@@ -270,7 +271,7 @@ export default (cfg: iArgs) => {
     const _h = Number((240 * 100 / ih).toFixed(0))
     const w = _w * iw / 100, h = _h * ih / 100
 
-    const [slide, setSlide] = useState(0)
+    // const [slide, setSlide] = useState(0)
     const slider: any = useRef()
 
     const background = cfg.isDarkMode ? '#0e1219' : 'cornsilk'
@@ -285,8 +286,10 @@ export default (cfg: iArgs) => {
             let activeView = false
 
             for (const x of keys) {
+
                 const difs = Date.now() - timer[x]
                 if (difs <= 5000) { activeView = true }
+
             }
 
             if (!activeView) { cfg.event.emit('goto', 0) }
@@ -303,15 +306,16 @@ export default (cfg: iArgs) => {
 
             timer[`_${idx}_`] = Date.now()
             slider.current.goTo(idx)
-            setSlide(idx)
 
         }), 'Middle.GoTo')
 
     }, [])
 
+    const onChange = (n: number) => cfg.api.set('value', { screen: n + 1 })
+
     return <Layout style={{ background, border: '2px solid grey', left: '50%', top: '50%', position: 'absolute', width: `${w}px`, height: `${h}px`, marginLeft: `-${w / 2 + 2}px`, marginTop: `-${h / 2 + 2}px`, padding: 0, zIndex: 1 }}>
         <Style />
-        <Carousel beforeChange={(e: number) => { cfg.event.emit('_goto', e) }} dotPosition={'right'} effect="fade" ref={ref => { slider.current = ref }} >
+        <Carousel afterChange={onChange} beforeChange={(e: number) => { cfg.event.emit('_goto', e) }} dotPosition={'right'} effect="fade" ref={ref => { slider.current = ref }} >
             <div><div style={{ width: w, height: h - 4, background }}><BasicView {...cfg} /></div></div>
             <div><div style={{ width: w, height: h - 4, background }}><PlanDigView {...cfg} /></div></div>
             <div><div style={{ width: w, height: h - 4, background }}><PlanShotView {...cfg} /></div></div>

@@ -1,6 +1,6 @@
 import { Host, Connection, ReplicaSlave } from 'unet'
-import { Sequelize, DataTypes } from 'sequelize'
-import { Now, Safe, Loop, log } from 'utils'
+import { Sequelize } from 'sequelize'
+import { Safe, Loop, log } from 'utils'
 
 import { tEvent, roughSizeOfObject, wr, f } from './helper'
 
@@ -11,7 +11,7 @@ export class Emitter {
     public sequelize: Sequelize
 
     public channel: string = 'stream'
-    public delay: any = { cloud: 1000, local: 500, parse: 100 }
+    public delay: any = { cloud: 1500, local: 500, parse: 100 }
     public state: any = {
         last_pub_cloud: 0,
         is_cloud_pubing: false,
@@ -22,6 +22,7 @@ export class Emitter {
     public data: any = {}
     public inj: any = {}
     public cbs: any = {}
+    public timeout: any = {}
 
     constructor({ cloud, local, sequelize }: { cloud: Connection, local: Host, sequelize: Sequelize }) {
 
@@ -130,7 +131,7 @@ export class Emitter {
     /*** *** *** @___Data_Parsers__ *** *** ***/
 
     parser_gpsx = (e: any) => wr(() => ({
-        cloud: [e.state, e.data.fix, e.data.sat],
+        cloud: [e.state, e.data.fix, e.data.sat, e.data.vac, e.data.hac, e.data.spd],
         local: e,
     }))
 
@@ -174,28 +175,56 @@ export class Emitter {
     }))
 
     parser_rtcm = (e: any) => wr(() => ({
-        local: { state: e.state, message: e.message },
+        local: { state: e.stte, message: e.message },
         cloud: { state: e.state },
     }))
 
     parser_activity = (e: any) => wr(() => ({
         local: { state: e.state, speed: [f(e.avg1.s, 3), f(e.avg2.s, 3)] },
-        cloud: { state: e.state, speed: [f(e.avg1.s, 3), f(e.avg2.s, 3)] },
+        cloud: { state: e.state },
     }))
+
+    parser_value = (ne: any = {}, pr: any = {}) => wr(() => {
+
+        console.log(ne)
+
+        Object.keys(ne).map(key => { this.timeout[key] = Date.now() })
+
+        return {
+            local: { ...pr.local, ...ne },
+            cloud: { ...pr.cloud, ...ne },
+        }
+
+    })
 
     /*** *** *** @___HTTP_Data_Collectors__ *** *** ***/
 
-    inject = () => {
+    inject = () => Loop(() => Safe(async () => {
 
-        Loop(() => Safe(async () => {
+        const sockets = await this.local.io.fetchSockets()
+        const ips = sockets.map((socket: any) => socket.handshake.headers.origin)
+        const fips = ips.filter((e: any) => typeof e === 'string')
+        this.data.inj_clients = { out: { local: fips, cloud: fips } }
 
-            const sockets = await this.local.io.fetchSockets()
-            const ips = sockets.map((socket: any) => socket.handshake.headers.origin)
-            const fips = ips.filter((e: any) => typeof e === 'string')
-            this.data.inj_clients = { out: { local: fips, cloud: fips } }
+        /** Remove temporary values when GTE 7.5s **/
+        if (this.data.value && this.data.value.out) {
 
-        }), 10 * 1000)
-    }
+            const cloud = this.data.value.out.cloud
+            const local = this.data.value.out.local
+
+            Object.keys(this.timeout).map((key: string) => {
+
+                if ((Date.now() - this.timeout[key]) >= 7500) {
+                    delete cloud[key]
+                    delete local[key]
+                    delete this.timeout[key]
+                }
+
+            })
+
+        }
+
+    }), 10 * 1000)
 
     collect = () => {
 
@@ -207,6 +236,7 @@ export class Emitter {
             data_gsm: { parser: this.parser_gsm, inp: {}, out: {}, time: 0 },
             data_rtcm: { parser: this.parser_rtcm, inp: {}, out: {}, time: 0 },
             data_activity: { parser: this.parser_activity, inp: {}, out: {}, time: 0 },
+            value: { parser: this.parser_value, inp: {}, out: {}, time: 0 },
 
         }
 
@@ -231,7 +261,7 @@ export class Emitter {
 
                         p.time = Date.now()
                         p.inp = body
-                        p.out = p.parser(p.inp)
+                        p.out = p.parser(p.inp, p.out)
                         publish(key)
 
                     }
