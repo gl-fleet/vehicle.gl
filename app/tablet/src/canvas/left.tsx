@@ -52,7 +52,8 @@ export class Left {
             this.ready = true
             this.cb('ready')
 
-            CanvasFixer()
+            // Removing due to warning
+            // CanvasFixer()
 
         })
 
