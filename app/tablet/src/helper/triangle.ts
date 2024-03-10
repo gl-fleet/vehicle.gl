@@ -1,7 +1,7 @@
-import { Point, UTM, colorize } from 'uweb/utils'
 import { THREE, ThreeView } from 'uweb/three'
 import { MapView } from 'uweb/maptalks'
-import { Delay, log } from 'utils/web'
+import { log } from 'utils/web'
+import { Point } from 'uweb/utils'
 
 export class Triangle {
 

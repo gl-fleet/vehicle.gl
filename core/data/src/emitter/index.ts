@@ -164,18 +164,20 @@ export class Emitter {
         local: {
             state: e.state,
             quality: e.data.quality,
-            operator: e.data.operator,
+            operator: e.data.operator ?? e.data.CPSI ?? '***',
+            register: e.data.CGREG ?? '***',
             message: e.message,
         },
         cloud: {
             state: e.state,
             quality: e.data.quality,
-            operator: e.data.operator,
+            operator: e.data.operator ?? e.data.CPSI ?? '***',
+            register: e.data.CGREG ?? '***',
         },
     }))
 
     parser_rtcm = (e: any) => wr(() => ({
-        local: { state: e.stte, message: e.message },
+        local: { state: e.state, message: e.message },
         cloud: { state: e.state },
     }))
 
@@ -185,8 +187,6 @@ export class Emitter {
     }))
 
     parser_value = (ne: any = {}, pr: any = {}) => wr(() => {
-
-        console.log(ne)
 
         Object.keys(ne).map(key => { this.timeout[key] = Date.now() })
 

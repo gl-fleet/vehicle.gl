@@ -1,8 +1,8 @@
 import { React, Row, Col } from 'uweb'
-import { ThreeView } from 'uweb/three'
-import { MapView } from 'uweb/maptalks'
+import type { ThreeView } from 'uweb/three'
+import type { MapView } from 'uweb/maptalks'
 import { Point, Vehicle } from 'uweb/utils'
-import { Safe, Loop } from 'utils/web'
+import { Safe } from 'utils/web'
 
 import { camera_angle } from '../helper/camera'
 import { useWebcam } from '../helper/capture'
@@ -40,20 +40,7 @@ export default (cfg: iArgs) => {
         lv.on((sms) => sms === 'ready' && render())
         rv.on((sms) => sms === 'ready' && render())
 
-        const fix_blank = () => {
-
-            const cv: any = document.querySelector('.maptalks-canvas-layer > canvas')
-            const ct: any = cv.getContext('2d')
-            Loop(() => {
-                const p = ct.getImageData(200, 200, 1, 1).data
-                console.log(p)
-            }, 5000)
-
-        }
-
         const render = () => lv.ready && rv.ready && Safe(() => {
-
-            fix_blank()
 
             const left = lv.can
             const right = rv.can
@@ -76,6 +63,8 @@ export default (cfg: iArgs) => {
 
             event.on('stream', ({ data_gps }) => Safe(() => {
 
+                if (typeof data_gps !== 'object') return
+
                 const { A, B, TL, TM, TR, BL, BM, BR } = data_gps
                 const { gps, utm, head } = data_gps
 
@@ -93,7 +82,7 @@ export default (cfg: iArgs) => {
                 point.update('l_p', 'red', [A.x, A.y, A.z])
                 point.update('r_p', 'blue', [B.x, B.y, B.z])
 
-            }, 'MAIN-LISTEN'))
+            }, 'MAIN.LISTEN'))
 
         }
 

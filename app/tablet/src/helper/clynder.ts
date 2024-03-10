@@ -1,8 +1,9 @@
-import { Point, UTM, colorize, Coordinate, distance3D } from 'uweb/utils'
 import { THREE, ThreeView } from 'uweb/three'
 import { MapView } from 'uweb/maptalks'
-import { Delay, log } from 'utils/web'
-import TextSprite from '@seregpie/three.text-sprite'
+import { log } from 'utils/web'
+import { Coordinate } from 'uweb/utils'
+
+import TextSprite from '@seregpie/three.text-sprite' /** WARNING: Multiple instances of Three.js being imported. */
 
 export class Clynder {
 

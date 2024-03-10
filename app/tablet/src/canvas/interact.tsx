@@ -1,5 +1,5 @@
-import { MapView } from 'uweb/maptalks'
-import { ThreeView } from 'uweb/three'
+import type { MapView } from 'uweb/maptalks'
+import type { ThreeView } from 'uweb/three'
 import { Tick } from 'uweb/utils'
 
 export class Interact {

@@ -1,6 +1,5 @@
 import { React, Result, Typography } from 'uweb'
 import { createGlobalStyle } from 'styled-components'
-import { CloseCircleOutlined } from '@ant-design/icons'
 
 const { useEffect, useState } = React
 

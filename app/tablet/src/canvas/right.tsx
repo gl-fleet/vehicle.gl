@@ -1,8 +1,8 @@
-import { THREE, ThreeView } from 'uweb/three'
+import { ThreeView } from 'uweb/three'
 
 export class Right {
 
-    public base = THREE
+    // public base = THREE
     public can: ThreeView
     public ready = false
     public cb = (sms: string) => null

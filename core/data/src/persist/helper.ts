@@ -40,20 +40,6 @@ export const roughSizeOfObject = (object: any) => {
 
 }
 
-export class Responsive { /** Collect and Dispose gracefully **/
-    queue: boolean[] = []
-    shake = () => {
-        this.queue.push(true)
-        return true
-    }
-    call = (cb: () => {}, ms: number) => Loop(() => {
-        if (this.queue.length > 0) {
-            this.queue = []
-            cb()
-        }
-    }, ms)
-}
-
 export const chunks = {
 
     Split: (body: any, size = 1024 * 10) => { /** Splits the Large string into chunks at given size **/

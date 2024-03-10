@@ -1,7 +1,5 @@
-import { React, Typography, Layout, Row, Col, Statistic } from 'uweb'
-
-import { MapView } from 'uweb/maptalks'
-import { ThreeView } from 'uweb/three'
+import type { MapView } from 'uweb/maptalks'
+import type { ThreeView } from 'uweb/three'
 
 import { Triangle } from '../helper/triangle'
 import { LineString } from '../helper/linestring'

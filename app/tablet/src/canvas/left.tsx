@@ -1,4 +1,4 @@
-import { MapView, maptalks } from 'uweb/maptalks'
+import { MapView } from 'uweb/maptalks'
 import { Win } from 'utils/web'
 
 export const CanvasFixer = () => {
@@ -30,7 +30,7 @@ export const CanvasFixer = () => {
 
 export class Left {
 
-    public base = maptalks
+    // public base = maptalks
     public can: MapView
     public ready = false
     public cb = (sms: string) => null

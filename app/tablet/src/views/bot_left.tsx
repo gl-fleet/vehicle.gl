@@ -1,6 +1,7 @@
 import { React, Typography, Progress, Timeline } from 'uweb'
 import { ColorG2R, ColorR2G } from 'uweb/utils'
 import { createGlobalStyle } from 'styled-components'
+import { Safe } from 'utils/web'
 import {
     CheckCircleOutlined,       // Success
     CheckOutlined,             // Info
@@ -67,7 +68,7 @@ export default (cfg: iArgs) => {
 
     useEffect(() => {
 
-        cfg.event.on('stream', (args: any) => {
+        cfg.event.on('stream', (args: any) => Safe(() => {
 
             const { data_gps1, data_gps2, data_gsm, data_rtcm } = args
             typeof data_gps1 !== 'undefined' && setGPS1(data_gps1)
@@ -75,7 +76,7 @@ export default (cfg: iArgs) => {
             typeof data_rtcm !== 'undefined' && setRTCM(data_rtcm)
             typeof data_gsm !== 'undefined' && setGSM(data_gsm)
 
-        })
+        }, 'BOT_LEFT.LISTEN'))
 
     }, [])
 

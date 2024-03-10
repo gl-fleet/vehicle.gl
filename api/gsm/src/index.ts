@@ -1,14 +1,14 @@
-import { Host, Connection, NetServer, NetClient } from 'unet'
-import { Serial, F9P_Parser } from 'ucan'
-import { AsyncWait, decodeENV, Safe, Jfy, Sfy, Loop, Delay, env, log } from 'utils'
+import { Connection } from 'unet'
+import { Serial } from 'ucan'
+import { AsyncWait, decodeENV, Safe, Loop, env, log } from 'utils'
 
-const { me, name, version, mode, path } = decodeENV()
+const { version, mode, path } = decodeENV()
 log.success(`"${env.npm_package_name}" <${version}> module is running on "${process.pid}" / [${mode}] 🚀🚀🚀\n`)
 
-let temp = { operator: '****', quality: 0 }
 const DEV = mode === 'development', PROD = !DEV
 const API_DATA = new Connection({ name: 'data', timeout: 500 })
 const publish = (channel: string, data: any) => Safe(async () => await API_DATA.set(channel, data))
+let temp = { operator: '', quality: 0 }
 
 const AT_BEAUTIFY = (s: string) => {
 
@@ -45,7 +45,7 @@ PROD && Safe(() => {
 
     GSM.start(path[0], Number(path[1]))
 
-    GSM.onInfo = (t, { type, message }) => LOG[type](message) && publish('data_gsm', { state: t, type, message })
+    GSM.onInfo = (t, { type, message }) => LOG[type](message) && publish('data_gsm', { state: t, type, message, data: temp })
 
     GSM.on((chunk: any) => Safe(() => {
 
@@ -53,7 +53,7 @@ PROD && Safe(() => {
 
             const parsed = AT_BEAUTIFY(chunk)
             log.res(`Serial[GSM]: ${chunk}`)
-            if (parsed) {
+            if (parsed && typeof parsed === 'object') {
 
                 temp = { ...temp, ...parsed }
                 publish('data_gsm', { state: 'success', type: 'success', message: `Network connected!`, data: temp })

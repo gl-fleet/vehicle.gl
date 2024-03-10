@@ -1,4 +1,4 @@
-import { Safe, Jfy, Sfy, Loop, Delay, decodeENV, log, env } from 'utils'
+import { Safe, Loop, decodeENV, log, env } from 'utils'
 import { Connection, NetClient } from 'unet'
 import { Serial, F9P_Parser } from 'ucan'
 
@@ -19,29 +19,26 @@ const DEV = cf.mode === 'development', PROD = !DEV
 
 const publish = (channel: string, data: any) => Safe(async () => await API_DATA.set(channel, data), `[${channel}]`)
 
-/** Simulate from DR101 **/
-DEV && Safe(() => me === 'DR101' && (new Connection({ name: 'data', proxy: 'https://u001-gantulgak.pitunnel.com/', rejectUnauthorized: false })).on('stream', (args: any) => {
+const Simulationhandler = (args: any) => {
 
-    const { data_gps1, data_gps2, data_gsm } = args
+    const { data_gps1, data_gps2, data_gsm, data_rtcm } = args
     publish('data_gps1', data_gps1)
     publish('data_gps2', data_gps2)
     publish('data_gsm', { ...data_gsm, data: data_gsm })
+    publish('data_rtcm', data_rtcm)
     GPS.gps1 = data_gps1.data
     GPS.gps2 = data_gps2.data
 
-}), 'Simulate')
+}
+
+/** Simulate from DR101 **/
+DEV && Safe(() => me === 'DR101' && (new Connection({ name: 'data', proxy: 'https://u001-gantulgak.pitunnel.com/', rejectUnauthorized: false })).on('stream', Simulationhandler), 'Simulate')
 
 /** Simulate from SV101 **/
-DEV && Safe(() => me === 'SV101' && (new Connection({ name: 'data', proxy: 'https://u002-gantulgak.as1.pitunnel.com/', rejectUnauthorized: false })).on('stream', (args: any) => {
+DEV && Safe(() => me === 'SV101' && (new Connection({ name: 'data', proxy: 'https://u002-gantulgak.as1.pitunnel.com/', rejectUnauthorized: false })).on('stream', Simulationhandler), 'Simulate')
 
-    const { data_gps1, data_gps2, data_gsm } = args
-    publish('data_gps1', data_gps1)
-    publish('data_gps2', data_gps2)
-    publish('data_gsm', { ...data_gsm, data: data_gsm })
-    GPS.gps1 = data_gps1.data
-    GPS.gps2 = data_gps2.data
-
-}), 'Simulate')
+/** Simulate from SV102 **/
+DEV && Safe(() => me === 'SV102' && (new Connection({ name: 'data', proxy: 'https://u003-gantulgak.as1.pitunnel.com/', rejectUnauthorized: false })).on('stream', Simulationhandler), 'Simulate')
 
 Safe(() => {
 

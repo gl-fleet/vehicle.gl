@@ -1,10 +1,10 @@
-import { React, Typography, Layout, Row, Col, Statistic, Carousel } from 'uweb'
+import { React, Layout, Row, Col, Statistic, Carousel } from 'uweb'
 import { createGlobalStyle } from 'styled-components'
-import { Point, colorize, ColorG2R, ColorR2G } from 'uweb/utils'
-import { ThreeView, THREE } from 'uweb/three'
-import { Safe, Delay, Loop } from 'utils/web'
+import { colorize, ColorG2R } from 'uweb/utils'
+import { ThreeView } from 'uweb/three'
+import { Safe, Loop } from 'utils/web'
 
-import { camera_angle, camera_angle_custom } from '../helper/camera'
+import { camera_angle_custom } from '../helper/camera'
 import { Clynder } from '../helper/clynder'
 
 const { useEffect, useState, useRef } = React
@@ -26,21 +26,22 @@ const Style = createGlobalStyle`
 
 /*** *** *** @___MIDDLE_BASIC_VIEW___ *** *** ***/
 
-const BasicView = ({ isDarkMode, event, api }: iArgs) => {
+const BasicView = ({ event }: iArgs) => {
 
     const [_, setStatus] = useState({ x: '', y: '', el: '*', di: 0 })
 
     useEffect(() => {
 
-        event.on('stream', (data) => Safe(() => {
+        event.on('stream', ({ data_gps }) => Safe(() => {
 
-            const x = data?.data_gps?.utm[0] ?? 0
-            const y = data?.data_gps?.utm[1] ?? 0
-            const el = data?.data_gps?.utm[2] ?? 0
-            const di = data?.data_gps?.prec3d ?? 0
+            if (typeof data_gps !== 'object') return
+            const x = data_gps.utm[0] ?? 0
+            const y = data_gps.utm[1] ?? 0
+            const el = data_gps.utm[2] ?? 0
+            const di = data_gps.prec3d ?? 0
             setStatus({ x, y, el, di })
 
-        }))
+        }, 'Middle.BasicView'))
 
     }, [])
 
@@ -94,7 +95,7 @@ const PlanDigView = (cfg: iArgs) => {
 
         ref.current.onReady(() => {
 
-            const { event } = cfg
+            const { event, api } = cfg
 
             const N = (m: any, f = 2) => { const n = Number(m.toFixed(f)); return n >= 99 ? 99 : n; }
 
@@ -105,21 +106,24 @@ const PlanDigView = (cfg: iArgs) => {
 
             }))
 
-            event.on('stream', (data) => Safe(() => {
+            event.on('stream', ({ data_gps }) => Safe(() => {
 
-                const x = data?.data_gps?.utm[0] ?? 0
-                const y = data?.data_gps?.utm[1] ?? 0
-                const el = data?.data_gps?.utm[2] ?? 0
-                const di = data?.data_gps?.prec3d ?? 0
+                if (typeof data_gps !== 'object') return
+                const x = data_gps.utm[0] ?? 0
+                const y = data_gps.utm[1] ?? 0
+                const el = data_gps.utm[2] ?? 0
+                const di = data_gps.prec3d ?? 0
                 setStatus({ x, y, el, di })
 
-            }))
+            }, 'Middle.PlanDigView'))
 
         })
 
     }, [])
 
     useEffect(() => { ref.current.setMode && ref.current.setMode(cfg.isDarkMode) }, [cfg.isDarkMode])
+
+    useEffect(() => { cfg.api.set('value', ray) }, [ray])
 
     const abs = Math.abs(Number(ray.dis))
     const ac = ColorG2R(Number(_.di), [2.5, 5, 7.5, 10, 12.5])
@@ -197,6 +201,8 @@ const PlanShotView = (cfg: iArgs) => {
 
             event.on('stream', ({ data_gps }) => Safe(() => {
 
+                if (typeof data_gps !== 'object') return
+
                 const { utm, prec3d } = data_gps
 
                 const x = utm[0] ?? 0
@@ -218,13 +224,15 @@ const PlanShotView = (cfg: iArgs) => {
 
                 }
 
-            }))
+            }, 'Middle.PlanShotView'))
 
         })
 
     }, [])
 
     useEffect(() => { ref.current.setMode && ref.current.setMode(cfg.isDarkMode) }, [cfg.isDarkMode])
+
+    useEffect(() => { cfg.api.set('value', ray) }, [ray])
 
     const ac = ColorG2R(Number(_.di), [2.5, 5, 7.5, 10, 12.5])
     const d3c = ColorG2R(Number(ray.d3), [0.10, 0.25, 0.50, 1, 5])
@@ -271,7 +279,6 @@ export default (cfg: iArgs) => {
     const _h = Number((240 * 100 / ih).toFixed(0))
     const w = _w * iw / 100, h = _h * ih / 100
 
-    // const [slide, setSlide] = useState(0)
     const slider: any = useRef()
 
     const background = cfg.isDarkMode ? '#0e1219' : 'cornsilk'
