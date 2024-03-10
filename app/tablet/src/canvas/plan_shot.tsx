@@ -22,7 +22,7 @@ export class PlanShot {
             if (n && n !== '*') {
 
                 event.emit('shot_plan_status', { d2, d3, v, n })
-                api.set('value', { dig_shot: { n, v, d2, d3 } })
+                // api.set('value', { dig_shot: { n, v, d2, d3 } })
 
             }
 

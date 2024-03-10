@@ -95,7 +95,7 @@ const PlanDigView = (cfg: iArgs) => {
 
         ref.current.onReady(() => {
 
-            const { event, api } = cfg
+            const { event } = cfg
 
             const N = (m: any, f = 2) => { const n = Number(m.toFixed(f)); return n >= 99 ? 99 : n; }
 
@@ -123,7 +123,7 @@ const PlanDigView = (cfg: iArgs) => {
 
     useEffect(() => { ref.current.setMode && ref.current.setMode(cfg.isDarkMode) }, [cfg.isDarkMode])
 
-    useEffect(() => { cfg.api.set('value', ray) }, [ray])
+    useEffect(() => { cfg.api.set('value', { dig_plan: ray }) }, [ray])
 
     const abs = Math.abs(Number(ray.dis))
     const ac = ColorG2R(Number(_.di), [2.5, 5, 7.5, 10, 12.5])
@@ -194,7 +194,7 @@ const PlanShotView = (cfg: iArgs) => {
 
                 event.emit('goto', 2)
                 const { d2, d3, v, n } = e
-                setRay({ d2: N(d2), d3: N(d3), dir: n })
+                setRay({ d2: N(d2), d3: N(d3), dir: n }) /** d2: 0.1 d3: 0.3 dir: A6 */
                 m = e
 
             }))
@@ -232,7 +232,7 @@ const PlanShotView = (cfg: iArgs) => {
 
     useEffect(() => { ref.current.setMode && ref.current.setMode(cfg.isDarkMode) }, [cfg.isDarkMode])
 
-    useEffect(() => { cfg.api.set('value', ray) }, [ray])
+    useEffect(() => { cfg.api.set('value', { shot_plan: ray }) }, [ray])
 
     const ac = ColorG2R(Number(_.di), [2.5, 5, 7.5, 10, 12.5])
     const d3c = ColorG2R(Number(ray.d3), [0.10, 0.25, 0.50, 1, 5])
