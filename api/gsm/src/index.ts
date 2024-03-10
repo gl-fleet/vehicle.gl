@@ -1,6 +1,6 @@
 import { Connection } from 'unet'
 import { Serial } from 'ucan'
-import { AsyncWait, decodeENV, Safe, Loop, env, log } from 'utils'
+import { AsyncWait, decodeENV, Safe, Loop, Sfy, env, log } from 'utils'
 
 const { version, mode, path } = decodeENV()
 log.success(`"${env.npm_package_name}" <${version}> module is running on "${process.pid}" / [${mode}] 🚀🚀🚀\n`)
@@ -52,10 +52,10 @@ PROD && Safe(() => {
         if (chunk[0] === '+') {
 
             const parsed = AT_BEAUTIFY(chunk)
-            log.res(`Serial[GSM]: ${chunk}`)
             if (parsed && typeof parsed === 'object') {
 
                 temp = { ...temp, ...parsed }
+                log.res(`Serial[GSM]: ${Sfy(temp)}`)
                 publish('data_gsm', { state: 'success', type: 'success', message: `Network connected!`, data: temp })
 
             }
