@@ -164,14 +164,14 @@ export class Emitter {
         local: {
             state: e.state,
             quality: e.data.quality,
-            operator: e.data.operator ?? e.data.CPSI ?? '***',
+            operator: e.data.operator ? e.data.operator : e.data.CPSI ?? '...',
             register: e.data.CGREG ?? '***',
             message: e.message,
         },
         cloud: {
             state: e.state,
             quality: e.data.quality,
-            operator: e.data.operator ?? e.data.CPSI ?? '***',
+            operator: e.data.operator ? e.data.operator : e.data.CPSI ?? '...',
             register: e.data.CGREG ?? '***',
         },
     }))

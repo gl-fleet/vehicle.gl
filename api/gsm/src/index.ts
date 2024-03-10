@@ -8,7 +8,7 @@ log.success(`"${env.npm_package_name}" <${version}> module is running on "${proc
 const DEV = mode === 'development', PROD = !DEV
 const API_DATA = new Connection({ name: 'data', timeout: 500 })
 const publish = (channel: string, data: any) => Safe(async () => await API_DATA.set(channel, data))
-let temp = { operator: '', quality: 0 }
+let temp: any = { operator: '', quality: 0 }
 
 const AT_BEAUTIFY = (s: string) => {
 
