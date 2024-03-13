@@ -1,11 +1,11 @@
 import { Host, Connection, ReplicaSlave } from 'unet'
-import { decodeENV, Uid, Now, Sfy } from 'utils'
+import { decodeENV, Uid, Now, Sfy, log } from 'utils'
 import { DataTypes, Model, ModelStatic } from 'sequelize'
 import { Sequelize } from 'sequelize'
 
 import { chunks, Responsive } from '../helper'
 
-const { me } = decodeENV()
+const { me, replication_debug } = decodeENV()
 
 export class Chunk {
 
@@ -54,9 +54,11 @@ export class Chunk {
             table: this.collection,
             retain: [30, 'days'],
             limit: 5,
-            debug: false,
-            delay: 1000,
+            debug: replication_debug === 'true',
+            delay: 500,
         })
+
+        log.info(`[REPLICATION]: STARTED`)
 
     }
 
@@ -78,7 +80,7 @@ export class Chunk {
         delete args['options']
         return await this.collection.findAll({
             where: { ...args, deletedAt: null },
-            order: [['updatedAt', 'ASC']],
+            order: [['updatedAt', 'ASC'], ['id', 'DESC']],
             ...options
         })
     }
@@ -116,9 +118,13 @@ export class Chunk {
 
     get_distinct = async () => {
         return await this.collection.findAll({
-            attributes: ['name', 'type', 'src', 'dst', 'createdAt', 'updatedAt', [Sequelize.fn('COUNT', Sequelize.col('offset')), 'count']],
+            attributes: ['name', 'type', 'src', 'dst',
+                [Sequelize.fn('COUNT', Sequelize.col('offset')), 'count'],
+                [Sequelize.fn('MAX', Sequelize.col('createdAt')), 'createdAt'],
+                [Sequelize.fn('MAX', Sequelize.col('updatedAt')), 'updatedAt'],
+            ],
             where: { deletedAt: null }, order: [['updatedAt', 'DESC']],
-            group: 'name',
+            group: ['name', 'type', 'src', 'dst'],
         })
     }
 

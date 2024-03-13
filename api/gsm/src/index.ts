@@ -64,7 +64,7 @@ PROD && Safe(() => {
 
     GSM.start(path[0], Number(path[1]))
 
-    GSM.onInfo = (t, { type, message }) => LOG[type](message) && publish('data_gsm', { state: t, type, message, data: temp })
+    GSM.onInfo = (t, { type, message }) => LOG[type](message) && publish('data_gsm', { state: t, type, message })
 
     GSM.on((chunk: any) => Safe(() => {
 

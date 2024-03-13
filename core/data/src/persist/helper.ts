@@ -1,3 +1,4 @@
+import { Loop } from 'utils'
 
 export type tEvent = 'pub_local' | 'pub_cloud' | 'update'
 
@@ -63,4 +64,18 @@ export const chunks = {
 
     }
 
+}
+
+export class Responsive { /** Collect and Dispose gracefully **/
+    queue: boolean[] = []
+    shake = () => {
+        this.queue.push(true)
+        return true
+    }
+    call = (cb: () => {}, ms: number) => Loop(() => {
+        if (this.queue.length > 0) {
+            this.queue = []
+            cb()
+        }
+    }, ms)
 }

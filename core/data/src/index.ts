@@ -10,7 +10,7 @@ const { name, version, mode, me, proxy, token } = decodeENV()
 log.success(`"${env.npm_package_name}" <${version}> module is running on "${process.pid}" / [${mode}] 🚀🚀🚀\n`)
 
 const cf = {
-    cloud: new Connection({ name: 'core_data', proxy, token, timeout: 5000 }),
+    cloud: new Connection({ name: 'core_data', proxy, token, timeout: 15000 }),
     local: new Host({ name, port: 8071 }),
     sequelize: new Sequelize({
         dialect: 'sqlite',
