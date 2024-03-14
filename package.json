@@ -1,6 +1,6 @@
 {
   "name": "org",
-  "version": "0.0.55",
+  "version": "0.0.56",
   "license": "MIT",
   "private": true,
   "scripts": {
@@ -10,7 +10,8 @@
     "clear": "nx run-many -t clear",
     "stop": "nx run-many -t _stop",
     "delete": "nx run-many -t _delete",
-    "release": "yarn version --patch && git add . && git push"
+    "release": "yarn version --patch && git add . && git push",
+    "replace": "git reset --hard origin/main && git pull"
   },
   "workspaces": [
     "core/*",
