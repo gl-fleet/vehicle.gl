@@ -49,6 +49,8 @@ const AT_BEAUTIFY = (s: string) => {
         ]
 
         const CGREG = s.replace('+CGREG: ', '') // .split(',')
+        const [a = 0, b = 0]: any = CGREG.split(',')
+        log.info(`CGREG: ${p0[a]} / ${p1[b]}`)
         return { CGREG }
 
     }
