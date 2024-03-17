@@ -25,34 +25,8 @@ const AT_BEAUTIFY = (s: string) => {
     }
 
     if (s.indexOf('+CPSI: ') !== -1) {
-        const CPSI = s.replace('+CPSI: ', '') // .split(',')
+        const CPSI = s.replace('+CPSI: ', '')
         return { CPSI }
-    }
-
-    if (s.indexOf('+CGREG: ') !== -1) {
-
-        const p0 = [
-            'Disable network registration unsolicited',
-            'Enable network registration unsolicited',
-            'Enable network registration and location information unsolicited'
-        ]
-
-        const p1 = [
-            'Not registered and the modem is not currently searching for an operator to register to',
-            'Registered to the home network',
-            'Not registered, but the modem is currently trying to attach or is searching for an operator to register to',
-            'Registration denied',
-            'Unknown',
-            'Registered to a roaming network',
-            'Registered for “SMS only”, home network (applicable only when <Act> indicates E-UTRAN',
-            'Registered for “SMS only”, roaming (applicable only when <Act> indicates E-UTRAN) <lac> String type; two byte location area code in hexadecimal format (e.g. “00C3” equals 195 in decimal)',
-        ]
-
-        const CGREG = s.replace('+CGREG: ', '') // .split(',')
-        const [a = 0, b = 0]: any = CGREG.split(',')
-        log.info(`CGREG: ${p0[a]} / ${p1[b]}`)
-        return { CGREG }
-
     }
 
     return null
@@ -87,18 +61,15 @@ PROD && Safe(() => {
 
     Loop(() => Safe(async () => {
 
-        await AsyncWait(1250)
+        await AsyncWait(2500)
         await GSM.emit('AT+CSQ\r\n')
 
-        await AsyncWait(1250)
+        await AsyncWait(2500)
         await GSM.emit('AT+COPS?\r\n')
 
-        await AsyncWait(1250)
+        await AsyncWait(2500)
         await GSM.emit('AT+CPSI?\r\n')
 
-        await AsyncWait(1250)
-        await GSM.emit('AT+CGREG?\r\n')
-
-    }), 1000 * 15)
+    }), 1000 * 30)
 
 })

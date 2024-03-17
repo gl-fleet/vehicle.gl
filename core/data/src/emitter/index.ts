@@ -163,10 +163,10 @@ export class Emitter {
     parser_gsm = (e: any) => wr(() => ({
         local: {
             state: e.state,
+            message: e.message,
             quality: e.data.quality,
             operator: e.data.operator ? e.data.operator : e.data.CPSI ?? '...',
             register: e.data.CGREG ?? '***',
-            message: e.message,
         },
         cloud: {
             state: e.state,
