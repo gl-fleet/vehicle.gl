@@ -70,6 +70,6 @@ PROD && Safe(() => {
         await AsyncWait(2500)
         await GSM.emit('AT+CPSI?\r\n')
 
-    }), 1000 * 30)
+    }), 1000 * 15)
 
 })
