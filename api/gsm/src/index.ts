@@ -25,8 +25,21 @@ const AT_BEAUTIFY = (s: string) => {
     }
 
     if (s.indexOf('+CPSI: ') !== -1) {
-        const CPSI = s.replace('+CPSI: ', '')
-        return { CPSI }
+        try {
+            const CPSI = s.replace('+CPSI: ', '')
+            const ls = CPSI.split(',')
+            /* 
+            0. LTE
+            1. Online,
+            2. 428-88,
+            3. 0x002C,
+            4. 1289770,
+            5. 103,
+            6. EUTRAN-BAND40,
+            7. 39350,5,5,-103,-927,-620,11
+            */
+            return { CPSI: `${ls[0]} ${ls[1]} ${ls[2]} ${ls[5]} ${ls[6]}` }
+        } catch { return null }
     }
 
     return null
