@@ -2,6 +2,7 @@ import { Sequelize } from 'sequelize'
 import { Host, Connection, rSlave } from 'unet'
 import { decodeENV, Safe, env, log } from 'utils'
 
+import { Emitter } from './emitter'
 import { Event } from './event'
 import { Chunk } from './chunk'
 
@@ -23,6 +24,7 @@ Safe(async () => {
 
     await cf.sequelize.authenticate()
 
+    new Emitter(cf)
     new Event(cf)
     new Chunk(cf)
 
@@ -30,6 +32,7 @@ Safe(async () => {
         api: cf.cloud,
         sequel: cf.sequelize,
         slave_name: me,
+        parallel: true,
         models: [{
             name: 'events',
             direction: 'bidirectional',
@@ -50,8 +53,8 @@ Safe(async () => {
         }],
     })
 
-    replica.cb = (...n: any) => {
-        console.log(n)
+    replica.cb = (...e: any) => {
+        console.log(`[R] Trigger:    [${e}]`)
     }
 
     await cf.sequelize.sync({ force: false })

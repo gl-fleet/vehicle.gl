@@ -4561,9 +4561,9 @@ undici-types@~5.25.1:
   resolved "https://registry.yarnpkg.com/undici-types/-/undici-types-5.25.3.tgz#e044115914c85f0bcbb229f346ab739f064998c3"
   integrity sha512-Ga1jfYwRn7+cP9v8auvEXN1rX3sWqlayd4HP7OKk4mZWylEmu3KzXDUGrQUN6Ol7qo1gPvB2e5gX6udnyEPgdA==
 
-unet@upacks/unet#1.2.6:
-  version "1.0.59"
-  resolved "https://codeload.github.com/upacks/unet/tar.gz/f4c1c5809d625578e23b949d14276664d2ff173c"
+unet@upacks/unet#1.2.8:
+  version "1.0.62"
+  resolved "https://codeload.github.com/upacks/unet/tar.gz/a6bef4fce07da1fdfccbdd320dde736d8fda399e"
   dependencies:
     axios "^1.2.2"
     cors "^2.8.5"
