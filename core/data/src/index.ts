@@ -1,12 +1,12 @@
 import { Sequelize } from 'sequelize'
-import { Host, Connection } from 'unet'
-import { decodeENV, Collect, Safe, env, log } from 'utils'
+import { Host, Connection, rSlave } from 'unet'
+import { decodeENV, Safe, env, log } from 'utils'
 
-import { Emitter } from './emitter'
-import { Canvas } from './canvas'
-import { Persist } from './persist'
+import { Event } from './event'
+import { Chunk } from './chunk'
 
 const { name, version, mode, me, proxy, token } = decodeENV()
+
 log.success(`"${env.npm_package_name}" <${version}> module is running on "${process.pid}" / [${mode}] 🚀🚀🚀\n`)
 
 const cf = {
@@ -15,31 +15,45 @@ const cf = {
     sequelize: new Sequelize({
         dialect: 'sqlite',
         storage: `../../${me}_${name}.sqlite`,
-        logging: false // (query: string, { tableNames, type }: any) => typeof tableNames !== 'undefined' && log.info(`SQL: ${tableNames[0]} -> ${type} / ${query.slice(0, 64)} ...`)
+        logging: false
     }),
-}
-
-const run = () => {
-
-    try {
-
-        const emitter = new Emitter(cf)
-        const canvas = new Canvas(cf)
-        const persist = new Persist(cf)
-
-        emitter.on('pub_cloud', (data: any) => {
-
-            persist.save_event({ type: 'status', name: 'device', data })
-
-        })
-
-    } catch (err) { console.log(err) }
 }
 
 Safe(async () => {
 
     await cf.sequelize.authenticate()
-    run()
+
+    new Event(cf)
+    new Chunk(cf)
+
+    const replica = new rSlave({
+        api: cf.cloud,
+        sequel: cf.sequelize,
+        slave_name: me,
+        models: [{
+            name: 'events',
+            direction: 'bidirectional',
+            size: 10,
+            retain: [7, 'days'],
+            delay_success: 2000,
+            delay_fail: 2500,
+            delay_loop: 100,
+        },
+        {
+            name: 'chunks',
+            direction: 'pull-only',
+            size: 5,
+            retain: [90, 'days'],
+            delay_success: 7500,
+            delay_fail: 5000,
+            delay_loop: 100,
+        }],
+    })
+
+    replica.cb = (...n: any) => {
+        console.log(n)
+    }
+
     await cf.sequelize.sync({ force: false })
 
 })

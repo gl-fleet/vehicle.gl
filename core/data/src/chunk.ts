@@ -3,7 +3,7 @@ import { decodeENV, Uid, Now, Sfy, log } from 'utils'
 import { DataTypes, Model, ModelStatic } from 'sequelize'
 import { Sequelize } from 'sequelize'
 
-import { chunks, Responsive } from '../helper'
+import { chunks, Responsive } from './utils'
 
 const { me, replication_debug } = decodeENV()
 
@@ -46,19 +46,6 @@ export class Chunk {
             deletedAt: { type: DataTypes.STRING, defaultValue: null },
 
         }, { indexes: [{ unique: false, fields: ['type', 'src', 'dst', 'updatedAt'] }] })
-
-        new ReplicaSlave({
-            me: me,
-            name: this.name,
-            channel: this.cloud,
-            table: this.collection,
-            retain: [30, 'days'],
-            limit: 5,
-            debug: replication_debug === 'true',
-            delay: 500,
-        })
-
-        log.info(`[REPLICATION]: STARTED`)
 
     }
 

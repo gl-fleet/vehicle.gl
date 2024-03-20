@@ -1,5 +1,7 @@
 import { Loop } from 'utils'
 
+export const f = (n: number, f = 2) => Number(n.toFixed(f))
+
 export type tEvent = 'pub_local' | 'pub_cloud' | 'update'
 
 export const wr = (cb: any) => { try { return cb() } catch { return null } }

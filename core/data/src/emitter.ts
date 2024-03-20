@@ -2,7 +2,7 @@ import { Host, Connection, ReplicaSlave } from 'unet'
 import { Sequelize } from 'sequelize'
 import { Safe, Loop, log } from 'utils'
 
-import { tEvent, roughSizeOfObject, wr, f } from './helper'
+import { tEvent, roughSizeOfObject, wr, f } from './utils'
 
 export class Emitter {
 

@@ -3,7 +3,7 @@ import { decodeENV, Uid, Now, Sfy, Loop, Safe, moment, dateFormat, log } from 'u
 import { DataTypes, Model, ModelStatic } from 'sequelize'
 import { Sequelize, Op } from 'sequelize'
 
-import { Responsive } from '../helper'
+import { Responsive } from './utils'
 
 const { me } = decodeENV()
 
@@ -46,17 +46,6 @@ export class Event {
             deletedAt: { type: DataTypes.STRING, defaultValue: null },
 
         }, { indexes: [{ unique: false, fields: ['type', 'src', 'dst', 'updatedAt'] }] })
-
-        new ReplicaSlave({
-            me: me,
-            name: this.name,
-            table: this.collection,
-            channel: this.cloud,
-            retain: [30, 'days'],
-            limit: 25,
-            debug: false,
-            delay: 2500,
-        })
 
         Loop(() => Safe(async () => {
 
