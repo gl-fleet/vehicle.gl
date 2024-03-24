@@ -1,6 +1,6 @@
 import { Host, Connection, ReplicaSlave } from 'unet'
-import { decodeENV, Uid, Now, Sfy, log } from 'utils'
-import { DataTypes, Model, ModelStatic } from 'sequelize'
+import { decodeENV, Uid, Now, Loop, Safe, Sfy, moment, dateFormat, log } from 'utils'
+import { DataTypes, Model, ModelStatic, Op } from 'sequelize'
 import { Sequelize } from 'sequelize'
 
 import { chunks, Responsive } from './utils'
@@ -16,6 +16,10 @@ export class Chunk {
     public name = 'chunks'
     public collection: ModelStatic<Model<any, any>> & any
     public data: any = {}
+    public state: any = {
+        rotation: (1000 * 60 /* 1-min */) * (60 /* 1-hr */) * (3 /* 3-hrs */),
+        keep: 90 /** days **/
+    }
 
     constructor({ cloud, local, sequelize }: { cloud: Connection, local: Host, sequelize: Sequelize }) {
 
@@ -46,6 +50,15 @@ export class Chunk {
             deletedAt: { type: DataTypes.STRING, defaultValue: null },
 
         }, { indexes: [{ unique: false, fields: ['type', 'src', 'dst', 'updatedAt'] }] })
+
+        Loop(() => Safe(async () => {
+
+            const date = moment().add(-(this.state.keep), 'days').format(dateFormat)
+            log.warn(`[Event] Remove / lower than equal -> ${date}`)
+            const result = await this.collection.destroy({ where: { updatedAt: { [Op.lte]: date } } })
+            log.success(`[Event] -> Remove / ${Sfy(result)}`)
+
+        }), this.state.rotation)
 
     }
 
