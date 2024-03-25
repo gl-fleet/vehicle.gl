@@ -1,6 +1,6 @@
 import { Sequelize } from 'sequelize'
 import { Host, Connection, rSlave } from 'unet'
-import { decodeENV, Safe, env, log } from 'utils'
+import { decodeENV, Safe, Shell, env, log } from 'utils'
 
 import { Event } from './event'
 import { Chunk } from './chunk'
@@ -10,7 +10,7 @@ const { name, version, mode, me, proxy, token } = decodeENV()
 log.success(`"${env.npm_package_name}" <${version}> module is running on "${process.pid}" / [${mode}] 🚀🚀🚀\n`)
 
 const cf = {
-    cloud: new Connection({ name: 'core_data', proxy, token, timeout: 15000 }),
+    cloud: new Connection({ name: 'core_data', proxy, token, timeout: 10000 }),
     local: new Host({ name, port: 8071 }),
     sequelize: new Sequelize({
         dialect: 'sqlite',
@@ -35,25 +35,36 @@ Safe(async () => {
         models: [{
             name: 'events',
             direction: 'bidirectional',
-            size: 5,
+            size: 10, /** Around 1kb extract to 6kb  **/
             retain: [7, 'days'],
-            delay_success: 1.25 * 1000,
-            delay_fail: 5 * 1000,
-            delay_loop: 100,
+            delay_success: 1.25 * 1000, /** There are no data to be pulled or pushed **/
+            delay_fail: 5 * 1000, /** Something wrong while pulling or pushing **/
+            delay_loop: 250, /** Sleep **/
         },
         {
             name: 'chunks',
             direction: 'pull-only',
-            size: 5,
+            size: 5, /** Around 5kb extract to 56kb **/
             retain: [90, 'days'],
             delay_success: 10 * 1000,
             delay_fail: 10 * 1000,
-            delay_loop: 100,
+            delay_loop: 250,
         }],
     })
 
     // replica.cb = (...e: any) => console.log(`[R] Trigger:    [${e}]`)
 
-    await cf.sequelize.sync({ force: false })
+    await cf.sequelize.sync({ force: false, alter: true })
+
+    Safe(() => {
+
+        if (process.pid && Shell.which('renice')) {
+
+            Shell.exec(`echo '${mode === 'development' ? 'tulgaew' : 'umine'}' | sudo -S renice -n -20 -p ${process.pid}`)
+            log.success(`Renice: Process re-niced ${process.pid}`)
+
+        } else log.error(`Renice: Couldn't start`)
+
+    }, 'Renice')
 
 })
