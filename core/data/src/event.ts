@@ -1,10 +1,11 @@
-import { Host, Connection, ReplicaSlave } from 'unet'
+import { Host, Connection } from 'unet'
 import { Sequelize, DataTypes, Model, ModelStatic, Op } from 'sequelize'
-import { Safe, Loop, decodeENV, moment, dateFormat, Uid, Now, Sfy, log } from 'utils'
+import { Safe, Loop, decodeENV, moment, dateFormat, Uid, Now, Sfy, parseJwt, log } from 'utils'
 
 import { tEvent, roughSizeOfObject, wr, f } from './utils'
 
-const { me } = decodeENV()
+const { me, token } = decodeENV()
+const payload = parseJwt(token)
 
 export class Event {
 
@@ -213,6 +214,11 @@ export class Event {
 
     /*** *** *** @___Data_Parsers__ *** *** ***/
 
+    parser_data = (e: any) => wr(() => ({
+        cloud: [],
+        local: [],
+    }))
+
     parser_gpsx = (e: any) => wr(() => ({
         cloud: [e.state, e.data.fix, e.data.sat, e.data.vac, e.data.hac, e.data.spd],
         local: e,
@@ -311,6 +317,7 @@ export class Event {
 
         this.data = {
 
+            data: { parser: this.parser_data, inp: {}, out: { cloud: [payload.project, payload.type, payload.name, payload.exp - payload.iat] }, time: 0 },
             data_gps1: { parser: this.parser_gpsx, inp: {}, out: {}, time: 0 },
             data_gps2: { parser: this.parser_gpsx, inp: {}, out: {}, time: 0 },
             data_gps: { parser: this.parser_gps, inp: {}, out: {}, time: 0 },

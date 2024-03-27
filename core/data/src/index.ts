@@ -60,7 +60,7 @@ Safe(async () => {
 
         if (process.pid && Shell.which('renice')) {
 
-            Shell.exec(`echo '${mode === 'development' ? 'tulgaew' : 'umine'}' | sudo -S renice -n -20 -p ${process.pid}`)
+            Shell.exec(`echo '${mode === 'development' ? 'tulgaew' : 'umine'}' | sudo -S renice -n -19 -p ${process.pid}`)
             log.success(`Renice: Process re-niced ${process.pid}`)
 
         } else log.error(`Renice: Couldn't start`)

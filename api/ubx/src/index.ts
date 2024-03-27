@@ -1,4 +1,4 @@
-import { Safe, Loop, decodeENV, log, env } from 'utils'
+import { Shell, Safe, Loop, decodeENV, log, env } from 'utils'
 import { Connection, NetClient } from 'unet'
 import { Serial, F9P_Parser } from 'ucan'
 
@@ -112,5 +112,16 @@ Safe(() => {
         if (calculated && gps1.vac <= VAC && gps2.vac <= VAC) publish('data_gps', calculated)
 
     }, 250)
+
+    Safe(() => {
+
+        if (process.pid && Shell.which('renice')) {
+
+            Shell.exec(`echo '${mode === 'development' ? 'tulgaew' : 'umine'}' | sudo -S renice -n -20 -p ${process.pid}`)
+            log.success(`Renice: Process re-niced ${process.pid}`)
+
+        } else log.error(`Renice: Couldn't start`)
+
+    }, 'Renice')
 
 })
