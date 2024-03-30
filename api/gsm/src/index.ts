@@ -46,7 +46,7 @@ const AT_BEAUTIFY = (s: string) => {
 
 }
 
-Safe(() => {
+PROD && Safe(() => {
 
     let free = true
     const route = mode === 'development' ? 'eth0' : 'ppp0'
