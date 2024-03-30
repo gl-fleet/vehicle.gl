@@ -70,8 +70,8 @@ Safe(() => {
                 const [arx, atx] = [Number(pr[0]), Number(pr[1])]
                 const [brx, btx] = [Number(nr[0]), Number(nr[1])]
 
-                const rx = (((brx - arx) / 5) / 1024).toFixed(2)
-                const tx = (((btx - atx) / 5) / 1024).toFixed(2)
+                const rx = Number((((brx - arx) / 5) / 1024).toFixed(2))
+                const tx = Number((((btx - atx) / 5) / 1024).toFixed(2))
 
                 const note = `RX: ${rx} kbps TX: ${tx} kbps`
 
