@@ -65,16 +65,18 @@ export default (cfg: iArgs) => {
     const [gps1, setGPS1] = useState<any>({ state: 'loading', message: 'Loading ...', data: null })
     const [gps2, setGPS2] = useState<any>({ state: 'loading', message: 'Loading ...', data: null })
     const [rtcm, setRTCM] = useState<any>({ state: 'loading', message: 'Loading ...', data: null })
+    const [net, setNet] = useState<any>(`...`)
 
     useEffect(() => {
 
         cfg.event.on('stream', (args: any) => Safe(() => {
 
-            const { data_gps1, data_gps2, data_gsm, data_rtcm } = args
+            const { data_gps1, data_gps2, data_gsm, data_rtcm, value } = args
             typeof data_gps1 !== 'undefined' && setGPS1(data_gps1)
             typeof data_gps2 !== 'undefined' && setGPS2(data_gps2)
             typeof data_rtcm !== 'undefined' && setRTCM(data_rtcm)
             typeof data_gsm !== 'undefined' && setGSM(data_gsm)
+            value && setNet(`Receive ${value.rx ?? 0} kbps / Transmit ${value.tx ?? 0} kbps`)
 
         }, 'BOT_LEFT.LISTEN'))
 
@@ -125,6 +127,11 @@ export default (cfg: iArgs) => {
                     color: getColor(rtcm.state),
                     dot: getIcon(rtcm.state),
                     children: <Text style={{ color: getColor(rtcm.state) }}>{rtcm.message}</Text>
+                },
+                {
+                    color: getColor('info'),
+                    dot: getIcon('success'),
+                    children: <Text>NET: {net}</Text>
                 }
             ]}
         />

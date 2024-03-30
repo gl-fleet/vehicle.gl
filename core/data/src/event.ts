@@ -301,7 +301,7 @@ export class Event {
 
             Object.keys(this.timeout).map((key: string) => {
 
-                if ((Date.now() - this.timeout[key]) >= 7500) {
+                if ((Date.now() - this.timeout[key]) >= 15000) {
                     delete cloud[key]
                     delete local[key]
                     delete this.timeout[key]
@@ -311,7 +311,7 @@ export class Event {
 
         }
 
-    }), 10 * 1000)
+    }), 5 * 1000)
 
     collect = () => {
 

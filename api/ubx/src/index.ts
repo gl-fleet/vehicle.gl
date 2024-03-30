@@ -11,21 +11,24 @@ log.success(`"${env.npm_package_name}" <${version}> module is running on "${proc
 
 const API_DATA = new Connection({ name: 'data', timeout: 500 })
 const GPS: any = { gps1: {}, gps2: {} } /** Temporary GPS data store **/
-const VAC = Number(cf.threshold[0])     /** Bad GPS Threshold (cm) **/
 const Calculate = new Calculus(cf)
 const Process = new ProcessActivity({})
 const LOG: any = log
 const DEV = cf.mode === 'development', PROD = !DEV
+const VAC = DEV ? 100000 : Number(cf.threshold[0])     /** Bad GPS Threshold (cm) **/
 
 const publish = (channel: string, data: any) => Safe(async () => await API_DATA.set(channel, data), `[${channel}]`)
 
 const Simulationhandler = (args: any) => {
 
-    const { data_gps1, data_gps2, data_gsm, data_rtcm } = args
+    const { data_gps1, data_gps2, data_gsm, value, data_rtcm } = args
+
     publish('data_gps1', data_gps1)
     publish('data_gps2', data_gps2)
     publish('data_gsm', { ...data_gsm, data: data_gsm })
     publish('data_rtcm', data_rtcm)
+    publish('value', value)
+
     GPS.gps1 = data_gps1.data
     GPS.gps2 = data_gps2.data
 
