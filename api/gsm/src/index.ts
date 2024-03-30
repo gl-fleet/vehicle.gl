@@ -6,7 +6,7 @@ const { version, mode, path } = decodeENV()
 log.success(`"${env.npm_package_name}" <${version}> module is running on "${process.pid}" / [${mode}] 🚀🚀🚀\n`)
 
 const DEV = mode === 'development', PROD = !DEV
-const API_DATA = new Connection({ name: 'data', timeout: 500 })
+const API_DATA = new Connection({ name: 'data', timeout: 1000 })
 const publish = (channel: string, data: any) => Safe(async () => await API_DATA.set(channel, data))
 let temp: any = { operator: '', quality: 0 }
 
@@ -77,7 +77,7 @@ Safe(() => {
 
                 log.info(`Network usage: ${note} / Throttled: ${pw}`)
 
-                API_DATA.set('value', { rx, tx, pw })
+                await API_DATA.set('value', { rx, tx, pw: `${pw}` })
 
             } catch (err) { } finally { free = true }
 
