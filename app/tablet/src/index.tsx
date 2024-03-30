@@ -10,6 +10,16 @@ const { name, version, mode } = Win.env
 
 log.success(`${mode}: ${name} ${version}`)
 
+if (true) {
+
+    const low = document.documentElement.clientWidth < 1440 ? '0.75' : '1'
+    const meta = document.createElement('meta')
+    meta.name = "viewport"
+    meta.content = `width=device-width, user-scalable=yes, initial-scale=1.0, maximum-scale=${low}, minimum-scale=${low}`
+    document.getElementsByTagName('head')[0].appendChild(meta)
+
+}
+
 const cfg: iArgs = {
     event: new EventEmitter(),
     isDarkMode: true,
