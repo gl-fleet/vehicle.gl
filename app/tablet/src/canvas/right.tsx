@@ -15,7 +15,7 @@ export class Right {
             simulate: false,
             axesHelper: true,
             polrHelper: true,
-            devicePixelRatio: 0.75,
+            devicePixelRatio: 0.8,
             antialias: false,
             fps: 30,
         })

@@ -43,7 +43,7 @@ export class Left {
             animateDuration: 250,
             urlTemplate: Win.env.tile,
             simulate: false,
-            devicePixelRatio: 0.75,
+            devicePixelRatio: 0.8,
             fps: 30,
         })
 

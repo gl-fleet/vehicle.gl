@@ -14,6 +14,9 @@ const { useEffect, useState } = React
 const { Text } = Typography
 
 const Style = createGlobalStyle`
+    .ant-timeline .ant-timeline-item-head {
+        inset-block-start: 3px;
+    }
     .ant-timeline .ant-typography {
         font-size: 12px !important;
     }
@@ -24,7 +27,7 @@ const Style = createGlobalStyle`
         padding-bottom: 0px !important;
     }
     .ant-timeline > li:last-child .ant-timeline-item-content {
-        min-height: 36px !important;
+        min-height: 24px !important;
     }
     .ant-timeline-item-head {
         background: transparent !important;
@@ -91,7 +94,7 @@ export default (cfg: iArgs) => {
     return <>
         <Style />
         <Timeline
-            style={{ minWidth: 480, zIndex: 1, position: 'absolute', left: 28, bottom: 0, fontWeight: 800, color: '#fff' }}
+            style={{ minWidth: 480, zIndex: 1, position: 'absolute', left: 16, bottom: 0, fontWeight: 800, color: '#fff' }}
             items={[
                 {
                     color: getColor(gsm.state),
