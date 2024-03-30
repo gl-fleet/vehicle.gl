@@ -340,7 +340,7 @@ export class Event {
 
             log.warn(`Listening on channel -> [${key}]`)
 
-            this.local.on(key, ({ body }) => {
+            this.local.on(`${key}`, ({ body }) => {
 
                 try {
 

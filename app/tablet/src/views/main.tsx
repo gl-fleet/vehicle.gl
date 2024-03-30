@@ -29,8 +29,8 @@ export default (cfg: iArgs) => {
     const [simg] = useScreenshot({ loop: screenshot === 'true' ? 5000 : -1, size: [128 * 3, 128 * 4], canvas_selector: '#left canvas' })
 
     React.useEffect(() => { cfg.event.emit('mode', cfg.isDarkMode) }, [cfg.isDarkMode])
-    React.useEffect(() => { Safe(async () => await api.set('img-camera', { img: wimg }), 'SET.WECAM') }, [wimg])
-    React.useEffect(() => { Safe(async () => await api.set('img-map', { img: simg }), 'SET.SCREENSHOT') }, [wimg])
+    React.useEffect(() => { Safe(async () => wimg && await api.set('img-camera', { img: wimg }), 'SET.WECAM') }, [wimg])
+    React.useEffect(() => { Safe(async () => simg && await api.set('img-map', { img: simg }), 'SET.SCREENSHOT') }, [wimg])
 
     React.useEffect(() => {
 

@@ -1,6 +1,6 @@
 import { Connection } from 'unet'
 import { Serial } from 'ucan'
-import { AsyncWait, decodeENV, Safe, Loop, Sfy, env, log } from 'utils'
+import { AsyncWait, decodeENV, Safe, Loop, Sfy, env, log, Shell } from 'utils'
 
 const { version, mode, path } = decodeENV()
 log.success(`"${env.npm_package_name}" <${version}> module is running on "${process.pid}" / [${mode}] 🚀🚀🚀\n`)
@@ -46,6 +46,47 @@ const AT_BEAUTIFY = (s: string) => {
 
 }
 
+Safe(() => {
+
+    let free = true
+    const route = mode === 'development' ? 'eth0' : 'ppp0'
+
+    Loop(() => {
+
+        free && Safe(async () => {
+
+            try {
+
+                free = false
+                const power = Shell.exec(`vcgencmd get_throttled`, { silent: true }).stdout
+                await AsyncWait(2500)
+                const start = Shell.exec(`cat /sys/class/net/${route}/statistics/rx_bytes && cat /sys/class/net/${route}/statistics/tx_bytes`, { silent: true }).stdout
+                await AsyncWait(5000)
+                const end = Shell.exec(`cat /sys/class/net/${route}/statistics/rx_bytes && cat /sys/class/net/${route}/statistics/tx_bytes`, { silent: true }).stdout
+
+                const pw = (power || '?').split('\n')[0]
+                const pr = start.split('\n')
+                const nr = end.split('\n')
+                const [arx, atx] = [Number(pr[0]), Number(pr[1])]
+                const [brx, btx] = [Number(nr[0]), Number(nr[1])]
+
+                const rx = (((brx - arx) / 5) / 1024).toFixed(2)
+                const tx = (((btx - atx) / 5) / 1024).toFixed(2)
+
+                const note = `RX: ${rx} kbps TX: ${tx} kbps`
+
+                log.info(`Network usage: ${note} / Throttled: ${pw}`)
+
+                API_DATA.set('value', { rx, tx, pw })
+
+            } catch (err) { } finally { free = true }
+
+        }, '[NETWORK_USAGE]')
+
+    }, 1000)
+
+})
+
 PROD && Safe(() => {
 
     const GSM = new Serial()
@@ -72,17 +113,24 @@ PROD && Safe(() => {
 
     }))
 
-    Loop(() => Safe(async () => {
+    let free = true
+    Loop(() => free && Safe(async () => {
 
-        await AsyncWait(2500)
-        await GSM.emit('AT+CSQ\r\n')
+        try {
 
-        await AsyncWait(2500)
-        await GSM.emit('AT+COPS?\r\n')
+            free = false
 
-        await AsyncWait(2500)
-        await GSM.emit('AT+CPSI?\r\n')
+            await AsyncWait(2500)
+            await GSM.emit('AT+CSQ\r\n')
 
-    }), 1000 * 15)
+            await AsyncWait(2500)
+            await GSM.emit('AT+COPS?\r\n')
+
+            await AsyncWait(2500)
+            await GSM.emit('AT+CPSI?\r\n')
+
+        } catch (err) { } finally { free = true }
+
+    }), 2500)
 
 })

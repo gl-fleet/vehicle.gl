@@ -58,9 +58,7 @@ Safe(() => {
     mkdir(`${path}`)
 
     API.on('*', async (req: any) => {
-
         return persist === 'true' ? await tileImageFetch(req.originalUrl) : defImg
-
     })
 
-})
+}, '[TILE]')

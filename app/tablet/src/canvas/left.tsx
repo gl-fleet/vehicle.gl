@@ -43,6 +43,7 @@ export class Left {
             animateDuration: 250,
             urlTemplate: Win.env.tile,
             simulate: false,
+            devicePixelRatio: 0.2
         })
 
         this.can.onReady(() => {
