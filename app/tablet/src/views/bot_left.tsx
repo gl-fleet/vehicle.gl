@@ -14,8 +14,11 @@ const { useEffect, useState } = React
 const { Text } = Typography
 
 const Style = createGlobalStyle`
+    .ant-timeline .ant-typography {
+        font-size: 12px !important;
+    }
     .ant-timeline > li {
-        padding-bottom: 8px !important;
+        padding-bottom: 4px !important;
     }
     .ant-timeline > li:last-child {
         padding-bottom: 0px !important;
