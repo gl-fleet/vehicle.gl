@@ -6,7 +6,7 @@ const { version, mode, path } = decodeENV()
 log.success(`"${env.npm_package_name}" <${version}> module is running on "${process.pid}" / [${mode}] 🚀🚀🚀\n`)
 
 const DEV = mode === 'development', PROD = !DEV
-const API_DATA = new Connection({ name: 'data', timeout: 1000 })
+const API_DATA = new Connection({ name: 'data', timeout: 5000 })
 const publish = (channel: string, data: any) => Safe(async () => await API_DATA.set(channel, data))
 let temp: any = { operator: '', quality: 0 }
 
@@ -49,7 +49,7 @@ const AT_BEAUTIFY = (s: string) => {
 PROD && Safe(() => {
 
     let free = true
-    const route = mode === 'development' ? 'eth0' : 'ppp0'
+    const route = DEV ? 'eth0' : 'ppp0'
 
     Loop(() => {
 

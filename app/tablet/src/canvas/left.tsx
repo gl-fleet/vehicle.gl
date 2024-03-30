@@ -43,7 +43,8 @@ export class Left {
             animateDuration: 250,
             urlTemplate: Win.env.tile,
             simulate: false,
-            devicePixelRatio: 0.2
+            devicePixelRatio: 0.75,
+            fps: 30,
         })
 
         this.can.onReady(() => {
@@ -52,9 +53,6 @@ export class Left {
 
             this.ready = true
             this.cb('ready')
-
-            // Removing due to warning
-            // CanvasFixer()
 
         })
 
