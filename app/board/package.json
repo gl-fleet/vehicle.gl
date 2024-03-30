@@ -5,7 +5,7 @@
   "license": "MIT",
   "scripts": {
     "start": "ubin watch_app --npm",
-    "build": "ubin build_app --bundle --port 3005",
+    "build": "ubin build_app --bundle --minify --sourcemap --port 3005",
     "serve": "node ./dist/run.js",
     "clear": "rm -rf ./dist ./node_modules",
     "_serve": "pm2 start ecosystem.config.js",
