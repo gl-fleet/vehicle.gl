@@ -129,8 +129,14 @@ export class Chunk {
     }
 
     get_merged = async (args: any) => {
-        const rows = await this.collection.findAll({ where: { ...args, deletedAt: null }, order: [['offset', 'ASC']] })
+
+        const rows = await this.collection.findAll({
+            where: { ...args, deletedAt: null },
+            order: [['offset', 'ASC']],
+            raw: true,
+        })
         return chunks.Merge(rows)
+
     }
 
 }

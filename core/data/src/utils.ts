@@ -58,9 +58,12 @@ export const chunks = {
     Merge: (chunks: any) => { /** Merge and Parse array of chunks **/
 
         if (chunks && chunks.length > 0) {
+
             let strfy = ''
             for (const x of chunks) { strfy += x.data }
-            return JSON.parse(strfy)
+            console.log(strfy)
+            return JSON.parse(`${strfy}`)
+
         }
         return null
 

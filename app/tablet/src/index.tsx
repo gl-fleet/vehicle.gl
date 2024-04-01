@@ -20,7 +20,7 @@ const cfg: iArgs = {
 
 cfg.api.on('stream', (args: any) => {
 
-    Date.now() % 5000 <= 1000 && console.log(args)
+    Date.now() % 10000 <= 1000 && console.log(args)
     cfg.event.emit('stream', args)
 
 })
