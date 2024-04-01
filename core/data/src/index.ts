@@ -36,7 +36,7 @@ Safe(async () => {
             name: 'events',
             direction: 'bidirectional',
             size: 10, /** Around 1kb extract to 6kb  **/
-            retain: [7, 'days'],
+            retain: [0.1, 'days'],
             delay_success: 1.25 * 1000, /** There are no data to be pulled or pushed **/
             delay_fail: 5 * 1000, /** Something wrong while pulling or pushing **/
             delay_loop: 250, /** Sleep **/
