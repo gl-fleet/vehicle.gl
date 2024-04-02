@@ -2,7 +2,6 @@ import { ThreeView } from 'uweb/three'
 
 export class Right {
 
-    // public base = THREE
     public can: ThreeView
     public ready = false
     public cb = (sms: string) => null
@@ -15,7 +14,7 @@ export class Right {
             simulate: false,
             axesHelper: true,
             polrHelper: true,
-            devicePixelRatio: 0.8,
+            devicePixelRatio: 0.9,
             antialias: false,
             fps: 30,
         })

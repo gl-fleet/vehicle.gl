@@ -16,6 +16,7 @@ export class PlanDig {
 
         const Polygon = new Triangle({ Maptalks, Three })
         const Lines = new LineString({ Maptalks, Three })
+        const type = 'plan_dig'
 
         event.on('stream', (data) => {
 
@@ -23,7 +24,6 @@ export class PlanDig {
 
                 const { distance } = arg
                 event.emit('dig_plan_status', distance)
-                // api.set('value', { dig_plan: arg })
 
             })
 
@@ -36,7 +36,7 @@ export class PlanDig {
 
         event.on('dxf-geojson', (name) => {
 
-            event.emit('alert', { key: name, message: `File:${name} is loading ...` })
+            event.emit('alert', { key: type, message: `[DXF] "${name}" is loading ...` })
 
             api.pull('get-chunks-merged', { name }, (err: any, data: any) => {
 
@@ -48,18 +48,18 @@ export class PlanDig {
                     Lines.updateAll(linestrings)
 
                     event.emit('alert', {
-                        key: name,
+                        key: type,
                         type: err ? 'error' : 'success',
-                        message: `File ${name} ${err ? err.message : 'is loaded'}`,
+                        message: `[DXF] "${name}" ${err ? err.message : 'is loaded'}`,
                         onclose: 'dxf-dispose',
                     })
 
                 } catch (err: any) {
 
                     event.emit('alert', {
-                        key: name,
+                        key: type,
                         type: 'error',
-                        message: `[${name}] ${err.message}`
+                        message: `[DXF] "${name}" ${err.message}`
                     })
 
                 }

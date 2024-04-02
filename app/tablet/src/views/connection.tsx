@@ -3,8 +3,6 @@ import { createGlobalStyle } from 'styled-components'
 
 const { useEffect, useState } = React
 
-const { Paragraph, Text } = Typography
-
 const Disconnect = createGlobalStyle`
     #root {
         filter: blur(0px) grayscale(1);

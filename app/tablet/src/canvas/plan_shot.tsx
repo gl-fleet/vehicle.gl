@@ -14,17 +14,12 @@ export class PlanShot {
         const { api, event } = cfg
 
         const clynder = new Clynder({ Maptalks, Three })
+        const type = 'plan_shot'
 
         event.on('stream', (data) => {
 
             const { d2, d3, v, n } = clynder.nearest(data.data_gps?.utm ?? [0, 0, 0], 500 /** Within 500 meters **/)
-
-            if (n && n !== '*') {
-
-                event.emit('shot_plan_status', { d2, d3, v, n })
-                // api.set('value', { dig_shot: { n, v, d2, d3 } })
-
-            }
+            if (n && n !== '*') event.emit('shot_plan_status', { d2, d3, v, n })
 
         })
 
@@ -34,7 +29,7 @@ export class PlanShot {
 
         event.on('csv-geojson', (name) => {
 
-            event.emit('alert', { key: name, message: `File:${name} is loading ...` })
+            event.emit('alert', { key: type, message: `[CSV] "${name}" is loading ...` })
 
             api.pull('get-chunks-merged', { name }, (err: any, data: any) => {
 
@@ -45,18 +40,18 @@ export class PlanShot {
                     clynder.updateAll(rows)
 
                     event.emit('alert', {
-                        key: name,
+                        key: type,
                         type: err ? 'error' : 'success',
-                        message: `File ${name} ${err ? err.message : 'is loaded'}`,
+                        message: `[CSV] "${name}" ${err ? err.message : 'is loaded'}`,
                         onclose: 'csv-dispose',
                     })
 
                 } catch (err: any) {
 
                     event.emit('alert', {
-                        key: name,
+                        key: type,
                         type: 'error',
-                        message: `[${name}] ${err.message}`
+                        message: `[CSV] "${name}" ${err.message}`
                     })
 
                 }

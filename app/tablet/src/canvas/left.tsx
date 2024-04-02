@@ -30,7 +30,6 @@ export const CanvasFixer = () => {
 
 export class Left {
 
-    // public base = maptalks
     public can: MapView
     public ready = false
     public cb = (sms: string) => null
@@ -43,7 +42,7 @@ export class Left {
             animateDuration: 250,
             urlTemplate: Win.env.tile,
             simulate: false,
-            devicePixelRatio: 0.8,
+            devicePixelRatio: 0.9,
             fps: 30,
         })
 
