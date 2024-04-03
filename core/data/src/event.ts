@@ -249,19 +249,25 @@ export class Event {
 
     })
 
-    parser_gsm = (e: any) => wr(() => ({
-        local: {
-            state: e.state,
-            message: e.message,
-            quality: e.data.quality,
-            operator: e.data.CPSI ? e.data.CPSI : e.data.operator ?? '...'
-        },
-        cloud: {
-            state: e.state,
-            quality: e.data.quality,
-            operator: e.data.CPSI ? e.data.CPSI : e.data.operator ?? '...'
-        },
-    }))
+    parser_gsm = (e: any) => {
+
+        console.log(e)
+
+        wr(() => ({
+            local: {
+                state: e.state,
+                message: e.message,
+                quality: e.data.quality,
+                operator: e.data.CPSI ? e.data.CPSI : e.data.operator ?? '...'
+            },
+            cloud: {
+                state: e.state,
+                quality: e.data.quality,
+                operator: e.data.CPSI ? e.data.CPSI : e.data.operator ?? '...'
+            },
+        }))
+
+    }
 
     parser_rtcm = (e: any) => wr(() => ({
         local: { state: e.state, message: e.message },

@@ -90,11 +90,15 @@ PROD && Safe(() => {
 PROD && Safe(() => {
 
     const GSM = new Serial()
-    const LOG: any = log
 
     GSM.start(path[0], Number(path[1]))
 
-    GSM.onInfo = (t, { type, message }) => LOG[type](message) && publish('data_gsm', { state: t, type, message })
+    GSM.onInfo = (t, { type, message }) => {
+
+        log.warn(`Serial[GSM]: [${t}:${type}] ${message}`)
+        publish('data_gsm', { state: t, type, message })
+
+    }
 
     GSM.on((chunk: any) => Safe(() => {
 
