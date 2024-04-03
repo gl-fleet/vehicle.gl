@@ -90,11 +90,13 @@ PROD && Safe(() => {
 PROD && Safe(() => {
 
     const GSM = new Serial()
+    let failure = 0
 
     GSM.start(path[0], Number(path[1]))
 
     GSM.onInfo = (t, { type, message }) => {
 
+        if (t === 'error' && ++failure > 10) process.exit(0)
         log.warn(`Serial[GSM]: [${t}:${type}] ${message}`)
         publish('data_gsm', { state: t, type, message })
 
@@ -107,7 +109,7 @@ PROD && Safe(() => {
             const parsed = AT_BEAUTIFY(chunk)
             if (parsed && typeof parsed === 'object') {
 
-                temp = { ...temp, ...parsed }
+                temp = { ...temp, ...parsed }; failure = 0;
                 log.res(`Serial[GSM]: ${Sfy(temp)}`)
                 publish('data_gsm', { state: 'success', type: 'success', message: `Network connected!`, data: temp })
 
