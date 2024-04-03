@@ -4568,9 +4568,9 @@ ubin@upacks/ubin#1.2.1:
     nodemon "^3.0.1"
     utils upacks/utils#1.1.4
 
-ucan@upacks/ucan#1.0.4:
-  version "1.0.6"
-  resolved "https://codeload.github.com/upacks/ucan/tar.gz/3fc3c6a83b4d72882caa41b6ef67034d1c57f22a"
+ucan@upacks/ucan#1.0.5:
+  version "1.0.7"
+  resolved "https://codeload.github.com/upacks/ucan/tar.gz/9855a52dd4ea6eccad6bcd6b15dd8aa7aba547bf"
   dependencies:
     nmea-simple "^3.3.0"
     serialport "^11.0.0"
