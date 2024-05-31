@@ -18,7 +18,7 @@ export class Chunk {
     public data: any = {}
     public state: any = {
         rotation: (1000 * 60 /* 1-min */) * (60 /* 1-hr */) * (3 /* 3-hrs */),
-        keep: 90 /** days **/
+        keep: 45 /** days **/
     }
 
     constructor({ cloud, local, sequelize }: { cloud: Connection, local: Host, sequelize: Sequelize }) {

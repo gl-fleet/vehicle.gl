@@ -1,6 +1,6 @@
 import { Host, Connection } from 'unet'
 import { Sequelize, DataTypes, Model, ModelStatic, Op } from 'sequelize'
-import { Safe, Loop, decodeENV, moment, dateFormat, Uid, Now, Sfy, parseJwt, log } from 'utils'
+import { Safe, Loop, decodeENV, moment, dateFormat, Uid, Now, Sfy, parseJwt, log, Delay } from 'utils'
 
 import { tEvent, roughSizeOfObject, wr, f } from './utils'
 
@@ -27,8 +27,8 @@ export class Event {
         last_pub_local: 0,
         is_local_pubing: false,
         prev_state: 'unk',
-        rotation: (1000 * 60 /* 1-min */) * (60 /* 1-hr */) * (3 /* 3-hrs */),
-        keep: 14 /** days **/
+        rotation: (1000 * 60 /* 1-min */) * (60 /* 1-hr */) * (1 /* 1-hrs */),
+        keep: 3 /** days **/
     }
 
     constructor({ cloud, local, sequelize }: { cloud: Connection, local: Host, sequelize: Sequelize }) {
@@ -86,14 +86,17 @@ export class Event {
 
         }, { indexes: [{ unique: false, fields: ['type', 'src', 'dst', 'updatedAt'] }] })
 
-        Loop(() => Safe(async () => {
+        const clearing = () => Safe(async () => {
 
             const date = moment().add(-(this.state.keep), 'days').format(dateFormat)
             log.warn(`[Event] Remove / lower than equal -> ${date}`)
             const result = await this.collection.destroy({ where: { updatedAt: { [Op.lte]: date } } })
             log.success(`[Event] -> Remove / ${Sfy(result)}`)
 
-        }), this.state.rotation)
+        })
+
+        Loop(() => { clearing() }, this.state.rotation)
+        Delay(() => { clearing() }, 2500)
 
     }
 
