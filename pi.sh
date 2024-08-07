@@ -4,6 +4,9 @@ mv setup.gl setup.gl.bak
 mkdir setup.gl && cd setup.gl
 
 echo "Installing '$1' [...]"
+echo $0
+echo $1
+echo $2
 sleep 5
 
 sudo apt-get install screen elinks minicom ppp
