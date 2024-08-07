@@ -3,10 +3,17 @@
 mv setup.gl setup.gl.bak
 mkdir setup.gl && cd setup.gl
 
-echo "Installing '$1' [...]"
-echo $0
-echo $1
-echo $2
+if [ -z "$1" ]; then
+  set -- "${1:-XX100}"
+fi
+
+if [ -z "$2" ]; then
+  set -- "${2:-10.42.0.55}"
+fi
+
+echo "Installing [...]"
+echo "HUB Name: $1"
+echo "Tablet IP: $2"
 sleep 5
 
 sudo apt-get install screen elinks minicom ppp
