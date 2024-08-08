@@ -16,7 +16,7 @@ echo "HUB Name: $1"
 echo "Tablet IP: $2"
 sleep 5
 
-sudo apt-get install screen elinks minicom ppp
+sudo apt-get -y install screen elinks minicom ppp
 
 wget http://www.ingcool.com/w/images/2/29/SIM7600X-4G-HAT-Demo.7z
 
@@ -119,10 +119,10 @@ pitunnel --port=5900 --host=10.42.0.55 --persist --name=$1-TABLET
 
 echo "Installing Node / Redis / PM2 [...]"
 
-sudo apt-get install nodejs -y
-sudo apt install npm
-sudo apt install nginx
-sudo apt-get install redis-server
+sudo apt-get -y install nodejs
+sudo apt-get -y install npm
+sudo apt-get -y install nginx
+sudo apt-get -y install redis-server
 sudo npm install yarn -g
 sudo npm install pm2@latest -g
 pm2 install pm2-logrotate
