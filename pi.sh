@@ -36,17 +36,20 @@ cd ..
 chmod 777 sim7600_4G_hat_init
 
 echo "Setting up [...]"
+sleep 1
 
 sudo sed -i -e '$i \sh /home/umine/setup.gl/SIM7600X-4G-HAT-Demo/Raspberry/c/sim7600_4G_hat_init &\n' /etc/rc.local
-
 sudo sed -i -e '$i \(sleep 30 &\n' /etc/rc.local
 sudo sed -i -e '$i \ifconfig eth0 down &\n' /etc/rc.local
-sudo sed -i -e '$i \ifconfig wwan0 down) & &\n' /etc/rc.local
+# sudo sed -i -e '$i \ifconfig wwan0 down) & &\n' /etc/rc.local
+
+echo "Setting up [RNET]"
+sleep 1
 
 sudo touch /etc/ppp/peers/rnet
 sudo cat > /etc/ppp/peers/rnet << EOL
 connect "/usr/sbin/chat -v -f /etc/chatscripts/gprs -T net"
-/dev/ttyUSB2
+/dev/ttyS0
 115200
 noipdefault
 usepeerdns
@@ -61,6 +64,9 @@ passive
 holdoff 5
 maxfail 0
 EOL
+
+echo "Setting up [GPRS]"
+sleep 1
 
 sudo touch /etc/chatscripts/gprs
 sudo cat > /etc/chatscripts/gprs << EOL
@@ -83,6 +89,9 @@ TIMEOUT         22
 CONNECT         ""
 EOL
 
+echo "Setting up [Interfaces]"
+sleep 1
+
 sudo touch /etc/network/interfaces
 sudo cat > /etc/network/interfaces << EOL
 source /etc/network/interfaces.d/*
@@ -91,12 +100,18 @@ iface rnet inet ppp
 provider rnet
 EOL
 
+echo "Setting up [USB.Rules]"
+sleep 1
+
 sudo touch /etc/udev/rules.d/99-usb.rules
 sudo cat > /etc/udev/rules.d/99-usb.rules << EOL
 KERNELS=="1-1.1", SUBSYSTEMS=="usb", SYMLINK+="uGPS1"
 KERNELS=="1-1.2", SUBSYSTEMS=="usb", SYMLINK+="uGPS2"
 KERNELS=="1-1.3:1.2", SUBSYSTEMS=="usb", SYMLINK+="uModem"
 EOL
+
+echo "Setting up [Pitunnel.Ports]"
+sleep 1
 
 pitunnel --port=5900 --persist --name=$1-PI
 pitunnel --port=8443 --http --persist --name=$1
@@ -105,6 +120,7 @@ pitunnel --port=5900 --host=10.42.0.55 --persist --name=$1-TABLET
 echo "Installing Node / Redis / PM2 [...]"
 
 sudo apt-get install nodejs -y
+sudo apt install npm
 sudo apt install nginx
 sudo apt-get install redis-server
 sudo npm install yarn -g

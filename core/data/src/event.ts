@@ -28,7 +28,7 @@ export class Event {
         is_local_pubing: false,
         prev_state: 'unk',
         rotation: (1000 * 60 /* 1-min */) * (60 /* 1-hr */) * (1 /* 1-hrs */),
-        keep: 3 /** days **/
+        keep: 1 /** days **/
     }
 
     constructor({ cloud, local, sequelize }: { cloud: Connection, local: Host, sequelize: Sequelize }) {
