@@ -38,9 +38,9 @@ chmod 777 sim7600_4G_hat_init
 echo "Setting up [...]"
 sleep 1
 
-sudo sed -i -e '$i \sh /home/umine/setup.gl/SIM7600X-4G-HAT-Demo/Raspberry/c/sim7600_4G_hat_init &\n' /etc/rc.local
-sudo sed -i -e '$i \(sleep 30 &\n' /etc/rc.local
-sudo sed -i -e '$i \ifconfig eth0 down &\n' /etc/rc.local
+# sudo sed -i -e '$i \sh /home/umine/setup.gl/SIM7600X-4G-HAT-Demo/Raspberry/c/sim7600_4G_hat_init &\n' /etc/rc.local
+# sudo sed -i -e '$i \(sleep 30 &\n' /etc/rc.local
+# sudo sed -i -e '$i \ifconfig eth0 down &\n' /etc/rc.local
 # sudo sed -i -e '$i \ifconfig wwan0 down) & &\n' /etc/rc.local
 
 echo "Setting up [RNET]"
