@@ -100,6 +100,15 @@ iface rnet inet ppp
 provider rnet
 EOL
 
+echo "Setting up [Router.Priority]
+sleep 1
+
+sudo touch /etc/dhcpcd.conf
+sudo cat > /etc/dhcpcd.conf << EOL
+interface wlan1
+metric 201
+EOL
+
 echo "Setting up [USB.Rules]"
 sleep 1
 
