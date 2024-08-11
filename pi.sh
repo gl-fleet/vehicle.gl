@@ -100,7 +100,7 @@ iface rnet inet ppp
 provider rnet
 EOL
 
-echo "Setting up [Router.Priority]
+echo "Setting up [Router.Priority]"
 sleep 1
 
 sudo touch /etc/dhcpcd.conf
