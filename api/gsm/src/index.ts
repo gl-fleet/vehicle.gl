@@ -87,11 +87,31 @@ PROD && Safe(() => {
 
 })
 
+let prev = ''
 PROD && Loop(() => {
 
     Safe(async () => {
 
-        const chats = Shell.exec(`journalctl --since "10min ago" | grep chat`, { silent: true }).stdout
+        const chats = Shell.exec(`journalctl --since "2min ago" | grep pppd`, { silent: true }).stdout
+        const ls = chats.split('\n')
+        for (const x of ls) {
+            if (typeof x === 'string' && x.indexOf('IPV6CP: timeout sending Config-Requests')) {
+                if (x !== prev) {
+
+                    console.log('About to be restarted [PPPD]')
+                    prev = x
+                    const reset = Shell.exec(`killall -HUP pppd`, { silent: true }).stdout
+                    console.log(reset)
+
+                }
+            }
+        }
+
+    })
+
+    Safe(async () => {
+
+        const chats = Shell.exec(`journalctl --since "2min ago" | grep chat`, { silent: true }).stdout
 
         const ls = chats.split('\n')
 
@@ -115,7 +135,7 @@ PROD && Loop(() => {
 
     })
 
-}, 1000 * 60)
+}, 1000 * 30)
 
 PROD && Safe(() => {
 
