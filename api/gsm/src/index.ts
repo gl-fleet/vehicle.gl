@@ -95,12 +95,12 @@ PROD && Loop(() => {
         const chats = Shell.exec(`journalctl --since "2min ago" | grep pppd`, { silent: true }).stdout
         const ls = chats.split('\n')
         for (const x of ls) {
-            if (typeof x === 'string' && x.indexOf('IPV6CP: timeout sending Config-Requests')) {
+            if (typeof x === 'string' && x.indexOf('IPV6CP: timeout sending Config-Requests') > 0) {
                 if (x !== prev) {
 
                     console.log('About to be restarted [PPPD]')
                     prev = x
-                    const reset = Shell.exec(`killall -HUP pppd`, { silent: true }).stdout
+                    const reset = Shell.exec(`echo "umine" | killall -HUP pppd`, { silent: true }).stdout
                     console.log(reset)
 
                 }
