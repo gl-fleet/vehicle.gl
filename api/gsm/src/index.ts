@@ -98,7 +98,7 @@ PROD && Loop(() => {
         for (const x of ls) {
 
             const [s, chunk] = x.split(']: ')
-            if (chunk[0] === '+') {
+            if (typeof chunk === 'string' && chunk[0] === '+') {
 
                 const parsed = AT_BEAUTIFY(chunk)
                 if (parsed && typeof parsed === 'object') {
