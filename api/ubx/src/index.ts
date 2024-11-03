@@ -35,7 +35,7 @@ const Simulationhandler = (args: any) => {
 }
 
 /** Simulate from DR101 **/
-DEV && Safe(() => me === 'DR101' && (new Connection({ name: 'data', proxy: 'https://u001-gantulgak.pitunnel.com/', rejectUnauthorized: false })).on('stream', Simulationhandler), 'Simulate')
+DEV && Safe(() => me === 'DR101' && (new Connection({ name: 'data', proxy: 'https://dr101-gantulgak.as1.pitunnel.com/', rejectUnauthorized: false })).on('stream', Simulationhandler), 'Simulate')
 
 /** Simulate from SV101 **/
 DEV && Safe(() => me === 'SV101' && (new Connection({ name: 'data', proxy: 'https://u002-gantulgak.as1.pitunnel.com/', rejectUnauthorized: false })).on('stream', Simulationhandler), 'Simulate')

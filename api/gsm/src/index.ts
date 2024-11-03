@@ -77,7 +77,7 @@ PROD && Safe(() => {
 
                 log.info(`Network usage: ${note} / Throttled: ${pw}`)
 
-                await API_DATA.set('value', { rx, tx, pw: `${pw}` })
+                rx !== undefined && tx !== undefined && await API_DATA.set('value', { rx, tx, pw: `${pw}` })
 
             } catch (err) { } finally { free = true }
 
@@ -87,7 +87,39 @@ PROD && Safe(() => {
 
 })
 
+PROD && Loop(() => {
+
+    Safe(async () => {
+
+        const chats = Shell.exec(`journalctl --since "10min ago" | grep chat`, { silent: true }).stdout
+
+        const ls = chats.split('\n')
+
+        for (const x of ls) {
+
+            const [s, chunk] = x.split(']: ')
+            if (chunk[0] === '+') {
+
+                const parsed = AT_BEAUTIFY(chunk)
+                if (parsed && typeof parsed === 'object') {
+
+                    temp = { ...temp, ...parsed }
+                    log.res(`Serial[GSM]: ${Sfy(temp)}`)
+                    publish('data_gsm', { state: 'success', type: 'success', message: `Network connected!`, data: temp })
+
+                }
+
+            }
+
+        }
+
+    })
+
+}, 1000 * 60)
+
 PROD && Safe(() => {
+
+    return
 
     const GSM = new Serial()
     let failure = 0
