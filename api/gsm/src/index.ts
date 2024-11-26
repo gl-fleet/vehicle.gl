@@ -87,8 +87,11 @@ PROD && Safe(() => {
 
 })
 
+/** Uses PPP log to detect network strength **/
 let prev = ''
 PROD && Loop(() => {
+
+    return
 
     Safe(async () => {
 
@@ -137,9 +140,8 @@ PROD && Loop(() => {
 
 }, 1000 * 30)
 
+/** Uses extra port to query network strength **/
 PROD && Safe(() => {
-
-    return
 
     const GSM = new Serial()
     let failure = 0
