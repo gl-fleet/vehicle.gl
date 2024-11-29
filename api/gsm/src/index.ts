@@ -147,15 +147,16 @@ PROD && Safe(() => {
 
         const ls = (Shell.exec(`udevadm info --name=${path[0]} --attribute-walk | grep KERNELS`, { silent: true }).stdout).split('\n')
         console.log(ls)
-        const slot = ls[2].split('==')[1]
+        const slot = ls[2].split('==')[1].replaceAll(`"`, '')
         console.log(slot)
-        console.log(slot.replaceAll(`"`, ''))
         await AsyncWait(2500)
 
         console.log(`echo "umine" | sudo sh -c "echo 0 > /sys/bus/usb/devices/${slot}/authorized"`)
 
-        console.log(Shell.exec(`echo "umine" | sudo sh -c "echo 0 > /sys/bus/usb/devices/${slot}/authorized"`, { silent: true }).stdout)
-        await AsyncWait(10 * 1000)
+        console.log('Turning off')
+        Shell.exec(`echo "umine" | sudo sh -c "echo 0 > /sys/bus/usb/devices/${slot}/authorized"`, { silent: true }).stdout
+        await AsyncWait(10 * 1500)
+        console.log('Turning on')
         console.log(Shell.exec(`echo "umine" | sudo sh -c "echo 1 > /sys/bus/usb/devices/${slot}/authorized"`, { silent: true }).stdout)
 
     }
