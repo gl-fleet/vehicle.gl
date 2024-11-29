@@ -1,6 +1,6 @@
 import { Connection } from 'unet'
 import { Serial } from 'ucan'
-import { AsyncWait, decodeENV, Safe, Loop, Sfy, env, log, Shell } from 'utils'
+import { AsyncWait, decodeENV, Safe, Loop, Sfy, env, log, Shell, Delay } from 'utils'
 
 const { version, mode, path } = decodeENV()
 log.success(`"${env.npm_package_name}" <${version}> module is running on "${process.pid}" / [${mode}] 🚀🚀🚀\n`)
@@ -142,6 +142,30 @@ PROD && Loop(() => {
 
 /** Uses extra port to query network strength **/
 PROD && Safe(() => {
+
+    const reload_usb = async () => {
+
+        const ls = (Shell.exec(`udevadm info --name=${path[0]} --attribute-walk | grep KERNELS`, { silent: true }).stdout).split('\n')
+        console.log(ls)
+        const slot = ls[2].split('==')[1]
+        console.log(slot)
+        console.log(slot.replaceAll(`"`, ''))
+        await AsyncWait(2500)
+
+        console.log(`echo "umine" | sudo sh -c "echo 0 > /sys/bus/usb/devices/${slot}/authorized"`)
+
+        console.log(Shell.exec(`echo "umine" | sudo sh -c "echo 0 > /sys/bus/usb/devices/${slot}/authorized"`, { silent: true }).stdout)
+        await AsyncWait(10 * 1000)
+        console.log(Shell.exec(`echo "umine" | sudo sh -c "echo 1 > /sys/bus/usb/devices/${slot}/authorized"`, { silent: true }).stdout)
+
+    }
+
+    Delay(() => {
+
+        console.log('USB-Power on / off')
+        reload_usb()
+
+    }, 15 * 1000)
 
     const GSM = new Serial()
     let failure = 0
