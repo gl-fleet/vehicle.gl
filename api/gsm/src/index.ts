@@ -145,8 +145,7 @@ PROD && Loop(() => {
 PROD && Safe(() => {
 
     const silent = false
-    const temp = Shell.exec(`udevadm info --name=${path[0]} --attribute-walk | grep KERNELS`, { silent }).stdout
-    const ls = temp.split('\n')
+    const ls = (Shell.exec(`udevadm info --name=${path[0]} --attribute-walk | grep KERNELS`, { silent }).stdout).split('\n')
     const slot = ls[2].split('==')[1].replaceAll(`"`, '')
     log.warn(`[USB] SLOT -> '${slot}'`)
 
