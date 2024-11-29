@@ -177,7 +177,7 @@ PROD && Safe(() => {
     GSM.onInfo = (t, { type, message }) => {
 
         if (t === 'error' && ++failure > 10) process.exit(0)
-        if (failure === 3) reload_usb()
+        if (t === 'error' && failure === 5) reload_usb()
 
         log.warn(`Serial[GSM]: [${t}:${type}] ${message} [fail:${failure}]`)
 
@@ -209,13 +209,15 @@ PROD && Safe(() => {
 
             free = false
 
-            await AsyncWait(2500)
+            log.info(`STARTING AT COMMANDS [...]`)
+
+            await AsyncWait(5000)
             await GSM.emit('AT+CSQ\r\n')
 
-            await AsyncWait(2500)
+            await AsyncWait(5000)
             await GSM.emit('AT+COPS?\r\n')
 
-            await AsyncWait(2500)
+            await AsyncWait(5000)
             await GSM.emit('AT+CPSI?\r\n')
 
         } catch (err) { } finally { free = true }
