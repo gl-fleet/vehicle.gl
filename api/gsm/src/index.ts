@@ -155,9 +155,16 @@ PROD && Safe(() => {
 
         console.log('Turning off')
         Shell.exec(`echo "umine" | sudo sh -c "echo 0 > /sys/bus/usb/devices/${slot}/authorized"`, { silent: true }).stdout
-        await AsyncWait(10 * 1500)
+
+        await AsyncWait(5000)
+
         console.log('Turning on')
-        console.log(Shell.exec(`echo "umine" | sudo sh -c "echo 1 > /sys/bus/usb/devices/${slot}/authorized"`, { silent: true }).stdout)
+        Shell.exec(`echo "umine" | sudo sh -c "echo 1 > /sys/bus/usb/devices/${slot}/authorized"`, { silent: true }).stdout
+
+        await AsyncWait(5000)
+        console.log('Restarting ...')
+        await AsyncWait(1000)
+        process.exit(0)
 
     }
 
