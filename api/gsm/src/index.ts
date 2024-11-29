@@ -145,35 +145,29 @@ PROD && Safe(() => {
 
     const reload_usb = async () => {
 
+        log.warn(`[USB] Reloading ...`)
+
         const ls = (Shell.exec(`udevadm info --name=${path[0]} --attribute-walk | grep KERNELS`, { silent: true }).stdout).split('\n')
-        console.log(ls)
         const slot = ls[2].split('==')[1].replaceAll(`"`, '')
-        console.log(slot)
+        log.warn(`[USB] SLOT -> '${slot}'`)
         await AsyncWait(2500)
 
-        console.log(`echo "umine" | sudo sh -c "echo 0 > /sys/bus/usb/devices/${slot}/authorized"`)
+        log.warn(`[USB] Command -> sudo sh -c "echo 0/1 > /sys/bus/usb/devices/${slot}/authorized"`)
 
-        console.log('Turning off')
+        log.warn(`[USB] Turning off ...`)
         Shell.exec(`echo "umine" | sudo sh -c "echo 0 > /sys/bus/usb/devices/${slot}/authorized"`, { silent: true }).stdout
 
         await AsyncWait(5000)
 
-        console.log('Turning on')
+        log.warn(`[USB] Turning on ...`)
         Shell.exec(`echo "umine" | sudo sh -c "echo 1 > /sys/bus/usb/devices/${slot}/authorized"`, { silent: true }).stdout
 
         await AsyncWait(5000)
-        console.log('Restarting ...')
+        log.warn(`[USB] Restarting the service ...`)
         await AsyncWait(1000)
         process.exit(0)
 
     }
-
-    Delay(() => {
-
-        console.log('USB-Power on / off')
-        reload_usb()
-
-    }, 15 * 1000)
 
     const GSM = new Serial()
     let failure = 0
@@ -183,7 +177,10 @@ PROD && Safe(() => {
     GSM.onInfo = (t, { type, message }) => {
 
         if (t === 'error' && ++failure > 10) process.exit(0)
-        log.warn(`Serial[GSM]: [${t}:${type}] ${message}`)
+        if (failure === 3) reload_usb()
+
+        log.warn(`Serial[GSM]: [${t}:${type}] ${message} [fail:${failure}]`)
+
         publish('data_gsm', { state: t, type, message })
 
     }
