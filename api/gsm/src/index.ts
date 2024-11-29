@@ -58,6 +58,7 @@ PROD && Safe(() => {
             try {
 
                 free = false
+                await AsyncWait(2500)
                 const power = Shell.exec(`vcgencmd get_throttled`, { silent: true }).stdout
                 await AsyncWait(2500)
                 const start = Shell.exec(`cat /sys/class/net/${route}/statistics/rx_bytes && cat /sys/class/net/${route}/statistics/tx_bytes`, { silent: true }).stdout
@@ -143,29 +144,42 @@ PROD && Loop(() => {
 /** Uses extra port to query network strength **/
 PROD && Safe(() => {
 
+    const silent = false
+    const temp = Shell.exec(`udevadm info --name=${path[0]} --attribute-walk | grep KERNELS`, { silent }).stdout
+    const ls = temp.split('\n')
+    const slot = ls[2].split('==')[1].replaceAll(`"`, '')
+    log.warn(`[USB] SLOT -> '${slot}'`)
+
     const reload_usb = async () => {
 
-        log.warn(`[USB] Reloading ...`)
+        try {
 
-        const ls = (Shell.exec(`udevadm info --name=${path[0]} --attribute-walk | grep KERNELS`, { silent: true }).stdout).split('\n')
-        const slot = ls[2].split('==')[1].replaceAll(`"`, '')
-        log.warn(`[USB] SLOT -> '${slot}'`)
-        await AsyncWait(2500)
+            log.warn(`[USB] Reloading ...`)
 
-        log.warn(`[USB] Command -> sudo sh -c "echo 0/1 > /sys/bus/usb/devices/${slot}/authorized"`)
+            log.warn(`[USB] SLOT -> '${slot}'`)
+            await AsyncWait(2500)
 
-        log.warn(`[USB] Turning off ...`)
-        Shell.exec(`echo "umine" | sudo sh -c "echo 0 > /sys/bus/usb/devices/${slot}/authorized"`, { silent: true }).stdout
+            log.warn(`[USB] Command -> sudo sh -c "echo 0/1 > /sys/bus/usb/devices/${slot}/authorized"`)
 
-        await AsyncWait(5000)
+            log.warn(`[USB] Turning off ...`)
+            Shell.exec(`echo "umine" | sudo sh -c "echo 0 > /sys/bus/usb/devices/${slot}/authorized"`, { silent }).stdout
 
-        log.warn(`[USB] Turning on ...`)
-        Shell.exec(`echo "umine" | sudo sh -c "echo 1 > /sys/bus/usb/devices/${slot}/authorized"`, { silent: true }).stdout
+            await AsyncWait(5000)
 
-        await AsyncWait(5000)
-        log.warn(`[USB] Restarting the service ...`)
-        await AsyncWait(1000)
-        process.exit(0)
+            log.warn(`[USB] Turning on ...`)
+            Shell.exec(`echo "umine" | sudo sh -c "echo 1 > /sys/bus/usb/devices/${slot}/authorized"`, { silent }).stdout
+
+            await AsyncWait(5000)
+            log.warn(`[USB] Restarting the service ...`)
+            await AsyncWait(1000)
+            process.exit(0)
+
+        } catch (err: any) {
+
+            log.error(`[USB] ${err.message}`)
+            await AsyncWait(1000)
+
+        }
 
     }
 
@@ -189,11 +203,11 @@ PROD && Safe(() => {
 
         if (chunk[0] === '+') {
 
+            log.res(`Serial[GSM]: ${chunk}`)
             const parsed = AT_BEAUTIFY(chunk)
             if (parsed && typeof parsed === 'object') {
 
                 temp = { ...temp, ...parsed }; failure = 0;
-                log.res(`Serial[GSM]: ${Sfy(temp)}`)
                 publish('data_gsm', { state: 'success', type: 'success', message: `Network connected!`, data: temp })
 
             }
