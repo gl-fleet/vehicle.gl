@@ -112,8 +112,8 @@ pitunnel --port=5900 --host=$2 --persist --name=$1-TABLET
 
 echo "Installing Node / Redis / PM2 [...]"
 
-# sudo apt-get update
-# sudo apt-get install -y ca-certificates curl gnupg
+sudo apt-get update
+sudo apt-get install -y ca-certificates curl gnupg
 sudo mkdir -p /etc/apt/keyrings
 curl -fsSL https://deb.nodesource.com/gpgkey/nodesource-repo.gpg.key | sudo gpg --dearmor -o /etc/apt/keyrings/nodesource.gpg
 
@@ -124,6 +124,7 @@ sudo apt-get -y install nodejs
 sudo apt-get -y install npm
 sudo apt-get -y install nginx
 sudo apt-get -y install redis-server
+sudo apt-get -y install iptables
 sudo npm install yarn -g
 sudo npm install pm2@latest -g
 pm2 install pm2-logrotate
@@ -135,5 +136,9 @@ git clone https://github.com/gl-fleet/vehicle.gl.git
 cd vehicle.gl
 yarn install
 yarn build
+
+# Nodejs unable to access the /dev/uModem
+systemctl disable ModemManager.service
+systemctl stop ModemManager.service
 
 sleep 5
