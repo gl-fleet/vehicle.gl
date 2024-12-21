@@ -108,7 +108,7 @@ curl -s pitunnel.com/get/EpsCY2MrwX | sudo bash
 sleep 2
 pitunnel --port=5900 --persist --name=$1-PI
 pitunnel --port=8443 --http --persist --name=$1
-pitunnel --port=5900 --host=10.42.0.55 --persist --name=$1-TABLET
+pitunnel --port=5900 --host=$2 --persist --name=$1-TABLET
 
 echo "Installing Node / Redis / PM2 [...]"
 
