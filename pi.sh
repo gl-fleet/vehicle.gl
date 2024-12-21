@@ -25,7 +25,7 @@ sleep 1
 # sudo sed -i -e '$i \ifconfig eth0 down &\n' /etc/rc.local
 # sudo sed -i -e '$i \ifconfig wwan0 down) & &\n' /etc/rc.local
 
-sudo sed -i -e '$i \iptables -A FORWARD -s $2 -j DROP &\n' /etc/rc.local
+sudo sed -i -e '$i \iptables -A FORWARD -s 10.42.0.* -j DROP\n' /etc/rc.local
 
 echo "Setting up [RNET]"
 sleep 2
