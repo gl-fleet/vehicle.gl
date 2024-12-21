@@ -10,8 +10,8 @@ const API_DATA = new Connection({ name: 'data', timeout: 5000 })
 const publish = (channel: string, data: any) => Safe(async () => await API_DATA.set(channel, data))
 let temp: any = { operator: '', quality: 0 }
 
+/** Parses the AT result into a JSON file **/
 const AT_BEAUTIFY = (s: string) => {
-
     if (s.indexOf('+CSQ: ') !== -1) {
         const ls = s.replace('+CSQ: ', '').split(',')
         const quality = (Number(ls[0]) * 827 + 127) >> 8
@@ -46,6 +46,7 @@ const AT_BEAUTIFY = (s: string) => {
 
 }
 
+/** Calculate Up & Down bytes **/
 PROD && Safe(() => {
 
     let free = true
@@ -149,6 +150,7 @@ PROD && Safe(() => {
     const slot = ls[2].split('==')[1].replaceAll(`"`, '')
     log.warn(`[USB] SLOT -> '${slot}'`)
 
+    /** Restarts the power for the GSM and reloads the GSM service **/
     const reload_usb = async () => {
 
         try {
@@ -171,6 +173,7 @@ PROD && Safe(() => {
             await AsyncWait(5000)
             log.warn(`[USB] Restarting the service ...`)
             await AsyncWait(1000)
+
             process.exit(0)
 
         } catch (err: any) {
@@ -184,6 +187,7 @@ PROD && Safe(() => {
 
     const GSM = new Serial()
     let failure = 0
+    let last = Date.now()
 
     GSM.start(path[0], Number(path[1]))
 
@@ -206,7 +210,9 @@ PROD && Safe(() => {
             const parsed = AT_BEAUTIFY(chunk)
             if (parsed && typeof parsed === 'object') {
 
-                temp = { ...temp, ...parsed }; failure = 0;
+                last = Date.now()
+                failure = 0
+                temp = { ...temp, ...parsed };
                 publish('data_gsm', { state: 'success', type: 'success', message: `Network connected!`, data: temp })
 
             }
@@ -223,6 +229,9 @@ PROD && Safe(() => {
             free = false
 
             log.info(`STARTING AT COMMANDS [...]`)
+
+            /** The service will restart if no data is received from the serial port for over 5 minutes [Not yet tested] **/
+            if ((Date.now() - last) > (5 * 60 * 1000)) reload_usb()
 
             await AsyncWait(5000)
             await GSM.emit('AT+CSQ\r\n')

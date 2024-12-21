@@ -1,6 +1,5 @@
 #!/bin/sh
 
-mv setup.gl setup.gl.bak
 mkdir setup.gl && cd setup.gl
 
 if [ -z "$1" ]; then
@@ -18,23 +17,6 @@ sleep 5
 
 sudo apt-get -y install screen elinks minicom ppp
 
-wget http://www.ingcool.com/w/images/2/29/SIM7600X-4G-HAT-Demo.7z
-
-echo "Configuring [...]"
-sleep 1
-
-7z x SIM7600X-4G-HAT-Demo.7z
-
-sudo chmod 777 -R SIM7600X-4G-HAT-Demo
-
-cd SIM7600X-4G-HAT-Demo/Raspberry/c/bcm2835
-
-chmod +x configure && ./configure && sudo make && sudo make install
-
-cd ..
-
-chmod 777 sim7600_4G_hat_init
-
 echo "Setting up [...]"
 sleep 1
 
@@ -44,7 +26,7 @@ sleep 1
 # sudo sed -i -e '$i \ifconfig wwan0 down) & &\n' /etc/rc.local
 
 echo "Setting up [RNET]"
-sleep 1
+sleep 2
 
 sudo touch /etc/ppp/peers/rnet
 sudo cat > /etc/ppp/peers/rnet << EOL
@@ -66,7 +48,7 @@ maxfail 0
 EOL
 
 echo "Setting up [GPRS]"
-sleep 1
+sleep 2
 
 sudo touch /etc/chatscripts/gprs
 sudo cat > /etc/chatscripts/gprs << EOL
@@ -90,7 +72,7 @@ CONNECT         ""
 EOL
 
 echo "Setting up [Interfaces]"
-sleep 1
+sleep 2
 
 sudo touch /etc/network/interfaces
 sudo cat > /etc/network/interfaces << EOL
@@ -101,7 +83,7 @@ provider rnet
 EOL
 
 echo "Setting up [Router.Priority]"
-sleep 1
+sleep 2
 
 sudo touch /etc/dhcpcd.conf
 sudo cat > /etc/dhcpcd.conf << EOL
@@ -110,7 +92,7 @@ metric 201
 EOL
 
 echo "Setting up [USB.Rules]"
-sleep 1
+sleep 2
 
 sudo touch /etc/udev/rules.d/99-usb.rules
 sudo cat > /etc/udev/rules.d/99-usb.rules << EOL
@@ -120,8 +102,10 @@ KERNELS=="1-1.3:1.2", SUBSYSTEMS=="usb", SYMLINK+="uModem"
 EOL
 
 echo "Setting up [Pitunnel.Ports]"
-sleep 1
+sleep 2
 
+curl -s pitunnel.com/get/EpsCY2MrwX | sudo bash
+sleep 2
 pitunnel --port=5900 --persist --name=$1-PI
 pitunnel --port=8443 --http --persist --name=$1
 pitunnel --port=5900 --host=10.42.0.55 --persist --name=$1-TABLET
@@ -136,5 +120,12 @@ sudo npm install yarn -g
 sudo npm install pm2@latest -g
 pm2 install pm2-logrotate
 
-echo "Finalizing [...]"
+echo "Cloning & Installing Vehicle.gl [...]"
+
+git clone https://github.com/gl-fleet/vehicle.gl.git
+
+cd vehicle.gl
+yarn install
+yarn build
+
 sleep 5
