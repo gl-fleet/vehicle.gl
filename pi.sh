@@ -10,9 +10,14 @@ if [ -z "$2" ]; then
   set -- "${2:-10.42.0.55}"
 fi
 
+if [ -z "$3" ]; then
+  set -- "${3:-YES}"
+fi
+
 echo "Installing [...]"
 echo "HUB Name: $1"
 echo "Tablet IP: $2"
+echo "Install PiTunnel: $3"
 sleep 5
 
 sudo apt-get -y install screen elinks minicom ppp
@@ -106,7 +111,9 @@ EOL
 echo "Setting up [Pitunnel.Ports]"
 sleep 2
 
-curl -s pitunnel.com/get/EpsCY2MrwX | sudo bash
+if [ "$3" = "YES" ] then
+  curl -s pitunnel.com/get/EpsCY2MrwX | sudo bash
+fi
 sleep 2
 pitunnel --port=5900 --persist --name=$1-PI
 pitunnel --port=8443 --http --persist --name=$1
