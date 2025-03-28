@@ -30,7 +30,12 @@ sleep 1
 # sudo sed -i -e '$i \ifconfig eth0 down &\n' /etc/rc.local
 # sudo sed -i -e '$i \ifconfig wwan0 down) & &\n' /etc/rc.local
 
-sudo sed -i -e '$i \iptables -A FORWARD -s 10.42.0.* -j DROP\n' /etc/rc.local
+if grep -q iptables "/etc/rc.local"; 
+  then
+    echo "Skipping ..."
+  else
+    sudo sed -i -e '$i \iptables -A FORWARD -s 10.42.0.* -j DROP\n' /etc/rc.local
+fi
 
 echo "Setting up [RNET]"
 sleep 2
@@ -110,7 +115,6 @@ EOL
 
 echo "Setting up [Pitunnel.Ports]"
 sleep 2
-
 
 if [ "$3" == "YES" ]; then
 curl -s pitunnel.com/get/EpsCY2MrwX | sudo bash
