@@ -1,6 +1,6 @@
 import type { MapView } from 'uweb/maptalks'
 import type { ThreeView } from 'uweb/three'
-import { Vehicle, Toyota, Drill, Dozer } from 'uweb/utils'
+import { Vehicle, Toyota, Drill, Dozer, LoadRequiredFiles } from 'uweb/utils'
 import { Win } from 'utils/web'
 
 export class Vehicles {
@@ -25,11 +25,17 @@ export class Vehicles {
             z: Number(body[3]) ?? null,
         }
 
-        GLTF !== null && GLTF(args).then((Truck: any) => {
+        LoadRequiredFiles(() => {
 
-            this.can = new Vehicle({ Truck, Maptalks, Three })
-            this.ready = true
-            this.cb('ready')
+            GLTF !== null && GLTF(args).then((Truck: any) => {
+
+                this.can = new Vehicle({ Truck, Maptalks, Three, fps: 0, buffer: false })
+                this.can.animate("Take 001", { loop: true, speed: 0.5 })
+
+                this.ready = true
+                this.cb('ready')
+
+            })
 
         })
 

@@ -37,19 +37,19 @@ export class Left {
     constructor(id: string, cfg: iArgs) {
 
         this.can = new MapView({
+            zoom: 20,
             containerId: id,
             isDarkMode: cfg.isDarkMode,
-            animateDuration: 250,
-            urlTemplate: Win.env.tile,
+            // animateDuration: 250,
             simulate: false,
-            devicePixelRatio: 0.9,
-            fps: 30,
+            urlTemplate: 'https://api.maptiler.com/maps/topo-v2/{z}/{x}/{y}.png?key=l4hWJmvvmISSL7tpiPUZ',
+            // devicePixelRatio: 0.9,
+            // fps: 30,
         })
 
         this.can.onReady(() => {
 
             cfg.event.on('mode', (isDark: boolean) => this.can.setMode(isDark))
-
             this.ready = true
             this.cb('ready')
 

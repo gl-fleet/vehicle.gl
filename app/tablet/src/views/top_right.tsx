@@ -72,7 +72,7 @@ export default (cfg: iArgs) => {
 
         {contextHolder}
 
-        <FloatButton.Group shape="circle" style={{ top: 24, zIndex: 10, height: 180 }}>
+        <FloatButton.Group shape="circle" style={{ top: 24, zIndex: 10, height: 'fit-content' }}>
             <FloatButton onClick={() => camera.camera_zoom_in()} icon={<ZoomInOutlined />} />
             <FloatButton onClick={() => camera.camera_zoom_out()} icon={<ZoomOutOutlined />} />
             <FloatButton onClick={() => camera.camera_toggle()} icon={<CodeSandboxOutlined />} />

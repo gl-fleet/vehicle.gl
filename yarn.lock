@@ -655,6 +655,11 @@
   dependencies:
     "@turf/helpers" "^6.5.0"
 
+"@tweenjs/tween.js@^25.0.0":
+  version "25.0.0"
+  resolved "https://registry.yarnpkg.com/@tweenjs/tween.js/-/tween.js-25.0.0.tgz#7266baebcc3affe62a3a54318a3ea82d904cd0b9"
+  integrity sha512-XKLA6syeBUaPzx4j3qwMqzzq+V4uo72BnlbOjmuljLrRqdsd3qnzvZZoxvMHZ23ndsRS4aufU6JOZYpCbU6T1A==
+
 "@types/cors@^2.8.12":
   version "2.8.17"
   resolved "https://registry.yarnpkg.com/@types/cors/-/cors-2.8.17.tgz#5d718a5e494a8166f569d986794e49c48b216b2b"
@@ -4024,7 +4029,7 @@ sequelize-pool@^7.1.0:
   resolved "https://registry.yarnpkg.com/sequelize-pool/-/sequelize-pool-7.1.0.tgz#210b391af4002762f823188fd6ecfc7413020768"
   integrity sha512-G9c0qlIWQSK29pR/5U2JF5dDQeqqHRragoyahj/Nx4KOOQ3CPPfzxnfqFPCSB7x5UgjOgnZ61nSxz+fjDpRlJg==
 
-sequelize@^6.28.0:
+sequelize@^6.37.7:
   version "6.37.7"
   resolved "https://registry.yarnpkg.com/sequelize/-/sequelize-6.37.7.tgz#55a6f8555ae76c1fbd4bce76b2ac5fcc0a1e6eb6"
   integrity sha512-mCnh83zuz7kQxxJirtFD7q6Huy6liPanI67BSlbzSYgVNl5eXVdE2CN1FuAeZwG1SNpGsNRCV+bJAVVnykZAFA==
@@ -4726,13 +4731,14 @@ uuid@^9.0.0:
   resolved "https://registry.yarnpkg.com/uuid/-/uuid-9.0.1.tgz#e188d4c8853cc722220392c424cd637f32293f30"
   integrity sha512-b+1eJOlsR9K8HJpow9Ok3fiWOWSIcIzXodvv0rQjVoOVNpWMpxf1wZNpt4y9h10odCNrqnYp1OBzRktckBe3sA==
 
-uweb@upacks/uweb#1.2.0:
-  version "0.0.52"
-  resolved "https://codeload.github.com/upacks/uweb/tar.gz/904fda1f8e311d87e70ca60ebb3544977b20cd41"
+uweb@upacks/uweb#1.2.8:
+  version "0.0.62"
+  resolved "https://codeload.github.com/upacks/uweb/tar.gz/46fc8f90207a7fea169e81df50799c7ec68b39bc"
   dependencies:
     "@ant-design/icons" "^5.2.5"
     "@turf/bearing" "^6.5.0"
     "@turf/helpers" "^6.5.0"
+    "@tweenjs/tween.js" "^25.0.0"
     antd "^5.8.4"
     maptalks "^1.0.0-rc.25"
     maptalks.three "^0.37.2"

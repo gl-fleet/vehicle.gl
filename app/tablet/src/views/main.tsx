@@ -60,27 +60,36 @@ export default (cfg: iArgs) => {
 
             const itrc = new Interact(left, right, cfg)
             const point = new Point({ Maptalks: left, Three: right })
+            let data: any = null
+
+            vehicle.on((ename: string, arg: any) => {
+
+                if (ename === 'position-map' && arg.gps && arg.gps.x && data) {
+
+                    const { A, B, TL, TR, BL, BM, BR } = data
+
+                    itrc.is_left_ok() && left.map.setCenter(data.gps)
+                    itrc.is_right_ok() && right.update(camera_angle(data, true), data.utm)
+
+                    point.update('f_l', 'grey', [TL.x, TL.y, TL.z])
+                    point.update('f_r', 'grey', [TR.x, TR.y, TR.z])
+
+                    point.update('b_l', 'grey', [BL.x, BL.y, BL.z])
+                    point.update('b_m', 'orange', [BM.x, BM.y, BM.z])
+                    point.update('b_r', 'grey', [BR.x, BR.y, BR.z])
+
+                    point.update('l_p', 'red', [A.x, A.y, A.z])
+                    point.update('r_p', 'blue', [B.x, B.y, B.z])
+
+                }
+
+            })
 
             event.on('stream', ({ data_gps }) => Safe(() => {
 
                 if (typeof data_gps !== 'object') return
-
-                const { A, B, TL, TM, TR, BL, BM, BR } = data_gps
-                const { gps, utm, head } = data_gps
-
-                itrc.is_left_ok() && left.map.setCenter(gps)
-                itrc.is_right_ok() && right.update(camera_angle(data_gps, true), utm)
-                vehicle.update({ gps, utm, head })
-
-                point.update('f_l', 'grey', [TL.x, TL.y, TL.z])
-                point.update('f_r', 'grey', [TR.x, TR.y, TR.z])
-
-                point.update('b_l', 'grey', [BL.x, BL.y, BL.z])
-                point.update('b_m', 'orange', [BM.x, BM.y, BM.z])
-                point.update('b_r', 'grey', [BR.x, BR.y, BR.z])
-
-                point.update('l_p', 'red', [A.x, A.y, A.z])
-                point.update('r_p', 'blue', [B.x, B.y, B.z])
+                data = data_gps
+                vehicle.update(data)
 
             }, 'MAIN.LISTEN'))
 
@@ -94,8 +103,8 @@ export default (cfg: iArgs) => {
         <Col id='right' span={12} style={{ height: '100%' }} />
 
         <Connection {...cfg} />
-        <TopRight {...cfg} />
         <BotLeft {...cfg} />
+        <TopRight {...cfg} />
         <Middle {...cfg} />
 
     </Row>

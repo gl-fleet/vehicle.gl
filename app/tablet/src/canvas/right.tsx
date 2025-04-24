@@ -14,9 +14,9 @@ export class Right {
             simulate: false,
             axesHelper: true,
             polrHelper: true,
-            devicePixelRatio: 0.9,
+            // devicePixelRatio: 0.9,
+            // fps: 30,
             antialias: false,
-            fps: 30,
         })
 
         this.can.onReady(() => {
