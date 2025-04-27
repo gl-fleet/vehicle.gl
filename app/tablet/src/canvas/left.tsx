@@ -35,13 +35,20 @@ export class Left {
 
     constructor(id: string, cfg: iArgs) {
 
+        const types = {
+            'free': 'http://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}.png',
+            'topo': 'https://api.maptiler.com/maps/topo-v2/{z}/{x}/{y}.png?key=l4hWJmvvmISSL7tpiPUZ',
+            'satellite': 'https://api.maptiler.com/maps/satellite/256/{z}/{x}/{y}.jpg?key=l4hWJmvvmISSL7tpiPUZ',
+            'openstreet': 'https://api.maptiler.com/maps/openstreetmap/{z}/{x}/{y}.jpg?key=l4hWJmvvmISSL7tpiPUZ',
+        }
+
         this.can = new MapView({
             zoom: 19.5,
             containerId: id,
             isDarkMode: cfg.isDarkMode,
             // animateDuration: 250,
             simulate: false,
-            urlTemplate: 'https://api.maptiler.com/maps/topo-v2/{z}/{x}/{y}.png?key=l4hWJmvvmISSL7tpiPUZ',
+            urlTemplate: types.free,
             // devicePixelRatio: 0.9,
             // fps: 30,
         })
