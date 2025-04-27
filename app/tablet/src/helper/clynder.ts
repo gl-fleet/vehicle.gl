@@ -96,7 +96,7 @@ export class Clynder {
                     cylinder.rotateX(Math.PI / 2)
                     cylinder.name = n
                     cylinder.z = z
-                    const f = this.Maptalks.threeLayer.coordinateToVector3({ x: oL.x, y: oL.y, z: oL.z }, 0)
+                    const f = this.Maptalks.threeLayer.coordinateToVector3(<any>{ x: oL.x, y: oL.y, z: oL.z }, 0)
                     cylinder.position.set(f.x, f.y, 0)
                     this.GroupMaptalks.add(cylinder)
 

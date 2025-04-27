@@ -13,8 +13,8 @@
     "_delete": "pm2 delete ecosystem.config.js"
   },
   "dependencies": {
-    "sequelize": "^6.37.7",
-    "sqlite3": "^5.1.7"
+    "sequelize": "^6.28.0",
+    "sqlite3": "^5.1.4"
   },
   "devDependencies": {}
 }

@@ -15,7 +15,11 @@ const cf = {
     sequelize: new Sequelize({
         dialect: 'sqlite',
         storage: `../../${me}_${name}.sqlite`,
-        logging: false
+        logging: false,
+        /* logging: (sql, timing: any) => {
+            console.log('***')
+            console.log(sql)
+        }, */
     }),
 }
 
@@ -30,26 +34,28 @@ Safe(async () => {
         api: cf.cloud,
         sequel: cf.sequelize,
         slave_name: me,
-        parallel: true,
+        parallel: false,
         debug: false,
-        models: [{
-            name: 'events',
-            direction: 'bidirectional',
-            size: 10, /** Around 1kb extract to 6kb  **/
-            retain: [0.1, 'days'],
-            delay_success: 1.25 * 1000, /** There are no data to be pulled or pushed **/
-            delay_fail: 5 * 1000, /** Something wrong while pulling or pushing **/
-            delay_loop: 250, /** Sleep **/
-        },
-        {
-            name: 'chunks',
-            direction: 'pull-only',
-            size: 5, /** Around 5kb extract to 56kb **/
-            retain: [90, 'days'],
-            delay_success: 10 * 1000,
-            delay_fail: 10 * 1000,
-            delay_loop: 250,
-        }],
+        models: [
+            {
+                name: 'events',
+                direction: 'bidirectional',
+                size: 10, /** Around 1kb extract to 6kb  **/
+                retain: [1 / 24, 'days'],
+                delay_success: 1.25 * 1000, /** There are no data to be pulled or pushed **/
+                delay_fail: 5 * 1000, /** Something wrong while pulling or pushing **/
+                delay_loop: 250, /** Sleep **/
+            },
+            {
+                name: 'chunks',
+                direction: 'pull-only',
+                size: 5, /** Around 5kb extract to 56kb **/
+                retain: [90, 'days'],
+                delay_success: 10 * 1000,
+                delay_fail: 10 * 1000,
+                delay_loop: 250,
+            }
+        ]
     })
 
     // replica.cb = (...e: any) => console.log(`[R] Trigger:    [${e}]`)

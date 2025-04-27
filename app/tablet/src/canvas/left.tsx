@@ -1,5 +1,4 @@
 import { MapView } from 'uweb/maptalks'
-import { Win } from 'utils/web'
 
 export const CanvasFixer = () => {
 
@@ -37,7 +36,7 @@ export class Left {
     constructor(id: string, cfg: iArgs) {
 
         this.can = new MapView({
-            zoom: 20,
+            zoom: 19.5,
             containerId: id,
             isDarkMode: cfg.isDarkMode,
             // animateDuration: 250,

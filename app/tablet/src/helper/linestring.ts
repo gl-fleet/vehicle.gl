@@ -54,7 +54,7 @@ export class LineString {
 
                     for (const x of Coords) if (is(x)) {
                         const ll = UTM.convertUtmToLatLng(x[0], x[1], "48", "T")
-                        const f = this.Maptalks.threeLayer.coordinateToVector3({ x: ll.lng, y: ll.lat, z: 0 }, 0)
+                        const f = this.Maptalks.threeLayer.coordinateToVector3(<any>{ x: ll.lng, y: ll.lat, z: 0 }, 0)
                         fpoints.push(new THREE.Vector3(f.x, f.y, 0))
                     }
                     const fgeometry = new THREE.BufferGeometry().setFromPoints(fpoints)
