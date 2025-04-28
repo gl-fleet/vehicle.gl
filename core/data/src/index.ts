@@ -73,4 +73,30 @@ Safe(async () => {
 
     }, 'Renice')
 
+    Safe(() => {
+
+        const wifi = Shell.exec(`echo 'umine' | sudo -S ip neigh show dev wlan0`, { silent: true }).stdout
+        const wifi_list = wifi.split('\n')
+
+        for (const x of wifi_list) {
+
+            /**
+             * Valid "x": 10.42.0.55 lladdr b0:60:88:82:4d:3a REACHABLE
+             */
+
+            const str = x.split(' ')
+            const dots = (str[0].split('.') || []).length
+
+            if (dots === 4) {
+
+                const command = `echo '${mode === 'development' ? 'tulgaew' : 'umine'}' | sudo -S iptables -A FORWARD -s ${str[0]} -j DROP`
+                Shell.exec(command, { silent: true }).stdout
+                log.success(`IP-Table / executed -> ${command}`)
+
+            }
+
+        }
+
+    }, 'IP-Table')
+
 })
