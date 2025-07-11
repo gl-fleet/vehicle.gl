@@ -1,8 +1,8 @@
 import { Connection } from 'unet'
 import { Serial } from 'ucan'
-import { AsyncWait, decodeENV, Safe, Loop, Sfy, env, log, Shell, Delay } from 'utils'
+import { AsyncWait, decodeENV, Safe, Loop, Sfy, env, log, Shell } from 'utils'
 
-const { version, mode, path } = decodeENV()
+const { version, mode, path, slot = null } = decodeENV()
 log.success(`"${env.npm_package_name}" <${version}> module is running on "${process.pid}" / [${mode}] 🚀🚀🚀\n`)
 
 const DEV = mode === 'development', PROD = !DEV
@@ -69,6 +69,7 @@ PROD && Safe(() => {
                 const pw = (power || '?').split('\n')[0]
                 const pr = start.split('\n')
                 const nr = end.split('\n')
+
                 const [arx, atx] = [Number(pr[0]), Number(pr[1])]
                 const [brx, btx] = [Number(nr[0]), Number(nr[1])]
 
@@ -146,8 +147,8 @@ PROD && Loop(() => {
 PROD && Safe(() => {
 
     const silent = false
-    const ls = (Shell.exec(`udevadm info --name=${path[0]} --attribute-walk | grep KERNELS`, { silent }).stdout).split('\n')
-    const slot = ls[2].split('==')[1].replaceAll(`"`, '')
+    // const ls = (Shell.exec(`udevadm info --name=${path[0]} --attribute-walk | grep KERNELS`, { silent }).stdout).split('\n')
+    // const slot = ls[2].split('==')[1].replaceAll(`"`, '')
     log.warn(`[USB] SLOT -> '${slot}'`)
 
     /** Restarts the power for the GSM and reloads the GSM service **/
@@ -159,6 +160,8 @@ PROD && Safe(() => {
 
             log.warn(`[USB] SLOT -> '${slot}'`)
             await AsyncWait(2500)
+
+            if (!slot) return false
 
             log.warn(`[USB] Command -> sudo sh -c "echo 0/1 > /sys/bus/usb/devices/${slot}/authorized"`)
 

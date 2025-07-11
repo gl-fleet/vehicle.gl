@@ -132,7 +132,7 @@ sudo apt-get install -y ca-certificates curl gnupg
 sudo mkdir -p /etc/apt/keyrings
 curl -fsSL https://deb.nodesource.com/gpgkey/nodesource-repo.gpg.key | sudo gpg --dearmor -o /etc/apt/keyrings/nodesource.gpg
 
-NODE_MAJOR=16 
+NODE_MAJOR=18
 echo "deb [signed-by=/etc/apt/keyrings/nodesource.gpg] https://deb.nodesource.com/node_$NODE_MAJOR.x nodistro main" | sudo tee /etc/apt/sources.list.d/nodesource.list
 
 sudo apt-get -y install nodejs
@@ -144,10 +144,6 @@ sudo npm install yarn -g
 sudo npm install pm2@latest -g
 pm2 install pm2-logrotate
 
-# Nodejs unable to access the /dev/uModem
-systemctl disable ModemManager.service
-systemctl stop ModemManager.service
-
 echo "Cloning & Installing Vehicle.gl [...]"
 
 git clone https://github.com/gl-fleet/vehicle.gl.git
@@ -155,5 +151,9 @@ git clone https://github.com/gl-fleet/vehicle.gl.git
 cd vehicle.gl
 yarn install
 yarn build
+
+# Nodejs unable to access the /dev/uModem
+systemctl disable ModemManager.service
+systemctl stop ModemManager.service
 
 sleep 5
