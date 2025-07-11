@@ -90,59 +90,6 @@ PROD && Safe(() => {
 
 })
 
-/** Uses PPP log to detect network strength **/
-let prev = ''
-PROD && Loop(() => {
-
-    return
-
-    Safe(async () => {
-
-        const chats = Shell.exec(`journalctl --since "2min ago" | grep pppd`, { silent: true }).stdout
-        const ls = chats.split('\n')
-        for (const x of ls) {
-            if (typeof x === 'string' && x.indexOf('IPV6CP: timeout sending Config-Requests') > 0) {
-                if (x !== prev) {
-
-                    console.log('About to be restarted [PPPD]')
-                    prev = x
-                    const reset = Shell.exec(`echo "umine" | killall -HUP pppd`, { silent: true }).stdout
-                    console.log(reset)
-
-                }
-            }
-        }
-
-    })
-
-    Safe(async () => {
-
-        const chats = Shell.exec(`journalctl --since "2min ago" | grep chat`, { silent: true }).stdout
-
-        const ls = chats.split('\n')
-
-        for (const x of ls) {
-
-            const [s, chunk] = x.split(']: ')
-            if (typeof chunk === 'string' && chunk[0] === '+') {
-
-                const parsed = AT_BEAUTIFY(chunk)
-                if (parsed && typeof parsed === 'object') {
-
-                    temp = { ...temp, ...parsed }
-                    log.res(`Serial[GSM]: ${Sfy(temp)}`)
-                    publish('data_gsm', { state: 'success', type: 'success', message: `Network connected!`, data: temp })
-
-                }
-
-            }
-
-        }
-
-    })
-
-}, 1000 * 30)
-
 /** Uses extra port to query network strength **/
 PROD && Safe(() => {
 
