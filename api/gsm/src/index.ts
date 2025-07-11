@@ -143,8 +143,8 @@ PROD && Safe(() => {
 
     GSM.onInfo = (t, { type, message }) => {
 
-        if (t === 'error' && ++failure > 10) process.exit(0)
-        if (t === 'error' && failure === 5) reload_usb()
+        if (t === 'error' && ++failure > 30) process.exit(0)
+        if (t === 'error' && failure === 20) reload_usb()
 
         log.warn(`Serial[GSM]: [${t}:${type}] ${message} [fail:${failure}]`)
 
