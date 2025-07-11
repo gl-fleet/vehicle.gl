@@ -1,6 +1,6 @@
 {
   "name": "org",
-  "version": "0.0.134",
+  "version": "0.1.2",
   "license": "MIT",
   "private": true,
   "scripts": {

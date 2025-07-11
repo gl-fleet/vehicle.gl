@@ -34,7 +34,7 @@ if grep -q iptables "/etc/rc.local";
   then
     echo "Skipping ..."
   else
-    sudo sed -i -e '$i \iptables -A FORWARD -s 10.42.0.* -j DROP\n' /etc/rc.local
+    sudo sed -i -e '$i \iptables -A FORWARD -s 10.42.0.0/24 -j DROP\n' /etc/rc.local 
 fi
 
 echo "Setting up [RNET]"
@@ -144,6 +144,10 @@ sudo npm install yarn -g
 sudo npm install pm2@latest -g
 pm2 install pm2-logrotate
 
+# Nodejs unable to access the /dev/uModem
+systemctl disable ModemManager.service
+systemctl stop ModemManager.service
+
 echo "Cloning & Installing Vehicle.gl [...]"
 
 git clone https://github.com/gl-fleet/vehicle.gl.git
@@ -151,9 +155,5 @@ git clone https://github.com/gl-fleet/vehicle.gl.git
 cd vehicle.gl
 yarn install
 yarn build
-
-# Nodejs unable to access the /dev/uModem
-systemctl disable ModemManager.service
-systemctl stop ModemManager.service
 
 sleep 5
