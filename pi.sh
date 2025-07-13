@@ -23,18 +23,6 @@ sudo apt-get -y install screen elinks minicom ppp
 echo "Setting up [...]"
 sleep 1
 
-echo "Enabling serial port hardware..."
-if ! grep -q "enable_uart=1" /boot/firmware/config.txt; then
-    echo "enable_uart=1" | sudo tee -a /boot/firmware/config.txt
-    echo "Added enable_uart=1 to /boot/firmware/config.txt"
-else
-    echo "enable_uart=1 already present in /boot/firmware/config.txt"
-fi
-
-echo "Enabling VNC server..."
-sudo systemctl enable vncserver-x11-serviced.service
-sudo systemctl start vncserver-x11-serviced.service
-
 # sudo sed -i -e '$i \sh /home/umine/setup.gl/SIM7600X-4G-HAT-Demo/Raspberry/c/sim7600_4G_hat_init &\n' /etc/rc.local
 # sudo sed -i -e '$i \(sleep 30 &\n' /etc/rc.local
 # sudo sed -i -e '$i \ifconfig eth0 down &\n' /etc/rc.local
@@ -54,7 +42,7 @@ sudo touch /etc/ppp/peers/rnet
 sudo cat > /etc/ppp/peers/rnet << EOL
 connect "/usr/sbin/chat -v -f /etc/chatscripts/gprs -T net"
 /dev/ttyS0
-460800
+921600
 noipdefault
 usepeerdns
 defaultroute
@@ -154,9 +142,13 @@ sudo npm install yarn -g
 sudo npm install pm2@latest -g
 pm2 install pm2-logrotate
 
-# Nodejs unable to access the /dev/uModem
+echo "Disabling ModemManager... / Due to Nodejs SerialPort error"
 systemctl disable ModemManager.service
 systemctl stop ModemManager.service
+
+echo "Enabling VNC server..."
+sudo systemctl enable vncserver-x11-serviced.service
+sudo systemctl start vncserver-x11-serviced.service
 
 echo "Cloning & Installing Vehicle.gl [...]"
 
@@ -165,18 +157,11 @@ git clone https://github.com/gl-fleet/vehicle.gl.git
 cd vehicle.gl
 yarn install
 
-sleep 2
-yarn build
+# yarn build
+# yarn serve
+# pm2 startup
+# pm2 save
 
-sleep 2
-yarn serve
-
-sleep 2
-pm2 startup
-
-sleep 2
-pm2 save
-
-echo -e "AT+IPREX=460800\r" > /dev/ttyUSB2
+# echo -e "AT+IPREX=460800\r" > /dev/ttyUSB2
 
 sleep 5
