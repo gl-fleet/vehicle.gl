@@ -1,7 +1,5 @@
 #!/bin/sh
 
-mkdir setup.gl && cd setup.gl
-
 if [ -z "$1" ]; then
   set -- "${1:-XX100}"
 fi
