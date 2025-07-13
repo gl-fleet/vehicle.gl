@@ -56,7 +56,7 @@ sudo touch /etc/ppp/peers/rnet
 sudo cat > /etc/ppp/peers/rnet << EOL
 connect "/usr/sbin/chat -v -f /etc/chatscripts/gprs -T net"
 /dev/ttyS0
-115200
+460800
 noipdefault
 usepeerdns
 defaultroute
@@ -178,5 +178,7 @@ pm2 startup
 
 sleep 2
 pm2 save
+
+echo -e "AT+IPREX=460800\r" > /dev/ttyUSB2
 
 sleep 5
