@@ -22,11 +22,12 @@ PROD && Safe(() => {
 
                 free = false
                 await AsyncWait(2500)
-                const power = Shell.exec(`vcgencmd get_throttled`, { silent: false }).stdout
+                const power = Shell.exec(`vcgencmd get_throttled`, { silent: true }).stdout
                 await AsyncWait(2500)
-                const start = Shell.exec(`cat /sys/class/net/${route}/statistics/rx_bytes && cat /sys/class/net/${route}/statistics/tx_bytes`, { silent: false }).stdout
+                const start = Shell.exec(`cat /sys/class/net/${route}/statistics/rx_bytes && cat /sys/class/net/${route}/statistics/tx_bytes`, { silent: true }).stdout
                 await AsyncWait(5000)
-                const end = Shell.exec(`cat /sys/class/net/${route}/statistics/rx_bytes && cat /sys/class/net/${route}/statistics/tx_bytes`, { silent: false }).stdout
+                const end = Shell.exec(`cat /sys/class/net/${route}/statistics/rx_bytes && cat /sys/class/net/${route}/statistics/tx_bytes`, { silent: true }).stdout
+                await AsyncWait(2500)
 
                 const pw = (power || '?').split('\n')[0]
                 const pr = start.split('\n')
@@ -48,7 +49,7 @@ PROD && Safe(() => {
 
                     await API_DATA.set('value', { rx, tx, pw: `${pw}` })
 
-                    publish('data_gsm', { state: 'success', type: 'success', message: `Network connected!`, data: { operator: 'PPP0 STATUS', quality: (rx + tx) >= 4 ? 99 : ((rx + tx) * 100 / 4) } })
+                    publish('data_gsm', { state: 'success', type: 'success', message: `Network connected!`, data: { operator: 'Point-to-Point Protocol', quality: (rx + tx) >= 4 ? 99 : ((rx + tx) * 100 / 4) } })
 
                 }
 
