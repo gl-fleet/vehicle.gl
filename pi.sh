@@ -162,6 +162,9 @@ yarn install
 # pm2 startup
 # pm2 save
 
-# echo -e "AT+IPREX=460800\r" > /dev/ttyUSB2
-
 sleep 5
+
+# Configure followings after rebooting the system ->
+
+# Enable serial port: Interface Options -> # Serial -> no -> yes to disable serial debugging
+# echo -e "AT+IPREX=460800\r" > /dev/ttyUSB2
