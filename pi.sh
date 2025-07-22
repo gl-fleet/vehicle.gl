@@ -72,6 +72,9 @@ ABORT           "DELAYED"
 ABORT           "ERROR"
 ABORT           "+CGATT: 0"
 ""              AT
+""              AT+CSQ
+""              AT+COPS?
+""              AT+CPSI?
 TIMEOUT         12
 OK              ATH
 OK              ATE1
