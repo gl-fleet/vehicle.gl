@@ -90,8 +90,8 @@ export const start_unicore = () => {
     let gngga: any = ''
     let gnhpr: any = ''
 
-    let is_gngga = false
-    let is_gnhpr = false
+    let is_gngga = ''
+    let is_gnhpr = ''
 
     GPS.on((chunk: String) => {
 
@@ -104,23 +104,26 @@ export const start_unicore = () => {
 
         if (mtype === 'GGA') {
             gngga = chunk
-            is_gngga = true
+            is_gngga = message[1]
         }
 
         if (mtype === 'HPR') {
             gnhpr = chunk
-            is_gnhpr = true
+            is_gnhpr = message[1]
         }
 
-        if (is_gngga && is_gnhpr) {
+        if (is_gngga && is_gnhpr && is_gngga === is_gnhpr) {
 
-            is_gngga = false
-            is_gnhpr = false
+            is_gngga = ''
+            is_gnhpr = ''
 
-            parseNMEASentences(gngga, gnhpr)
+            const result = parseNMEASentences(gngga, gnhpr)
 
             gngga = ''
             gnhpr = ''
+
+            console.log(`${is_gngga} === ${is_gnhpr}`)
+            console.log(result)
 
         }
 
