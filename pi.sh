@@ -149,9 +149,9 @@ echo "Disabling ModemManager... / Due to Nodejs SerialPort error"
 systemctl disable ModemManager.service
 systemctl stop ModemManager.service
 
-echo "Enabling VNC server..."
-sudo systemctl enable vncserver-x11-serviced.service
-sudo systemctl start vncserver-x11-serviced.service
+# echo "Enabling VNC server..."
+# sudo systemctl enable vncserver-x11-serviced.service
+# sudo systemctl start vncserver-x11-serviced.service
 
 echo "Cloning & Installing Vehicle.gl [...]"
 

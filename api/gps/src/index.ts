@@ -1,11 +1,25 @@
+import { Shell, Safe, Delay } from 'utils'
+
 import { start_ublox } from './ublox'
 import { start_unicore } from './unicore'
 
-import { Shell, Safe, Loop, decodeENV, log, env } from 'utils'
+const ublox = ['Prolific Technology, Inc. PL2303 Serial Port / Mobile Phone Data Cable', 'U-Blox AG u-blox GNSS receiver']
+const unicore = ['QinHeng Electronics CH340 serial converter']
 
-Safe(() => {
+Delay(() => Safe(() => {
 
-    const power = Shell.exec(`lsusb`, { silent: true }).stdout
-    //
+    const usb = (Shell.exec(`lsusb`, { silent: true }).stdout ?? '').split('\n')
 
-}, 'GPS_Detection')
+    let module = ''
+
+    for (const x of usb) {
+
+        if (x.indexOf(ublox[0]) >= 0 || x.indexOf(ublox[1]) >= 0) module = 'ublox'
+        if (x.indexOf(unicore[0]) >= 0) module = 'unicore'
+
+    }
+
+    module === 'ublox' && start_ublox()
+    module === 'unicore' && start_unicore()
+
+}, 'GPS_Detection'), 2500)
