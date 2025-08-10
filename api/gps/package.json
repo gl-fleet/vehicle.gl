@@ -1,6 +1,6 @@
 {
-  "name": "ubx",
-  "version": "1.0.1",
+  "name": "gps",
+  "version": "1.0.2",
   "main": "index.js",
   "license": "MIT",
   "scripts": {
