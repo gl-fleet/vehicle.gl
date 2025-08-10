@@ -80,7 +80,18 @@ export const start_unicore = () => {
 
     GPS.start('/dev/ttyUSB0', 115200)
 
-    GPS.onInfo = (t, { type, message }) => {
+    const RTCM = new NetClient({ host: '139.59.115.158', port: 2101 }, (client) => {
+
+        client.on('data', (chunk: any) => {
+
+            RTCM.last = Date.now()
+            GPS.emit(chunk)
+
+        })
+
+    })
+
+    RTCM.onInfo = (t, { type, message }) => {
 
         console.log(t)
         console.log(type, message)
@@ -92,6 +103,13 @@ export const start_unicore = () => {
 
     let is_gngga = ''
     let is_gnhpr = ''
+
+    GPS.onInfo = (t, { type, message }) => {
+
+        console.log(t)
+        console.log(type, message)
+
+    }
 
     GPS.on((chunk: String) => {
 
