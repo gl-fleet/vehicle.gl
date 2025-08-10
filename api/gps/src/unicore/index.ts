@@ -88,6 +88,8 @@ export const start_unicore = () => {
 
         client.on('data', (chunk: any) => {
 
+            log.res(`RTCM: Message size ${chunk.length}`)
+
             RTCM.last = Date.now()
             GPS.emit(chunk)
 
@@ -124,17 +126,12 @@ export const start_unicore = () => {
         const message = chunk.split(',')
         const mtype = message[0].slice(3)
 
-        if (mtype === 'GGA') {
-            gngga = chunk
-            is_gngga = message[1]
-        }
-
-        if (mtype === 'HPR') {
-            gnhpr = chunk
-            is_gnhpr = message[1]
-        }
+        if (mtype === 'GGA') { gngga = chunk; is_gngga = message[1]; }
+        if (mtype === 'HPR') { gnhpr = chunk; is_gnhpr = message[1]; }
 
         if (is_gngga && is_gnhpr && is_gngga === is_gnhpr) {
+
+            console.log(`${is_gngga} === ${is_gnhpr}`)
 
             is_gngga = ''
             is_gnhpr = ''
@@ -144,17 +141,16 @@ export const start_unicore = () => {
                 const _gga = NMEA.parseNmeaSentence(gngga.toString())
                 const _hpr = NMEA.parseNmeaSentence(gnhpr.toString())
 
-                console.log(_gga)
-                console.log(_hpr)
+                console.log('GGA', _gga)
+                console.log('HPR', _hpr)
 
-            } catch (err) { }
+            } catch (err: any) { console.log(err.message) }
 
             const result = parseNMEASentences(gngga, gnhpr)
 
             gngga = ''
             gnhpr = ''
 
-            console.log(`${is_gngga} === ${is_gnhpr}`)
             console.log(result)
 
         }
