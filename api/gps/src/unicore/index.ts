@@ -2,6 +2,10 @@ import { Shell, Safe, Loop, decodeENV, log, env } from 'utils'
 import { Connection, NetClient } from 'unet'
 import { Serial, F9P_Parser } from 'ucan'
 
+const utmObj = require('utm-latlng')
+export const NMEA = require('nmea-simple')
+export const UTM = new utmObj('WGS 84')
+
 type ParsedNMEA = {
     time: string
     latitude: number
@@ -134,6 +138,12 @@ export const start_unicore = () => {
 
             is_gngga = ''
             is_gnhpr = ''
+
+            const _gga = NMEA.parseNmeaSentence(gngga)
+            const _hpr = NMEA.parseNmeaSentence(gnhpr)
+
+            console.log(_gga)
+            console.log(_hpr)
 
             const result = parseNMEASentences(gngga, gnhpr)
 
