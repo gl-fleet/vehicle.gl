@@ -141,8 +141,8 @@ export const start_unicore = () => {
 
             try {
 
-                const _gga = NMEA.parseNmeaSentence(gngga)
-                const _hpr = NMEA.parseNmeaSentence(gnhpr)
+                const _gga = NMEA.parseNmeaSentence(gngga.toString())
+                const _hpr = NMEA.parseNmeaSentence(gnhpr.toString())
 
                 console.log(_gga)
                 console.log(_hpr)
