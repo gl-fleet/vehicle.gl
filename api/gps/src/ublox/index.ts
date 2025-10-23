@@ -11,6 +11,8 @@ export const start_ublox = () => {
     const { me, version, mode } = decodeENV()
     log.success(`"${env.npm_package_name}" <${version}> module is running on "${process.pid}" / [${mode}] 🚀🚀🚀\n`)
 
+    console.log(cf)
+
     const API_DATA = new Connection({ name: 'data', timeout: 500 })
     const GPS: any = { gps1: {}, gps2: {} } /** Temporary GPS data store **/
     const Calculate = new Calculus(cf)
