@@ -42,7 +42,7 @@ sudo touch /etc/ppp/peers/rnet
 sudo cat > /etc/ppp/peers/rnet << EOL
 connect "/usr/sbin/chat -v -f /etc/chatscripts/gprs -T net"
 /dev/ttyS0
-921600
+460800
 noipdefault
 usepeerdns
 defaultroute
