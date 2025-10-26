@@ -1,27 +1,11 @@
-import { Shell, Safe, Loop, decodeENV, log, env } from 'utils'
+import { Shell, Safe, Loop, decodeENV, log, env, AsyncWait } from 'utils'
 import { Connection, NetClient } from 'unet'
-import { Serial, F9P_Parser } from 'ucan'
+import { Serial, F9P_Parser, NMEA, UTM } from 'ucan'
 
 import { Calculus } from './calculus'
 import { ProcessActivity } from './process'
 
-export const start_ublox = () => {
-
-    const cf = decodeENV()
-    const { me, version, mode } = decodeENV()
-    log.success(`"${env.npm_package_name}" <${version}> module is running on "${process.pid}" / [${mode}] 🚀🚀🚀\n`)
-
-    console.log(cf)
-
-    const API_DATA = new Connection({ name: 'data', timeout: 500 })
-    const GPS: any = { gps1: {}, gps2: {} } /** Temporary GPS data store **/
-    const Calculate = new Calculus(cf)
-    const Process = new ProcessActivity({})
-    const LOG: any = log
-    const DEV = cf.mode === 'development', PROD = !DEV
-    const VAC = DEV ? 100000 : Number(cf.threshold[0])     /** Bad GPS Threshold (cm) **/
-
-    const publish = (channel: string, data: any) => Safe(async () => await API_DATA.set(channel, data), `[${channel}]`)
+const simulation_testing = (me: any, publish: any, GPS: any) => {
 
     const Simulationhandler = (args: any) => {
 
@@ -38,16 +22,79 @@ export const start_ublox = () => {
 
     }
 
-    console.log(me, DEV)
-
     /** Simulate from DR101 **/
-    DEV && Safe(() => me === 'DR101' && (new Connection({ name: 'data', proxy: 'https://dr101-gantulgak.as1.pitunnel.com/', rejectUnauthorized: false })).on('stream', Simulationhandler), 'Simulate')
+    Safe(() => me === 'DR101' && (new Connection({ name: 'data', proxy: 'https://dr101-gantulgak.as1.pitunnel.com/', rejectUnauthorized: false })).on('stream', Simulationhandler), 'Simulate')
+    Safe(() => me === 'SV102' && (new Connection({ name: 'data', proxy: 'https://sv102-gantulgak.eu1.pitunnel.com/', rejectUnauthorized: false })).on('stream', Simulationhandler), 'Simulate')
 
-    /** Simulate from SV101 **/
-    DEV && Safe(() => me === 'SV101' && (new Connection({ name: 'data', proxy: 'https://sv101-gantulgak.as1.pitunnel.com/', rejectUnauthorized: false })).on('stream', Simulationhandler), 'Simulate')
+}
 
-    /** Simulate from SV102 **/
-    DEV && Safe(() => me === 'SV102' && (new Connection({ name: 'data', proxy: 'https://sv102-gantulgak.eu1.pitunnel.com/', rejectUnauthorized: false })).on('stream', Simulationhandler), 'Simulate')
+const offline_testing = (gps = 1, cb: any) => {
+
+    log.info(`Offline-testing: ${gps}`)
+    let i = 0
+
+    let g1 = `43.67266, 105.537283
+43.672656, 105.536959
+43.672683, 105.536599
+43.672902, 105.536487
+43.673145, 105.536551
+43.673178, 105.536969
+43.673174, 105.537221
+43.673073, 105.537358
+43.672916, 105.537364`
+    let g2 = `43.672757, 105.537294
+43.672757, 105.536953
+43.672782, 105.536631
+43.672929, 105.536594
+43.67309, 105.536637
+43.673098, 105.536937
+43.673094, 105.537197
+43.673021, 105.537232
+43.672823, 105.537235`
+
+    let s = ( gps === 1 ? g1 : g2 ).split('\n')
+    let g = []
+    for (const x of s) {
+        const [_x, _y] = x.split(',')
+        const { Easting: e, Northing: n } = UTM.convertLatLngToUtm(_x, _y, 2)
+        g.push({ es: Number(e), nr: Number(n), el: 1540 })
+    }
+
+    const len = g.length
+
+    Loop(async () => {
+
+        let p = g[(i++) % len]
+        let s = { "time": i, "lat": 43.6, "lon": 105.4, "est": p.es, "nrt": p.nr, "ele": p.el, "fix": "rtk", "alt": 1580.8, "geo": -38.8, "spd": 0.011, "deg": 151.18, "vac": 1, "hac": 1.4, "sat": 27, "vco": "#52c41a", "hco": "#52c41a" }
+        cb(s)
+
+    }, 1000)
+
+}
+
+export const start_ublox = () => {
+
+    const cf = decodeENV()
+    const { me, version, mode } = decodeENV()
+    log.success(`"${env.npm_package_name}" <${version}> module is running on "${process.pid}" / [${mode}] 🚀🚀🚀\n`)
+
+    const API_DATA = new Connection({ name: 'data', timeout: 500 })
+    const GPS: any = { gps1: {}, gps2: {} } /** Temporary GPS data store **/
+    const Calculate = new Calculus(cf)
+    const Process = new ProcessActivity({})
+    const LOG: any = log
+    const DEV = cf.mode === 'development', PROD = !DEV
+    const VAC = DEV ? 100000 : Number(cf.threshold[0])     /** Bad GPS Threshold (cm) **/
+
+    const publish = (channel: string, data: any) => Safe(async () => {
+
+        console.log(channel)
+        await API_DATA.set(channel, data)
+
+    }, `[${channel}]`)
+
+    /** For testing purpose **/
+    // DEV && simulation_testing(me, publish, GPS)
 
     Safe(() => {
 
@@ -56,8 +103,7 @@ export const start_ublox = () => {
         const Parser_1 = new F9P_Parser()
         GPS1.start(cf.gps1[0], Number(cf.gps1[1]))
         GPS1.onInfo = PROD ? (t, { type, message }) => LOG[type](message) && publish('data_gps1', { state: t, type, message }) : () => { }
-        GPS1.on((chunk: any) => {
-
+        const ParseGPS1 = (chunk: any) => {
             log.res(`Serial[GPS1]: Message size ${chunk.length}`)
             log.info(`GPS1 -> ${chunk}`)
             const parsed = Parser_1.parse(chunk)
@@ -65,7 +111,11 @@ export const start_ublox = () => {
                 publish('data_gps1', { state: 'success', type: 'success', message: 'GPS1 connected!', data: parsed })
                 GPS.gps1 = parsed
             }
-
+        }
+        GPS1.on((chunk: any) => ParseGPS1(chunk))
+        DEV && offline_testing(1, (parsed: any) => {
+            publish('data_gps1', { state: 'success', type: 'success', message: 'GPS1 connected!', data: parsed })
+            GPS.gps1 = parsed
         })
 
         /** GPS-2-Initialize **/
@@ -73,15 +123,18 @@ export const start_ublox = () => {
         const Parser_2 = new F9P_Parser()
         GPS2.start(cf.gps2[0], Number(cf.gps2[1]))
         GPS2.onInfo = PROD ? (t, { type, message }) => LOG[type](message) && publish('data_gps2', { state: t, type, message }) : () => { }
-        GPS2.on((chunk: any) => {
-
+        const ParseGPS2 = (chunk: any) => {
             log.res(`Serial[GPS2]: Message size ${chunk.length}`)
             const parsed = Parser_2.parse(chunk)
             if (parsed) {
                 publish('data_gps2', { state: 'success', type: 'success', message: 'GPS2 connected!', data: parsed })
                 GPS.gps2 = parsed
             }
-
+        }
+        GPS2.on((chunk: any) => ParseGPS2(chunk))
+        DEV && offline_testing(2, (parsed: any) => {
+            publish('data_gps2', { state: 'success', type: 'success', message: 'GPS2 connected!', data: parsed })
+            GPS.gps2 = parsed
         })
 
         /** RTCM-Initialize **/
