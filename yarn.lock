@@ -4742,9 +4742,9 @@ uuid@^9.0.0:
   resolved "https://registry.yarnpkg.com/uuid/-/uuid-9.0.1.tgz#e188d4c8853cc722220392c424cd637f32293f30"
   integrity sha512-b+1eJOlsR9K8HJpow9Ok3fiWOWSIcIzXodvv0rQjVoOVNpWMpxf1wZNpt4y9h10odCNrqnYp1OBzRktckBe3sA==
 
-uweb@upacks/uweb#1.2.8:
-  version "0.0.62"
-  resolved "https://codeload.github.com/upacks/uweb/tar.gz/46fc8f90207a7fea169e81df50799c7ec68b39bc"
+uweb@upacks/uweb#1.3.0:
+  version "0.0.65"
+  resolved "https://codeload.github.com/upacks/uweb/tar.gz/bc4b10f3d57dfc28606a42159450fdc0f054c004"
   dependencies:
     "@ant-design/icons" "^5.2.5"
     "@turf/bearing" "^6.5.0"

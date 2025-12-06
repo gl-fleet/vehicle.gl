@@ -229,7 +229,7 @@ export class Event {
 
     parser_gps = (e: any) => wr(() => {
 
-        const { rotate, map, status } = e
+        const { rotate, map, status, extra } = e
         const { A, B, C, D, MP } = e
         const { TL, TM, TR, BL, BM, BR } = e
         const clear = {
@@ -238,6 +238,7 @@ export class Event {
             gps: [f(map[1], 6), f(map[0], 6), 0], /** map[lat,lon] -> gps[lon,lat] **/
             utm: [f(MP.x), f(MP.y), f(MP.z)],
             head: f(rotate[2], 4),
+            extra,
         }
 
         const cloud = { ...clear }

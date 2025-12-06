@@ -17,6 +17,7 @@ export class Right {
             // devicePixelRatio: 0.9,
             // fps: 30,
             antialias: false,
+            arroHelper: true,
         })
 
         this.can.onReady(() => {

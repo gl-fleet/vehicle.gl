@@ -1,5 +1,5 @@
 import { React, Row, Col } from 'uweb'
-import type { ThreeView } from 'uweb/three'
+import { THREE, ThreeView } from 'uweb/three'
 import type { MapView } from 'uweb/maptalks'
 import { Point, Vehicle } from 'uweb/utils'
 import { Safe } from 'utils/web'
@@ -66,20 +66,33 @@ export default (cfg: iArgs) => {
 
                 if (ename === 'position-map' && arg.gps && arg.gps.x && data) {
 
-                    const { A, B, TL, TR, BL, BM, BR } = data
+                    const { A, B, TL, TM, TR, BL, BM, BR, utm } = data
 
                     itrc.is_left_ok() && left.map.setCenter(data.gps)
                     itrc.is_right_ok() && right.update(camera_angle(data, true), data.utm)
 
-                    point.update('f_l', 'grey', [TL.x, TL.y, TL.z])
-                    point.update('f_r', 'grey', [TR.x, TR.y, TR.z])
+                    point.update('mp_top', 'orange', [utm[0], utm[1], utm[2]])
+
+                    point.update('f_l', 'white', [TL.x, TL.y, TL.z])
+                    point.update('f_m', 'white', [TM.x, TM.y, TM.z])
+                    point.update('f_r', 'white', [TR.x, TR.y, TR.z])
 
                     point.update('b_l', 'grey', [BL.x, BL.y, BL.z])
-                    point.update('b_m', 'orange', [BM.x, BM.y, BM.z])
+                    point.update('b_m', 'grey', [BM.x, BM.y, BM.z])
                     point.update('b_r', 'grey', [BR.x, BR.y, BR.z])
 
-                    point.update('l_p', 'red', [A.x, A.y, A.z])
+                    point.update('l_p', 'green', [A.x, A.y, A.z])
                     point.update('r_p', 'blue', [B.x, B.y, B.z])
+
+                    if (true) {
+
+                        const v1 = new THREE.Vector3(A.x, A.y, A.z)
+                        const v2 = new THREE.Vector3(B.x, B.y, B.z)
+                        right.arroHelper.position.set(B.x, B.y, B.z)
+                        right.arroHelper.direction(utm[0], utm[1], utm[2])
+                        console.log(data.extra.angle)
+
+                    }
 
                 }
 
@@ -89,7 +102,7 @@ export default (cfg: iArgs) => {
 
                 if (typeof data_gps !== 'object') return
                 data = data_gps
-                vehicle.update(data)
+                vehicle.update({ ...data, utm: [data.utm[0], data.utm[1], data.utm[2]] })
 
             }, 'MAIN.LISTEN'))
 

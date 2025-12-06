@@ -320,7 +320,7 @@ export default (cfg: iArgs) => {
 
     const onChange = (n: number) => cfg.api.set('value', { screen: n + 1 })
 
-    return <Layout style={{ background, border: '2px solid grey', left: '50%', top: '50%', position: 'absolute', width: `${w}px`, height: `${h}px`, marginLeft: `-${w / 2 + 2}px`, marginTop: `-${h / 2 + 2}px`, padding: 0, zIndex: 1 }}>
+    return <Layout style={{ background, border: '2px solid grey', left: '50%', top: '50%', position: 'absolute', width: `${w}px`, height: `${h}px`, marginLeft: `-${w / 2 + 2}px`, marginTop: `-${h / 2 + 2}px`, padding: 0, zIndex: 1, opacity: 0.75 }}>
         <Style />
         <Carousel afterChange={onChange} beforeChange={(e: number) => { cfg.event.emit('_goto', e) }} dotPosition={'right'} effect="fade" ref={ref => { slider.current = ref }} >
             <div><div style={{ width: w, height: h - 4, background }}><BasicView {...cfg} /></div></div>

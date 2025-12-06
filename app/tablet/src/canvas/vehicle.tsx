@@ -11,9 +11,12 @@ export class Vehicles {
 
     constructor(Maptalks: MapView, Three: ThreeView) {
 
+        console.log(Win.env)
+
         const { type, body } = Win.env
 
         let GLTF: any = null
+
         GLTF = type === 'Toyota' ? Toyota : GLTF
         GLTF = type === 'Drill' ? Drill : GLTF
         GLTF = type === 'Dozer' ? Dozer : GLTF
@@ -25,9 +28,13 @@ export class Vehicles {
             z: Number(body[3]) ?? null,
         }
 
+        const style: any = {
+            opacity: 0.25
+        }
+
         LoadRequiredFiles(() => {
 
-            GLTF !== null && GLTF(args).then((Truck: any) => {
+            GLTF !== null && GLTF(args, style).then((Truck: any) => {
 
                 this.can = new Vehicle({ Truck, Maptalks, Three, fps: 0, buffer: false })
                 this.can.animate("Take 001", { loop: true, speed: 0.5 })
