@@ -15,7 +15,7 @@ const cfg: iArgs = {
     isDarkMode: true,
     proxy: Win.location.origin,
     env: Win.env,
-    api: new Connection({ name: 'data' }),
+    api: new Connection({ name: 'data', timeout: 60 * 1000 }),
 }
 
 cfg.api.on('stream', (args: any) => {

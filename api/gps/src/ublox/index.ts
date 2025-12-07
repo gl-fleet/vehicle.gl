@@ -31,8 +31,6 @@ const simulation_testing = (me: any, publish: any, GPS: any) => {
 
 const offline_testing = (gps = 1, cb: any) => {
 
-    return null
-
     log.info(`Offline-testing: ${gps}`)
     let i = 0
 
@@ -93,7 +91,6 @@ export const start_ublox = () => {
     const { me, version, mode, type } = decodeENV()
     log.success(`"${env.npm_package_name}" <${version}> module is running on "${process.pid}" / [${mode}] 🚀🚀🚀\n`)
     console.log(cf)
-    console.log(type === 'boom_drill' ? 'YES' : 'NO')
 
     const API_DATA = new Connection({ name: 'data', timeout: 500 })
     const GPS: any = { gps1: {}, gps2: {} } /** Temporary GPS data store **/
@@ -105,7 +102,6 @@ export const start_ublox = () => {
 
     const publish = (channel: string, data: any) => Safe(async () => {
 
-        console.log(channel)
         await API_DATA.set(channel, data)
 
     }, `[${channel}]`)
@@ -180,7 +176,10 @@ export const start_ublox = () => {
             if (gps1.time === gps2.time && gps1.time !== prev) { prev = gps1.time }
             else { return 0 }
 
-            (Date.now() % 5000 <= 1000) && log.success(`GPS(1): ${gps1.fix} ${gps1.ele} ${gps1.vac} ${gps1.hac} | GPS(2): ${gps2.fix} ${gps2.ele} ${gps2.vac} ${gps2.hac} `)
+            if (Date.now() % 5000 <= 1000) {
+                log.success(`GPS(1): ${gps1.fix} ${gps1.est} ${gps1.nrt} ${gps1.ele}:${gps1.alt} ${gps1.vac} ${gps1.hac}`)
+                log.success(`GPS(2): ${gps2.fix} ${gps2.est} ${gps2.nrt} ${gps2.ele}:${gps2.alt} ${gps2.vac} ${gps2.hac}`)
+            }
 
             Process.add(gps1)
 
