@@ -46,6 +46,7 @@ connect "/usr/sbin/chat -v -f /etc/chatscripts/gprs -T net"
 noipdefault
 usepeerdns
 defaultroute
+defaultroute-metric 200
 replacedefaultroute
 persist
 noauth
