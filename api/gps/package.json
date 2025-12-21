@@ -12,6 +12,8 @@
     "_stop": "pm2 stop ecosystem.config.cjs",
     "_delete": "pm2 delete ecosystem.config.cjs"
   },
-  "dependencies": {},
+  "dependencies": {
+    "egm96-universal": "^1.1.1"
+  },
   "devDependencies": {}
 }

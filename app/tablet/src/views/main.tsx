@@ -90,7 +90,6 @@ export default (cfg: iArgs) => {
                         const v2 = new THREE.Vector3(B.x, B.y, B.z)
                         right.arroHelper.position.set(B.x, B.y, B.z)
                         right.arroHelper.direction(utm[0], utm[1], utm[2])
-                        console.log(data.extra.angle)
 
                     }
 

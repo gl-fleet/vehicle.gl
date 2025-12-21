@@ -1,6 +1,6 @@
 import { Safe, log } from 'utils'
-import { Connection } from 'unet'
 import { UTM as Utm } from 'ucan'
+import * as egm96 from 'egm96-universal'
 
 type tPoint = { x: number, y: number, z: number }
 type Point3D = { x: number, y: number, z: number }
@@ -31,6 +31,7 @@ export const generateGeometry = (
     F: number,
     D: number
 ) => {
+
     const distance3D = (a: Point3D, b: Point3D) =>
         Math.sqrt((b.x - a.x) ** 2 + (b.y - a.y) ** 2 + (b.z - a.z) ** 2)
 
@@ -108,18 +109,15 @@ export const generateGeometry = (
 export class BoomDrill {
 
     callback = (...n: any) => true
-    config: any = {
-        R: 1,
-        F: 1,
-        D: 1,
-    }
+    config: any = { R: 1, F: 1, D: 1 }
 
     constructor(cfg: any) {
 
-        const { offset } = cfg
+        const { type, offset } = cfg
         this.config.R = Number(offset[0])
         this.config.F = Number(offset[1])
         this.config.D = Number(offset[2])
+        this.config = { ...this.config, type }
         console.log(`BoomDrill CFG`, this.config)
 
     }
@@ -131,10 +129,10 @@ export class BoomDrill {
 
         try {
 
-            // console.log(gps1, gps2)
-
-            const altitude = 'alt'
+            const altitude = this.config.type[1] ?? 'ele'
             const { zoneNumber, zoneLetter } = getUTMZone(gps1.lat, gps1.lon)
+            gps1.egm = egm96.ellipsoidToEgm96(gps1.lat, gps1.lon, gps1.ele)
+            gps2.egm = egm96.ellipsoidToEgm96(gps2.lat, gps2.lon, gps2.ele)
 
             /* GPS1 - Located on the Cabin */
             const A = { x: gps1.est, y: gps1.nrt, z: gps1[altitude] }

@@ -23,9 +23,7 @@ const simulation_testing = (me: any, publish: any, GPS: any) => {
 
     }
 
-    /** Simulate from DR101 **/
-    Safe(() => me === 'DR101' && (new Connection({ name: 'data', proxy: 'https://dr101-gantulgak.as1.pitunnel.com/', rejectUnauthorized: false })).on('stream', Simulationhandler), 'Simulate')
-    Safe(() => me === 'SV102' && (new Connection({ name: 'data', proxy: 'https://sv102-gantulgak.eu1.pitunnel.com/', rejectUnauthorized: false })).on('stream', Simulationhandler), 'Simulate')
+    Safe(() => me === 'D65' && (new Connection({ name: 'data', proxy: 'https://d65-gantulgak.as2.pitunnel.com/', rejectUnauthorized: false })).on('stream', Simulationhandler), 'Simulate')
 
 }
 
@@ -94,7 +92,7 @@ export const start_ublox = () => {
 
     const API_DATA = new Connection({ name: 'data', timeout: 500 })
     const GPS: any = { gps1: {}, gps2: {} } /** Temporary GPS data store **/
-    const Calculate = type === 'boom_drill' ? new BoomDrill(cf) : new Calculus(cf)
+    const Calculate = type[0] === 'boom_drill' ? new BoomDrill(cf) : new Calculus(cf)
     const Process = new ProcessActivity({})
     const LOG: any = log
     const DEV = cf.mode === 'development', PROD = !DEV
@@ -102,12 +100,12 @@ export const start_ublox = () => {
 
     const publish = (channel: string, data: any) => Safe(async () => {
 
-        await API_DATA.set(channel, data)
+        PROD && await API_DATA.set(channel, data)
 
     }, `[${channel}]`)
 
     /** For testing purpose **/
-    // DEV && simulation_testing(me, publish, GPS)
+    DEV && simulation_testing(me, publish, GPS)
 
     Safe(() => {
 
@@ -125,10 +123,10 @@ export const start_ublox = () => {
             }
         }
         GPS1.on((chunk: any) => ParseGPS1(chunk))
-        DEV && offline_testing(1, (parsed: any) => {
+        /* DEV && offline_testing(1, (parsed: any) => {
             publish('data_gps1', { state: 'success', type: 'success', message: 'GPS1 connected!', data: parsed })
             GPS.gps1 = parsed
-        })
+        }) */
 
         /** GPS-2-Initialize **/
         const GPS2 = new Serial()
@@ -144,10 +142,10 @@ export const start_ublox = () => {
             }
         }
         GPS2.on((chunk: any) => ParseGPS2(chunk))
-        DEV && offline_testing(2, (parsed: any) => {
+        /* DEV && offline_testing(2, (parsed: any) => {
             publish('data_gps2', { state: 'success', type: 'success', message: 'GPS2 connected!', data: parsed })
             GPS.gps2 = parsed
-        })
+        }) */
 
         /** RTCM-Initialize **/
         const base = { host: cf.host[0], port: Number(cf.host[1]), lastMessage: 0, reconnect: 0 }
