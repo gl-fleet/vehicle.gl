@@ -125,6 +125,9 @@ export class BoomDrill {
     on = (cb: any) => { this.callback = cb }
 
     mid = (A: tPoint, B: tPoint) => ({ x: (A.x + B.x) / 2, y: (A.y + B.y) / 2, z: (A.z + B.z) / 2 })
+
+    distance3D = (a: Point3D, b: Point3D) => Math.sqrt((b.x - a.x) ** 2 + (b.y - a.y) ** 2 + (b.z - a.z) ** 2)
+
     calculate = ({ gps1, gps2 }: any) => {
 
         try {
@@ -161,7 +164,7 @@ export class BoomDrill {
                 rotate: [0, 0, heading],
                 status: { distFix: 0, dist3D: 0, dist2D: 0 },
                 coords: { front: [0, 0, 0], back: [0, 0, 0] },
-                extra: { angle: angle * 180 / Math.PI },
+                extra: { angle: angle * 180 / Math.PI, gps_dist: this.distance3D(A, B) },
                 A, B, C, D,
                 TL, TM, TR,
                 MP,
