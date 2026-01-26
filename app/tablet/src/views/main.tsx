@@ -82,6 +82,9 @@ export default (cfg: iArgs) => {
                     itrc.is_left_ok() && left.map.setCenter([G[1], G[0], 0])
                     itrc.is_right_ok() && right.update(camera_angle({ ...camera, A }, true), data.A)
 
+                    right.arroHelper.position.set(A[0], A[1], A[2])
+                    right.arroHelper.direction(A[0], A[1], A[2])
+
                     /** Drawing points **/
                     for (let i = 0; i < points.length; i++) {
 

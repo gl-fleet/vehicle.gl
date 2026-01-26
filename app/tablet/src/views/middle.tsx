@@ -192,7 +192,6 @@ const PlanShotView = (cfg: iArgs) => {
 
             event.on('shot_plan_status', (e: any) => Safe(() => {
 
-                console.log(e)
                 event.emit('goto', 2)
                 const { d2, d3, v, n } = e
                 setRay({ d2: N(d2), d3: N(d3), dir: n }) /** d2: 0.1 d3: 0.3 dir: A6 */
@@ -203,8 +202,6 @@ const PlanShotView = (cfg: iArgs) => {
             event.on('stream', ({ data_gps }) => Safe(() => {
 
                 if (typeof data_gps !== 'object') return
-
-                console.log(data_gps)
 
                 const { A, camera, prec3d } = data_gps
 
