@@ -192,6 +192,7 @@ const PlanShotView = (cfg: iArgs) => {
 
             event.on('shot_plan_status', (e: any) => Safe(() => {
 
+                console.log(e)
                 event.emit('goto', 2)
                 const { d2, d3, v, n } = e
                 setRay({ d2: N(d2), d3: N(d3), dir: n }) /** d2: 0.1 d3: 0.3 dir: A6 */
@@ -203,7 +204,9 @@ const PlanShotView = (cfg: iArgs) => {
 
                 if (typeof data_gps !== 'object') return
 
-                const { A, utm, prec3d } = data_gps
+                console.log(data_gps)
+
+                const { A, camera, prec3d } = data_gps
 
                 const x = A[0] ?? 0
                 const y = A[1] ?? 0
@@ -217,7 +220,7 @@ const PlanShotView = (cfg: iArgs) => {
                     const { d2, d3, v, n } = m
 
                     const cam_far = ((d2 > 10000 ? 2.5 : (0.75 >= d2 ? 0.75 : d2)) * 1.5)
-                    ref.current.update(camera_angle_custom(data_gps, 4, cam_far, true), utm)
+                    ref.current.update(camera_angle_custom({ ...camera, A }, 4, cam_far, true), A)
 
                     ref.current.arroHelper.direction(v[0], v[1], el)
                     cly.position.set(v[0], v[1], el - 0.01)

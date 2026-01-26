@@ -70,8 +70,8 @@ const camera_angles: any = {
 
     from_top: (far: number = 25, arg: any) => {
 
-        const { TM, BM, utm } = arg
-        const MP = { x: utm[0], y: utm[1], z: utm[2] }
+        const { TM, BM, A } = arg
+        const MP = { x: A[0], y: A[1], z: A[2] }
         const P = findPointInVector(MP, BM, 0.01)
         P.z += far
         return { ...P }

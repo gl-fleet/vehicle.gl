@@ -18,7 +18,7 @@ export class PlanShot {
 
         event.on('stream', (data) => {
 
-            const { d2, d3, v, n } = clynder.nearest(data.data_gps?.utm ?? [0, 0, 0], 500 /** Within 500 meters **/)
+            const { d2, d3, v, n } = clynder.nearest(data.data_gps?.A ?? [0, 0, 0], 500 /** Within 500 meters **/)
             if (n && n !== '*') event.emit('shot_plan_status', { d2, d3, v, n })
 
         })

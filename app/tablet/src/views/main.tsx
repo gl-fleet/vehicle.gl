@@ -76,11 +76,11 @@ export default (cfg: iArgs) => {
 
                 if (ename === 'position-map') {
 
-                    const { T, R, G, A, B, C, shapes } = data
+                    const { T, R, G, A, B, C, shapes, camera } = data
                     const { lines, points } = shapes
 
-                    itrc.is_left_ok() && left.map.setCenter([G[0], G[1], 0])
-                    itrc.is_right_ok() && right.update(camera_angle(data.camera, true), data.A)
+                    itrc.is_left_ok() && left.map.setCenter([G[1], G[0], 0])
+                    itrc.is_right_ok() && right.update(camera_angle({ ...camera, A }, true), data.A)
 
                     /** Drawing points **/
                     for (let i = 0; i < points.length; i++) {
@@ -120,7 +120,7 @@ export default (cfg: iArgs) => {
                 console.log(data_gps)
                 const { T, R, G, A, B, C, shapes } = data_gps
                 data = data_gps
-                vehicle.update({ gps: [G[0], G[1], 0], utm: A, head: R })
+                vehicle.update({ gps: [G[1], G[0], 0], utm: A, head: R })
 
             }, 'MAIN.LISTEN'))
 
