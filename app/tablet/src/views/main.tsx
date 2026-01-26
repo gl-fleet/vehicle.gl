@@ -2,7 +2,7 @@ import { React, Row, Col } from 'uweb'
 import { THREE, ThreeView } from 'uweb/three'
 import type { MapView } from 'uweb/maptalks'
 import { Point, Vehicle } from 'uweb/utils'
-import { Safe } from 'utils/web'
+import { Loop, Safe } from 'utils/web'
 
 import { camera_angle } from '../helper/camera'
 import { useWebcam } from '../helper/capture'
@@ -19,6 +19,16 @@ import Connection from '../views/connection'
 import TopRight from '../views/top_right'
 import BotLeft from '../views/bot_left'
 import Middle from '../views/middle'
+
+const arrows: any = {}
+let blink = true
+
+Loop(() => {
+
+    blink = !blink
+    for (const x in arrows) arrows[x].setColor(blink ? 'red' : 'green')
+
+}, 500)
 
 export default (cfg: iArgs) => {
 
@@ -64,32 +74,40 @@ export default (cfg: iArgs) => {
 
             vehicle.on((ename: string, arg: any) => {
 
-                if (ename === 'position-map' && arg.gps && arg.gps.x && data) {
+                if (ename === 'position-map') {
 
-                    const { A, B, TL, TM, TR, BL, BM, BR, utm } = data
+                    const { T, R, G, A, B, C, shapes } = data
+                    const { lines, points } = shapes
 
-                    itrc.is_left_ok() && left.map.setCenter(data.gps)
-                    itrc.is_right_ok() && right.update(camera_angle(data, true), data.utm)
+                    itrc.is_left_ok() && left.map.setCenter([G[0], G[1], 0])
+                    itrc.is_right_ok() && right.update(camera_angle(data.camera, true), data.A)
 
-                    point.update('mp_top', 'orange', [utm[0], utm[1], utm[2]])
+                    /** Drawing points **/
+                    for (let i = 0; i < points.length; i++) {
 
-                    point.update('f_l', 'white', [TL.x, TL.y, TL.z])
-                    point.update('f_m', 'white', [TM.x, TM.y, TM.z])
-                    point.update('f_r', 'white', [TR.x, TR.y, TR.z])
+                        point.update(`p_${i}`, 'white', points[i])
 
-                    point.update('b_l', 'grey', [BL.x, BL.y, BL.z])
-                    point.update('b_m', 'grey', [BM.x, BM.y, BM.z])
-                    point.update('b_r', 'grey', [BR.x, BR.y, BR.z])
+                    }
 
-                    point.update('l_p', 'green', [A.x, A.y, A.z])
-                    point.update('r_p', 'blue', [B.x, B.y, B.z])
+                    /** Drawing lines **/
+                    for (let i = 0; i < lines.length; i++) {
 
-                    if (true) {
+                        const [start, end] = lines[i]
+                        let key = `l_${i}`
 
-                        const v1 = new THREE.Vector3(A.x, A.y, A.z)
-                        const v2 = new THREE.Vector3(B.x, B.y, B.z)
-                        right.arroHelper.position.set(B.x, B.y, B.z)
-                        right.arroHelper.direction(utm[0], utm[1], utm[2])
+                        if (arrows.hasOwnProperty(key) === false) {
+
+                            arrows[key] = new THREE.ArrowHelper(new THREE.Vector3(start[0], start[1], start[2]), new THREE.Vector3(end[0], end[1], end[2]), 1, '#ff0000', 0.2, 0.2)
+                            right.scene.add(arrows[key])
+
+                        } else {
+
+                            const dir = new THREE.Vector3().subVectors(new THREE.Vector3(end[0], end[1], end[2]), new THREE.Vector3(start[0], start[1], start[2])).normalize()
+                            const length = new THREE.Vector3().subVectors(new THREE.Vector3(end[0], end[1], end[2]), new THREE.Vector3(start[0], start[1], start[2])).length()
+                            arrows[key].setDirection(dir)
+                            arrows[key].setLength(length, 0.2, 0.2)
+                            arrows[key].position.set(start[0], start[1], start[2])
+                        }
 
                     }
 
@@ -99,9 +117,10 @@ export default (cfg: iArgs) => {
 
             event.on('stream', ({ data_gps }) => Safe(() => {
 
-                if (typeof data_gps !== 'object') return
+                console.log(data_gps)
+                const { T, R, G, A, B, C, shapes } = data_gps
                 data = data_gps
-                vehicle.update({ ...data, utm: [data.utm[0], data.utm[1], data.utm[2]] })
+                vehicle.update({ gps: [G[0], G[1], 0], utm: A, head: R })
 
             }, 'MAIN.LISTEN'))
 

@@ -229,13 +229,20 @@ export class Event {
 
     parser_gps = (e: any) => wr(() => {
 
+        const { T, R, G, A, B, C, shapes, camera } = e
+        const cloud = { T, R, G, A }
+        const local = { T, R, G, A, B, C, shapes, camera }
+        return { cloud, local }
+
+        /** map[lat,lon] -> gps[lon,lat] **/
+        /*
         const { rotate, map, status, extra } = e
         const { A, B, C, D, MP } = e
         const { TL, TM, TR, BL, BM, BR } = e
         const clear = {
             prec2d: f((Math.abs(status.distFix - status.dist3D) * 100), 1),
             prec3d: f((Math.abs(status.distFix - status.dist2D) * 100), 1),
-            gps: [f(map[1], 6), f(map[0], 6), 0], /** map[lat,lon] -> gps[lon,lat] **/
+            gps: [f(map[1], 6), f(map[0], 6), 0], // map[lat,lon] -> gps[lon,lat]
             utm: [f(MP.x), f(MP.y), f(MP.z)],
             head: f(rotate[2], 4),
             extra,
@@ -249,7 +256,7 @@ export class Event {
             BL, BM, BR,
         }
 
-        return { cloud, local }
+        return { cloud, local } */
 
     })
 

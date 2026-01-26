@@ -2,9 +2,11 @@ import { Shell, Safe, Loop, decodeENV, log, env, AsyncWait } from 'utils'
 import { Connection, NetClient } from 'unet'
 import { Serial, F9P_Parser, NMEA, UTM } from 'ucan'
 
+import { ProcessActivity } from './process'
+
 import { Calculus } from './calculus'
 import { BoomDrill } from './calculus2'
-import { ProcessActivity } from './process'
+import { Calculus as Boom_Drill } from './boom_drill'
 
 const simulation_testing = (me: any, publish: any, GPS: any) => {
 
@@ -64,7 +66,7 @@ const offline_testing = (gps = 1, cb: any) => {
     ]
 
     let s = (gps === 1 ? g1 : g2)
-    let g = []
+    let g: any = []
     for (const x of s) {
         const [_x, _y] = x
         const { Easting: e, Northing: n } = UTM.convertLatLngToUtm(_x, _y, 2)
@@ -92,7 +94,7 @@ export const start_ublox = () => {
 
     const API_DATA = new Connection({ name: 'data', timeout: 500 })
     const GPS: any = { gps1: {}, gps2: {} } /** Temporary GPS data store **/
-    const Calculate = type[0] === 'boom_drill' ? new BoomDrill(cf) : new Calculus(cf)
+    const Calculate = type[0] === 'boom_drill' ? new Boom_Drill(cf) : new Calculus(cf)
     const Process = new ProcessActivity({})
     const LOG: any = log
     const DEV = cf.mode === 'development', PROD = !DEV
@@ -100,7 +102,8 @@ export const start_ublox = () => {
 
     const publish = (channel: string, data: any) => Safe(async () => {
 
-        PROD && await API_DATA.set(channel, data)
+        // PROD && await API_DATA.set(channel, data)
+        await API_DATA.set(channel, data)
 
     }, `[${channel}]`)
 
@@ -123,10 +126,7 @@ export const start_ublox = () => {
             }
         }
         GPS1.on((chunk: any) => ParseGPS1(chunk))
-        /* DEV && offline_testing(1, (parsed: any) => {
-            publish('data_gps1', { state: 'success', type: 'success', message: 'GPS1 connected!', data: parsed })
-            GPS.gps1 = parsed
-        }) */
+        // DEV && offline_testing(1, (parsed: any) => { publish('data_gps1', { state: 'success', type: 'success', message: 'GPS1 connected!', data: parsed }); GPS.gps1 = parsed; })
 
         /** GPS-2-Initialize **/
         const GPS2 = new Serial()
@@ -142,10 +142,7 @@ export const start_ublox = () => {
             }
         }
         GPS2.on((chunk: any) => ParseGPS2(chunk))
-        /* DEV && offline_testing(2, (parsed: any) => {
-            publish('data_gps2', { state: 'success', type: 'success', message: 'GPS2 connected!', data: parsed })
-            GPS.gps2 = parsed
-        }) */
+        // DEV && offline_testing(2, (parsed: any) => { publish('data_gps2', { state: 'success', type: 'success', message: 'GPS2 connected!', data: parsed }); GPS.gps2 = parsed; })
 
         /** RTCM-Initialize **/
         const base = { host: cf.host[0], port: Number(cf.host[1]), lastMessage: 0, reconnect: 0 }
@@ -153,7 +150,7 @@ export const start_ublox = () => {
 
             ++base.reconnect && client.on('data', (chunk: any) => {
                 RTCM.last = base.lastMessage = Date.now()
-                log.res(`TCP_Client<${base.host}:${base.port}> Message size ${chunk.length}`)
+                if (Date.now() % 10000 / 1000 === 5) log.res(`TCP_Client<${base.host}:${base.port}> Message size ${chunk.length}`)
                 publish('data_rtcm', { state: 'success', type: 'success', message: `RTCM [${base.host}:${base.port}]: Message size ${chunk.length} bytes`, data: chunk })
                 GPS1.emit(chunk)
                 GPS2.emit(chunk)

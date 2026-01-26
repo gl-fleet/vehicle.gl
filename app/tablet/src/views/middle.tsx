@@ -35,9 +35,9 @@ const BasicView = ({ event }: iArgs) => {
         event.on('stream', ({ data_gps }) => Safe(() => {
 
             if (typeof data_gps !== 'object') return
-            const x = data_gps.utm[0] ?? 0
-            const y = data_gps.utm[1] ?? 0
-            const el = data_gps.utm[2] ?? 0
+            const x = data_gps.A[0] ?? 0
+            const y = data_gps.A[1] ?? 0
+            const el = data_gps.A[2] ?? 0
             const di = data_gps.prec3d ?? 0
             setStatus({ x, y, el, di })
 
@@ -109,9 +109,9 @@ const PlanDigView = (cfg: iArgs) => {
             event.on('stream', ({ data_gps }) => Safe(() => {
 
                 if (typeof data_gps !== 'object') return
-                const x = data_gps.utm[0] ?? 0
-                const y = data_gps.utm[1] ?? 0
-                const el = data_gps.utm[2] ?? 0
+                const x = data_gps.A[0] ?? 0
+                const y = data_gps.A[1] ?? 0
+                const el = data_gps.A[2] ?? 0
                 const di = data_gps.prec3d ?? 0
                 setStatus({ x, y, el, di })
 
@@ -203,11 +203,11 @@ const PlanShotView = (cfg: iArgs) => {
 
                 if (typeof data_gps !== 'object') return
 
-                const { utm, prec3d } = data_gps
+                const { A, utm, prec3d } = data_gps
 
-                const x = utm[0] ?? 0
-                const y = utm[1] ?? 0
-                const el = utm[2] ?? 0
+                const x = A[0] ?? 0
+                const y = A[1] ?? 0
+                const el = A[2] ?? 0
                 const di = prec3d ?? 0
 
                 setStatus({ x, y, el, di })
