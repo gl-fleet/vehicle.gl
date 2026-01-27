@@ -1,4 +1,4 @@
-import { React, Result, Typography } from 'uweb'
+import { React, Result } from 'uweb'
 import { createGlobalStyle } from 'styled-components'
 
 const { useEffect, useState } = React
@@ -49,8 +49,8 @@ export default (cfg: iArgs) => {
     else return <div id="connection">
         <Disconnect />
         <Result
-            status="error"
-            title="Your tablet is disconnected from the HUB computer!"
+            status={"info"}
+            title={"The system may currently be undergoing updates ..."}
         />
     </div>
 

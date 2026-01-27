@@ -269,7 +269,7 @@ export class Calculus {
             return {
                 T: this.cfg.type[0],
                 R: heading,
-                G: [lat, lng, out.Target[2]],
+                G: [lng, lat, out.Target[2]],
                 A: [out.Target[0], out.Target[1], out.Target[2]],
                 B: [out.G2[0], out.G2[1], out.G2[2]],
                 C: [out.Bit[0], out.Bit[1], out.Bit[2]],

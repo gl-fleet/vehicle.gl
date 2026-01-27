@@ -14,6 +14,7 @@ const cfg: iArgs = {
     event: new EventEmitter(),
     isDarkMode: true,
     proxy: Win.location.origin,
+    // proxy: 'https://d65-gantulgak.as2.pitunnel.com/',
     env: Win.env,
     api: new Connection({ /* proxy: 'https://d65-gantulgak.as2.pitunnel.com', */ name: 'data', timeout: 60 * 1000 }),
 }
