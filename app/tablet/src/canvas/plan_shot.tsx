@@ -10,6 +10,44 @@ import { CSV_GeoJson_Parser } from '../helper/parsers'
 
 const { useEffect, useState } = React
 
+const ShotPoller = ({ api, body, name, hid }: any) => {
+
+    const [init, setInit]: any = useState(false)
+
+    useEffect(() => {
+
+        api.get('get-events', { options: { order: [['updatedAt', 'DESC']], limit: 1, }, type: 'shot-actual', name: `${name}-${hid}` }).then((e: any) => {
+
+            if (Array.isArray(e) && e.length > 0 && e[0].data) {
+
+                const jsn = JSON.parse(e[0].data)
+                setInit(jsn)
+
+            } else {
+                setInit(undefined)
+            }
+
+        }).catch((e: any) => {
+            setInit(undefined)
+        })
+
+    }, [])
+
+    if (init === false) return 'Loading...'
+
+    console.log(name, hid, init)
+
+    return <DrillSession
+        initialData={init}
+        {...body}
+        onComplete={(summary) => {
+            console.log(summary)
+            api.set('set-events', { type: 'shot-actual', name: `${name}-${hid}`, data: summary }) // ???
+        }}
+    />
+
+}
+
 export const HelperShot = (cfg: iArgs & { half: boolean }) => {
 
     const [open, setOpen] = useState(false)
@@ -19,6 +57,8 @@ export const HelperShot = (cfg: iArgs & { half: boolean }) => {
     useEffect(() => {
 
         const { event } = cfg
+
+        const asked: any = {}
 
         const handler = (arg: any) => {
 
@@ -41,13 +81,15 @@ export const HelperShot = (cfg: iArgs & { half: boolean }) => {
                     return {
                         key: hid,
                         label: hid,
-                        children: <DrillSession
+                        children: <ShotPoller api={cfg.api} body={body} name={name} hid={hid} />
+                        /* children: <DrillSession
+                            initialData={undefined}
                             {...body}
                             onComplete={(summary) => {
                                 console.log(summary)
                                 cfg.api.set('set-events', { type: 'shot-actual', name: `${name}-${hid}`, data: summary }) // ???
                             }}
-                        />
+                        /> */
                     }
 
                 }))
@@ -58,9 +100,14 @@ export const HelperShot = (cfg: iArgs & { half: boolean }) => {
 
         event.on('shot_plan_status', (e: any) => Safe(() => {
 
-            setShot(e.n)
-            // const { d2, d3, v, n } = e
-            // setRay({ d2: N(d2), d3: N(d3), dir: n }) /** d2: 0.1 d3: 0.3 dir: A6 */
+            if (shot !== e.n) { // Different from selected
+
+                if (asked.hasOwnProperty(e.n) === false) { // Not asked
+                    setShot(e.n)
+                    asked[e.n] = true
+                }
+
+            }
 
         }))
 
@@ -92,9 +139,8 @@ export const HelperShot = (cfg: iArgs & { half: boolean }) => {
         >
             <Tabs
                 centered={true}
-                defaultActiveKey={shot}
-                // activeKey={shot}
-                // destroyInactiveTabPane={true}
+                activeKey={shot}
+                onChange={(k) => setShot(k)}
                 tabPosition={'top'}
                 items={shots}
                 style={{ paddingLeft: 16 }}
