@@ -20,9 +20,9 @@ Delay(() => Safe(() => {
 
     }
 
-    log.info(`Starting "${module}"`)
+    log.success(`Starting "${module}"`)
 
-    module === 'ublox' && start_ublox()
-    module === 'unicore' && start_unicore()
+    if (module === 'ublox') start_ublox(module)
+    if (module === 'unicore') start_unicore(module)
 
 }, 'GPS_Detection'), 2500)

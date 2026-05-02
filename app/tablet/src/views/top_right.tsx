@@ -6,6 +6,7 @@ import {
     CodeSandboxOutlined,
     PushpinOutlined,
     RedoOutlined,
+    FormOutlined,
 } from '@ant-design/icons'
 import * as camera from '../helper/camera'
 
@@ -83,6 +84,7 @@ export default (cfg: iArgs) => {
                 })
             }} icon={<PushpinOutlined />} />
             <FloatButton onClick={() => window.location.reload()} icon={<RedoOutlined />} />
+            <FloatButton type='primary' onClick={() => cfg.event.emit('shots', true)} icon={<FormOutlined />} />
         </FloatButton.Group>
 
         <Alert message={text} type="success" showIcon />

@@ -4,7 +4,7 @@ import { Safe, Loop, decodeENV, moment, dateFormat, Uid, Now, Sfy, parseJwt, log
 
 import { tEvent, roughSizeOfObject, wr, f } from './utils'
 
-const { me, token } = decodeENV()
+const { me, token, mode } = decodeENV()
 const payload = parseJwt(token)
 
 export class Event {
@@ -229,9 +229,19 @@ export class Event {
 
     parser_gps = (e: any) => wr(() => {
 
-        const { T, R, G, A, B, C, shapes, camera } = e
-        const cloud = { T, R, G, A }
-        const local = { T, R, G, A, B, C, shapes, camera }
+        const { T, R, G, A, B, C, status, shapes, camera } = e
+        // let cloud = { T, R, G, A }
+        const local = { T, R, G, A, B, C, status, shapes, camera }
+
+        let cloud = {
+            prec3d: f((Math.abs(status.dist_tar - status.dist_act)), 1),
+            prec2d: f((Math.abs(status.dist_tar - status.dist_act)), 1),
+            gps: [f(G[1], 6), f(G[0], 6), 0], // map[lat,lon] -> gps[lon,lat]
+            utm: [f(A[0]), f(A[1]), f(A[2])],
+            head: f(R, 4),
+            extra: status,
+        }
+
         return { cloud, local }
 
         /** map[lat,lon] -> gps[lon,lat] **/
@@ -344,6 +354,7 @@ export class Event {
             this.emit('update', key)
             this.pub_local()
             this.pub_cloud()
+            // mode !== 'development' && this.pub_cloud()
 
         }
 

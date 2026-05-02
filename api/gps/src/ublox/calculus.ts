@@ -12,13 +12,15 @@ export class Calculus {
 
     constructor(config: any) {
 
-        const { gps1, gps2, offset, expand } = config
-
+        const { gps1, gps2, type, offset, host } = config
         this.config = {
+            type: type ?? [],
             left: Number(gps1[2]),
             right: Number(gps2[2]),
             distance: Number(offset[0]),
             expand: Number(offset[4]),
+            host: host[0],
+            port: Number(host[1]),
             offset: {
                 x: Number(offset[1]),
                 y: Number(offset[2]),
@@ -29,6 +31,19 @@ export class Calculus {
     }
 
     on = (cb: any) => { this.callback = cb }
+
+    getUTMZone = (lat: number, lon: number) => {
+
+        // Calculate UTM Zone Number
+        const zoneNumber = Math.floor((lon + 180) / 6) + 1
+        // Calculate UTM Zone Letter
+        const letters = "CDEFGHJKLMNPQRSTUVWX" // UTM zone letters (I and O are skipped)
+        let zoneLetter = ''
+        if (lat >= -80 && lat <= 84) zoneLetter = letters[Math.floor((lat + 80) / 8)]
+        else zoneLetter = 'Z' // Outside UTM limits
+        return { zoneNumber, zoneLetter }
+
+    }
 
     /** Final calculation **/
     calculate = ({ gps1, gps2 }: any) => {
@@ -61,39 +76,46 @@ export class Calculus {
             const TR = this.findPointInVector(BR, { ..._TR }, toFront)
 
             const MP = this.findPointInVector(TM, { ...TR }, toRight) /** Magical point, which describe actual calculated point **/
-            MP.x += toTop
-
             const BP = this.findPointInVector(BM, { ...BR }, toRight) /** BACK-Magical point, which describe actual calculated point **/
-            BP.x += toTop
 
             /** Rotation calculation */
-            const _x = 0 // uglyAngleCalculus(M, E)      /** Will work on it, when the third dimension comes / Seems working fine but Object needs to move forward little bit **/
-            const _y = 0 // this.uglyAngleCalculus(B, A) /** Just ignoring it, Since rotations are used by GLTF only **/
             const _z = (Math.atan2(A.y - B.y, A.x - B.x) * 180 / Math.PI) * (Math.PI / 180) + (Math.PI)
-            const LL_TM = Utm.convertUtmToLatLng(MP.x, MP.y, "48", "T")
-            const LL_BM = Utm.convertUtmToLatLng(BP.x, BP.y, "48", "T")
+
+            const { zoneNumber, zoneLetter } = this.getUTMZone(gps1.lat, gps1.lon)
+            const LL_TM = Utm.convertUtmToLatLng(MP.x, MP.y, `${zoneNumber}`, zoneLetter)
+            const Z = Number((MP.z + toTop).toFixed(2))
 
             return {
-                map: [LL_TM.lat, LL_TM.lng, M.z],
-                center: [M.x, M.y, M.z],
-                rotate: [_x, _y, _z],
-                front: [C.x, C.y, C.z],
-                back: [D.x, D.y, D.z],
+                T: this.config.type[0],
+                R: _z,
+                G: [LL_TM.lat, LL_TM.lng, Z],
+                A: [MP.x, MP.y, Z],
+                B: [TM.x, TM.y, TM.z],
+                C: [BP.x, BP.y, BP.z],
                 status: {
-                    distFix: width,
-                    dist3D: this.distance3D(A, B),
-                    dist2D: this.distance3D({ ...A, z: 1 }, { ...B, z: 1 }),
+                    dist_tar: this.config.distance ?? 0,
+                    dist_act: Number((this.distance3D(A, B) * 100).toFixed(2)),
+                    zoneNumber,
+                    zoneLetter,
+                    rtcm: `${this.config.host}:${this.config.port}`,
                 },
-                coords: {
-                    front: [LL_TM.lat, LL_TM.lng, TM.z],
-                    back: [LL_BM.lat, LL_BM.lng, BM.z],
+                shapes: {
+                    points: [
+                        [A.x, A.y, A.z], [B.x, B.y, B.z],
+                        [M.x, M.y, M.z], [MP.x, MP.y, Z]
+                    ],
+                    lines: [
+                        [[A.x, A.y, A.z], [B.x, B.y, B.z]],
+                        [[M.x, M.y, M.z], [BM.x, BM.y, BM.z]],
+                        [[BM.x, BM.y, BM.z], [TM.x, TM.y, TM.z]],
+                        [[TM.x, TM.y, TM.z], [MP.x, MP.y, MP.z]],
+                        [[MP.x, MP.y, MP.z], [MP.x, MP.y, Z]],
+                    ]
                 },
-                A, B, M, C, D,
-                TL, TM, TR,
-                MP,
-                BL, BM, BR,
-                left, right, width, height, hightDiff,
-                toFront, toRight, toTop,
+                camera: {
+                    TL, TM, TR,
+                    BL, BM, BR,
+                }
             }
 
         } catch (err: any) {

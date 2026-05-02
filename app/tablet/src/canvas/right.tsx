@@ -4,9 +4,12 @@ export class Right {
 
     public can: ThreeView
     public ready = false
+    public id: any = null
     public cb = (sms: string) => null
 
     constructor(id: string, cfg: iArgs) {
+
+        this.id = id
 
         this.can = new ThreeView({
             containerId: id,
@@ -31,5 +34,19 @@ export class Right {
     }
 
     on = (cb: (sms: string) => any) => { this.cb = cb }
+
+    resize = () => {
+
+        if (this.id) {
+
+            const container: any = document.getElementById(this.id)
+            const { width, height } = container.getBoundingClientRect()
+            this.can.renderer.setSize(width, height)
+            this.can.camera.aspect = width / height
+            this.can.camera.updateProjectionMatrix()
+
+        }
+
+    }
 
 }

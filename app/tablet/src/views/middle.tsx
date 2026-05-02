@@ -203,12 +203,13 @@ const PlanShotView = (cfg: iArgs) => {
 
                 if (typeof data_gps !== 'object') return
 
-                const { A, camera, prec3d } = data_gps
+                const { A, camera, status } = data_gps
+                const { dist_act, dist_tar } = status
 
                 const x = A[0] ?? 0
                 const y = A[1] ?? 0
                 const el = A[2] ?? 0
-                const di = prec3d ?? 0
+                const di = Number((Math.abs(dist_act - dist_tar) ?? 0).toFixed(2)) /** Distance to Target **/
 
                 setStatus({ x, y, el, di })
 
@@ -272,7 +273,7 @@ const PlanShotView = (cfg: iArgs) => {
 
 /*** *** *** @___MIDDLE_VIEW_ROUTER___ *** *** ***/
 
-export default (cfg: iArgs) => {
+export default (cfg: iArgs & { half: boolean }) => {
 
     const { innerWidth: iw, innerHeight: ih } = window
     const _w = Number((320 * 100 / iw).toFixed(0))
@@ -320,7 +321,7 @@ export default (cfg: iArgs) => {
 
     const onChange = (n: number) => cfg.api.set('value', { screen: n + 1 })
 
-    return <Layout style={{ background, border: '2px solid grey', left: '50%', top: '50%', position: 'absolute', width: `${w}px`, height: `${h}px`, marginLeft: `-${w / 2 + 2}px`, marginTop: `-${h / 2 + 2}px`, padding: 0, zIndex: 1, opacity: 0.75 }}>
+    return <Layout style={{ background, border: '2px solid grey', left: '50%', top: '50%', position: 'absolute', width: `${w}px`, height: `${h}px`, marginLeft: `-${w / 2 + 2}px`, marginTop: cfg.half ? `-${h + 16}px` : `-${h / 2 + 2}px`, padding: 0, zIndex: 1, opacity: 0.75 }}>
         <Style />
         <Carousel afterChange={onChange} beforeChange={(e: number) => { cfg.event.emit('_goto', e) }} dotPosition={'right'} effect="fade" ref={ref => { slider.current = ref }} >
             <div><div style={{ width: w, height: h - 4, background }}><BasicView {...cfg} /></div></div>

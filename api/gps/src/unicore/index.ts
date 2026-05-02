@@ -74,11 +74,11 @@ const parseNMEASentences = (gngga: string, gnhpr: string): ParsedNMEA => {
     }
 }
 
-export const start_unicore = () => {
+export const start_unicore = (module: string) => {
 
     const { version, mode } = decodeENV()
 
-    log.success(`"${env.npm_package_name}" <${version}> module is running on "${process.pid}" / [${mode}] 🚀🚀🚀\n`)
+    log.success(`"${env.npm_package_name}"."${module}" <${version}> module is running on "${process.pid}" / [${mode}] 🚀🚀🚀\n`)
 
     const GPS = new Serial()
 

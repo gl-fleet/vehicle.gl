@@ -131,6 +131,9 @@ export class Clynder {
 
     updateAll = (rows: csvItems[]) => {
 
+        console.log(`[Clynder]: Updating ${rows.length} items ...`)
+        console.log(rows)
+
         this.removeAll()
 
         this.Three && this.Three.scene.remove(this.GroupThree)

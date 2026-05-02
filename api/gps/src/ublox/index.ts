@@ -4,11 +4,12 @@ import { Serial, F9P_Parser, NMEA, UTM } from 'ucan'
 
 import { ProcessActivity } from './process'
 
-import { Calculus } from './calculus'
-import { BoomDrill } from './calculus2'
+import { Calculus as Default_Drill } from './calculus'
 import { Calculus as Boom_Drill } from './boom_drill'
 
 const simulation_testing = (me: any, publish: any, GPS: any) => {
+
+    log.success(`[Simulation]: Simulating GPS data for ${me} ...`)
 
     const Simulationhandler = (args: any) => {
 
@@ -25,7 +26,12 @@ const simulation_testing = (me: any, publish: any, GPS: any) => {
 
     }
 
-    Safe(() => me === 'D65' && (new Connection({ name: 'data', proxy: 'https://d65-gantulgak.as2.pitunnel.com/', rejectUnauthorized: false })).on('stream', Simulationhandler), 'Simulate')
+    me === 'HDM036i' && Safe(() => {
+
+        const remote = new Connection({ name: 'data', proxy: 'https://hdm036-gantulgak.as2.pitunnel.com', rejectUnauthorized: false })
+        remote.on('stream', Simulationhandler)
+
+    }, 'Simulate')
 
 }
 
@@ -85,27 +91,21 @@ const offline_testing = (gps = 1, cb: any) => {
 
 }
 
-export const start_ublox = () => {
+export const start_ublox = (module: string) => {
 
     const cf = decodeENV()
-    const { me, version, mode, type } = decodeENV()
-    log.success(`"${env.npm_package_name}" <${version}> module is running on "${process.pid}" / [${mode}] 🚀🚀🚀\n`)
-    console.log(cf)
+    const { me, version, mode, type = [] } = cf
+    log.success(`"${env.npm_package_name}"."${module}" <${version}> module is running on "${process.pid}" / [${mode}] [${me}] 🚀🚀🚀\n`)
 
     const API_DATA = new Connection({ name: 'data', timeout: 500 })
     const GPS: any = { gps1: {}, gps2: {} } /** Temporary GPS data store **/
-    const Calculate = type[0] === 'boom_drill' ? new Boom_Drill(cf) : new Calculus(cf)
+    const Calculate = type[0] === 'boom_drill' ? new Boom_Drill(cf) : new Default_Drill(cf)
     const Process = new ProcessActivity({})
     const LOG: any = log
     const DEV = cf.mode === 'development', PROD = !DEV
     const VAC = DEV ? 100000 : Number(cf.threshold[0])     /** Bad GPS Threshold (cm) **/
 
-    const publish = (channel: string, data: any) => Safe(async () => {
-
-        // PROD && await API_DATA.set(channel, data)
-        await API_DATA.set(channel, data)
-
-    }, `[${channel}]`)
+    const publish = (channel: string, data: any) => Safe(async () => await API_DATA.set(channel, data), `[${channel}]`)
 
     /** For testing purpose **/
     DEV && simulation_testing(me, publish, GPS)
@@ -179,7 +179,6 @@ export const start_ublox = () => {
             Process.add(gps1)
 
             const calculated = Calculate.calculate(GPS)
-
             if (calculated && gps1.vac <= VAC && gps2.vac <= VAC) publish('data_gps', calculated)
 
         }, 250)
@@ -195,6 +194,6 @@ export const start_ublox = () => {
 
         }, 'Renice')
 
-    })
+    }, 'Initialize')
 
 }

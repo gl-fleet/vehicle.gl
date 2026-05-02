@@ -8,6 +8,7 @@ import { Chunk } from './chunk'
 const { name, version, mode, me, proxy, token } = decodeENV()
 
 log.success(`"${env.npm_package_name}" <${version}> module is running on "${process.pid}" / [${mode}] 🚀🚀🚀\n`)
+log.success(proxy)
 
 const cf = {
     cloud: new Connection({ name: 'core_data', proxy, token, timeout: 60 * 1000 }),

@@ -13,7 +13,7 @@ import { Right } from '../canvas/right'
 import { Vehicles } from '../canvas/vehicle'
 import { Interact } from '../canvas/interact'
 import { PlanDig } from '../canvas/plan_dig'
-import { PlanShot } from '../canvas/plan_shot'
+import { PlanShot, HelperShot } from '../canvas/plan_shot'
 
 import Connection from '../views/connection'
 import TopRight from '../views/top_right'
@@ -21,6 +21,7 @@ import BotLeft from '../views/bot_left'
 import Middle from '../views/middle'
 
 const arrows: any = {}
+
 let blink = true
 
 Loop(() => {
@@ -34,6 +35,7 @@ export default (cfg: iArgs) => {
 
     const { api, event, env } = cfg
     const { webcam, screenshot } = env
+    const [half, setHalf] = React.useState(false)
 
     const [wimg] = useWebcam({ loop: webcam === 'true' ? 5000 : -1, size: [128, 128] })
     const [simg] = useScreenshot({ loop: screenshot === 'true' ? 5000 : -1, size: [128 * 3, 128 * 4], canvas_selector: '#left canvas' })
@@ -50,11 +52,31 @@ export default (cfg: iArgs) => {
         lv.on((sms) => sms === 'ready' && render())
         rv.on((sms) => sms === 'ready' && render())
 
+
+        const handler = (arg: any) => {
+            typeof arg === 'boolean' && setHalf(arg)
+            setTimeout(() => rv.resize())
+        }
+        event.on('half', handler)
+
         const render = () => lv.ready && rv.ready && Safe(() => {
 
             const left = lv.can
             const right = rv.can
             const vehicle = new Vehicles(left, right)
+
+
+            /* setInterval(() => {
+
+                setHalf(h => {
+                    event.emit('alert', { key: 'open-drawer', type: !h ? 'success' : 'info' })
+                    return !h
+                })
+                setTimeout(() => {
+                    rv.resize()
+                })
+
+            }, 5000) */
 
             vehicle.on((name) => name === 'ready' && Safe(() => {
 
@@ -68,9 +90,10 @@ export default (cfg: iArgs) => {
 
         const listen = (left: MapView, right: ThreeView, vehicle: Vehicle) => {
 
+            let data: any = null
+
             const itrc = new Interact(left, right, cfg)
             const point = new Point({ Maptalks: left, Three: right })
-            let data: any = null
 
             vehicle.on((ename: string, arg: any) => {
 
@@ -86,11 +109,7 @@ export default (cfg: iArgs) => {
                     right.arroHelper.direction(A[0], A[1], A[2])
 
                     /** Drawing points **/
-                    for (let i = 0; i < points.length; i++) {
-
-                        point.update(`p_${i}`, 'white', points[i])
-
-                    }
+                    for (let i = 0; i < points.length; i++) point.update(`p_${i}`, 'blue', points[i])
 
                     /** Drawing lines **/
                     for (let i = 0; i < lines.length; i++) {
@@ -108,7 +127,7 @@ export default (cfg: iArgs) => {
                             const dir = new THREE.Vector3().subVectors(new THREE.Vector3(end[0], end[1], end[2]), new THREE.Vector3(start[0], start[1], start[2])).normalize()
                             const length = new THREE.Vector3().subVectors(new THREE.Vector3(end[0], end[1], end[2]), new THREE.Vector3(start[0], start[1], start[2])).length()
                             arrows[key].setDirection(dir)
-                            arrows[key].setLength(length, 0.2, 0.2)
+                            arrows[key].setLength(length, 0.02, 0.02)
                             arrows[key].position.set(start[0], start[1], start[2])
                         }
 
@@ -120,7 +139,6 @@ export default (cfg: iArgs) => {
 
             event.on('stream', ({ data_gps }) => Safe(() => {
 
-                console.log(data_gps)
                 const { T, R, G, A, B, C, shapes } = data_gps
                 data = data_gps
                 vehicle.update({ gps: [G[1], G[0], 0], utm: A, head: R })
@@ -133,13 +151,15 @@ export default (cfg: iArgs) => {
 
     return <Row id="main" style={{ height: '100%' }}>
 
-        <Col id='left' span={12} style={{ height: '100%' }} />
-        <Col id='right' span={12} style={{ height: '100%' }} />
+        <Col id='left' span={12} style={{ height: half ? '50%' : '100%' }} />
+        <Col id='right' span={12} style={{ height: half ? '50%' : '100%' }} />
 
         <Connection {...cfg} />
         <BotLeft {...cfg} />
         <TopRight {...cfg} />
-        <Middle {...cfg} />
+        <Middle {...cfg} half={half} />
+
+        <HelperShot {...cfg} half={half} />
 
     </Row>
 

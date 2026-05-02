@@ -10,7 +10,12 @@ export default ({ api, event }: iArgs) => {
 
     const fileList = () => setList(() => {
 
-        api.poll('get-chunks-distinct', {}, (e: any, data: []) => setList({ loading: false, data: data ?? [] }))
+        api.poll('get-chunks-distinct', {}, (e: any, data: []) => {
+
+            setList({ loading: false, data: data ?? [] })
+
+        })
+
         return { loading: true, data: [] }
 
     })
