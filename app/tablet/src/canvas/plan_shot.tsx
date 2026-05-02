@@ -1,7 +1,7 @@
 import type { MapView } from 'uweb/maptalks'
 import type { ThreeView } from 'uweb/three'
 
-import { React, Button, Drawer, Row, Col, Tabs } from 'uweb'
+import { React, Button, Drawer, Row, Col, Tabs, message } from 'uweb'
 import { Safe, Delay } from 'utils/web'
 
 import DrillSession from '../comps/drill'
@@ -50,6 +50,7 @@ const ShotPoller = ({ api, body, name, hid }: any) => {
 
 export const HelperShot = (cfg: iArgs & { half: boolean }) => {
 
+    const [msgApi, contextHolder] = message.useMessage()
     const [open, setOpen] = useState(false)
     const [shot, setShot] = useState('')
     const [shots, setShots] = useState([])
@@ -100,14 +101,36 @@ export const HelperShot = (cfg: iArgs & { half: boolean }) => {
 
         event.on('shot_plan_status', (e: any) => Safe(() => {
 
-            if (shot !== e.n) { // Different from selected
+            setShot((c) => {
 
-                if (asked.hasOwnProperty(e.n) === false) { // Not asked
-                    setShot(e.n)
-                    asked[e.n] = true
+                console.log(`prev: ${c} next: ${e.n}`)
+
+                if (c === '') {
+                    asked[e.n] = 50
+                    return e.n
                 }
 
-            }
+                if (c !== e.n && e.d2 <= 0.5) { // Different from selected
+
+                    if (asked.hasOwnProperty(e.n)) {
+
+                        asked[e.n] += 1
+                        if (asked[e.n] === 20) {
+                            Delay(() => { setShot(e.n) }, 10 * 1000)
+                            msgApi.open({
+                                type: 'success',
+                                content: `Automatic selection of ${e.n} in 10 seconds.`,
+                                duration: 10,
+                            })
+                        }
+
+                    } else asked[e.n] = 1
+
+                }
+
+                return c
+
+            })
 
         }))
 
@@ -124,6 +147,7 @@ export const HelperShot = (cfg: iArgs & { half: boolean }) => {
     }, [open])
 
     return <>
+        {contextHolder}
         <Drawer
             title={null}
             closable={{ 'aria-label': 'Close Button' }}

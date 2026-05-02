@@ -796,7 +796,8 @@ const DrillSession: React.FC<DrillSessionProps> = ({
                     <DepthSliderInput
                         value={sliderDepth}
                         onChange={setSliderDepth}
-                        maxDepth={designDepth}
+                        // maxDepth={designDepth}
+                        maxDepth={25}
                         disabled={inputDisabled}
                     />
 
