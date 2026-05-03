@@ -40,7 +40,7 @@ const ShotPoller = ({ api, body, name, hid }: any) => {
     return <DrillSession
         initialData={init}
         {...body}
-        onComplete={(summary) => {
+        onComplete={(summary: any) => {
             console.log(summary)
             api.set('set-events', { type: 'shot-actual', name: `${name}-${hid}`, data: summary }) // ???
         }}
@@ -83,14 +83,6 @@ export const HelperShot = (cfg: iArgs & { half: boolean }) => {
                         key: hid,
                         label: hid,
                         children: <ShotPoller api={cfg.api} body={body} name={name} hid={hid} />
-                        /* children: <DrillSession
-                            initialData={undefined}
-                            {...body}
-                            onComplete={(summary) => {
-                                console.log(summary)
-                                cfg.api.set('set-events', { type: 'shot-actual', name: `${name}-${hid}`, data: summary }) // ???
-                            }}
-                        /> */
                     }
 
                 }))
@@ -103,8 +95,6 @@ export const HelperShot = (cfg: iArgs & { half: boolean }) => {
 
             setShot((c) => {
 
-                console.log(`prev: ${c} next: ${e.n}`)
-
                 if (c === '') {
                     asked[e.n] = 50
                     return e.n
@@ -116,11 +106,11 @@ export const HelperShot = (cfg: iArgs & { half: boolean }) => {
 
                         asked[e.n] += 1
                         if (asked[e.n] === 20) {
-                            Delay(() => { setShot(e.n) }, 10 * 1000)
+                            Delay(() => { setShot(e.n) }, 15 * 1000)
                             msgApi.open({
                                 type: 'success',
                                 content: `Automatic selection of ${e.n} in 10 seconds.`,
-                                duration: 10,
+                                duration: 15,
                             })
                         }
 
@@ -167,7 +157,6 @@ export const HelperShot = (cfg: iArgs & { half: boolean }) => {
                 onChange={(k) => setShot(k)}
                 tabPosition={'top'}
                 items={shots}
-                style={{ paddingLeft: 16 }}
             />
         </Drawer>
     </>
