@@ -11,8 +11,6 @@ export class Vehicles {
 
     constructor(Maptalks: MapView, Three: ThreeView) {
 
-        console.log(Win.env)
-
         const { type, body } = Win.env
 
         let GLTF: any = null
@@ -29,7 +27,7 @@ export class Vehicles {
         }
 
         const style: any = {
-            opacity: 0.75
+            opacity: 0.1
         }
 
         LoadRequiredFiles(() => {

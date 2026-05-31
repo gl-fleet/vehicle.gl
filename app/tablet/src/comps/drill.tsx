@@ -1,414 +1,575 @@
-import React, { useState, useRef, useMemo, useEffect } from 'react';
+import React, { useState, useRef, useMemo, useEffect } from 'react'
 import {
-    Button, Card, Col, Divider, InputNumber, Popconfirm, Progress, Row,
-    Slider, Space, Tag, Tooltip, Typography, message, theme
-} from 'antd';
+  Button, Card, Col, InputNumber, Popconfirm,
+  Row, Slider, Space, Tag, Tooltip, Typography, message, theme
+} from 'antd'
 import {
-    CaretRightOutlined, CheckCircleOutlined, DeleteOutlined,
-    EditOutlined, PauseOutlined, ThunderboltOutlined, HistoryOutlined
-} from '@ant-design/icons';
+  CaretRightOutlined, DeleteOutlined, HistoryOutlined,
+  PauseOutlined, ThunderboltOutlined
+} from '@ant-design/icons'
+import styled, { css } from 'styled-components'
 
-const { Title, Text } = Typography;
-const { useToken } = theme;
+const { Title, Text } = Typography
+const { useToken } = theme
 
-// ─── Types & Mongolian Layer Definitions ─────────────────────────────────────
+// ─── Types ────────────────────────────────────────────────────────────────────
 
-type SessionState = 'idle' | 'drilling' | 'paused' | 'done';
+type SessionState = 'idle' | 'drilling' | 'paused' | 'done'
 
 export interface LogEntry {
-    id: string;
-    type: 'depth' | 'layer';
-    time: string;
-    elapsedMs: number;
-    depth: number;
-    layer: string;
+  id: string
+  type: 'depth' | 'layer'
+  time: string
+  elapsedMs: number
+  depth: number
+  layer: string
 }
 
-const LAYER_PRESETS = [
-    { name: 'Hooson chuluu', label: 'Хоосон чулуулаг', icon: '🟧', color: '#d48806' },
-    { name: 'Elsen chuluu', label: 'Элсэн чулуу', icon: '🟨', color: '#a89030' },
-    { name: 'Shavar', label: 'Шавар', icon: '🟤', color: '#8c6a3f' },
-    { name: 'Nuurs', label: 'Нүүрс', icon: '⬛', color: '#262626' },
-    { name: 'Zavsar uye', label: 'Завсар үе', icon: '🟩', color: '#389e0d' },
-    { name: 'Shavran chuluu', label: 'Шавран чулуу', icon: '🔴', color: '#cf1322' },
-    { name: 'Hatuu chuluu', label: 'Хатуу чулуулаг', icon: '⬜', color: '#434343' },
-    { name: 'Us', label: 'Ус', icon: '💧', color: '#0284c7' },
-];
+// ─── Constants ────────────────────────────────────────────────────────────────
 
-const DEFAULT_LAYER_LABEL = 'Хоосон чулуулаг';
+const LAYERS = [
+  { name: 'Хоосон чулуулаг', icon: '🟧', color: '#d48806' },
+  { name: 'Элсэн чулуу',     icon: '🟨', color: '#a89030' },
+  { name: 'Шавар',            icon: '🟤', color: '#8c6a3f' },
+  { name: 'Нүүрс',            icon: '⬛', color: '#262626' },
+  { name: 'Завсар үе',        icon: '🟩', color: '#389e0d' },
+  { name: 'Шавран чулуу',     icon: '🔴', color: '#cf1322' },
+  { name: 'Хатуу чулуулаг',   icon: '⬜', color: '#434343' },
+  { name: 'Ус',               icon: '💧', color: '#0284c7' },
+]
 
-// ─── Visualizer ─────────────────────────────────────────────────────────────
+const DEFAULT_LAYER = 'Хоосон чулуулаг'
 
-const HoleProfile = ({ entries, designDepth, sliderDepth }: { entries: LogEntry[], designDepth: number, sliderDepth: number }) => {
-    const { token } = useToken();
+const layerColor = (name: string) => LAYERS.find(l => l.name === name)?.color ?? '#bfbfbf'
+const layerIcon  = (name: string) => LAYERS.find(l => l.name === name)?.icon  ?? ''
 
-    const layerMarkers = useMemo(() => {
-        return [...entries]
-            .filter(e => e.type === 'layer')
-            .sort((a, b) => a.depth - b.depth);
-    }, [entries]);
+// ─── Styled components ────────────────────────────────────────────────────────
 
-    // Хэрэв өрөмдлөгийн гүн төлөвлөсөн гүнээс давбал графикийн масштабыг сунгана
-    const maxLoggedDepth = entries.length > 0 ? Math.max(...entries.map(e => e.depth)) : 0;
-    const maxViewDepth = Math.max(designDepth, maxLoggedDepth, sliderDepth, 1);
+// Layout
+const PageWrap = styled.div<{ $bg: string }>`
+  padding: 24px;
+  background: ${p => p.$bg};
+  min-height: 100vh;
+`
 
-    return (
-        <div style={{ 
-            display: 'flex', 
-            height: '550px', 
-            padding: '10px 0', 
-            background: token.colorBgContainer,
-            borderRadius: token.borderRadiusLG,
-            overflow: 'hidden' // Гадагш хлихаас сэргийлнэ
-        }}>
-            {/* Гүний хэмжээс (Axis) */}
-            <div style={{ 
-                width: '45px', 
-                position: 'relative', 
-                borderRight: `2px solid ${token.colorBorderSecondary}`,
-                marginRight: '10px'
-            }}>
-                {[...Array(Math.ceil(maxViewDepth) + 1).keys()].map(m => (
-                    <div key={m} style={{
-                        position: 'absolute', 
-                        top: `${(m / maxViewDepth) * 100}%`, 
-                        right: '8px',
-                        fontSize: '10px', 
-                        color: token.colorTextSecondary,
-                        transform: 'translateY(-50%)',
-                        transition: 'top 0.3s ease'
-                    }}>
-                        {m}m
-                    </div>
-                ))}
-            </div>
+const CardSpacer = styled.div`
+  margin-bottom: 16px;
+`
 
-            {/* Цооногийн зүсэлт */}
-            <div style={{
-                flex: 1,
-                background: token.colorFillSecondary,
-                position: 'relative',
-                border: `1px solid ${token.colorBorder}`,
-                borderRadius: '4px',
-                overflow: 'hidden'
-            }}>
-                {/* Эхний давхарга (0-ээс эхний бүртгэл хүртэл) */}
-                {(layerMarkers.length === 0 || layerMarkers[0].depth > 0) && (
-                    <div style={{
-                        position: 'absolute', top: 0,
-                        height: `${((layerMarkers[0]?.depth || sliderDepth) / maxViewDepth) * 100}%`,
-                        width: '100%', 
-                        background: '#d48806', 
-                        borderBottom: '1px solid rgba(0,0,0,0.1)',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        color: '#fff',
-                        fontSize: '11px',
-                        fontWeight: 'bold'
-                    }}>
-                        {((layerMarkers[0]?.depth || sliderDepth) / maxViewDepth) * 100 > 8 && "Хоосон чулуулаг"}
-                    </div>
+// Header card
+const TimerTitle = styled(Title)`
+  && {
+    margin: 0;
+    font-family: monospace;
+  }
+`
+
+const PauseLabel = styled(Text)`
+  && {
+    font-size: 11px;
+    font-weight: bold;
+  }
+`
+
+// Depth card
+const DepthCardFooter = styled.div`
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 8px;
+`
+
+// Layer card — col with manual top padding to align button with input
+const LayerBtnCol = styled(Col)`
+  padding-top: 20px;
+`
+
+// Log cards
+const LogScroll = styled.div`
+  max-height: 200px;
+  overflow-y: auto;
+`
+
+const LogRowWrap = styled.div<{ $borderColor: string }>`
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 7px 0;
+  border-bottom: 1px solid ${p => p.$borderColor};
+`
+
+const LogTime = styled(Text)`
+  && {
+    width: 48px;
+    font-size: 11px;
+  }
+`
+
+const LogDepth = styled(Text)`
+  && {
+    font-family: monospace;
+  }
+`
+
+const LogIcon = styled.span`
+  font-size: 14px;
+`
+
+const LogLayerName = styled(Text)<{ $color: string }>`
+  && {
+    font-size: 11px;
+    color: ${p => p.$color};
+  }
+`
+
+// Profile
+const ProfileWrap = styled.div<{ $bg: string; $radius: number }>`
+  display: flex;
+  height: 550px;
+  padding: 10px 0;
+  background: ${p => p.$bg};
+  border-radius: ${p => p.$radius}px;
+  overflow: hidden;
+`
+
+const DepthAxis = styled.div<{ $borderColor: string }>`
+  width: 45px;
+  position: relative;
+  border-right: 2px solid ${p => p.$borderColor};
+  margin-right: 10px;
+`
+
+const AxisTick = styled.div<{ $top: string; $color: string }>`
+  position: absolute;
+  top: ${p => p.$top};
+  right: 8px;
+  font-size: 10px;
+  color: ${p => p.$color};
+  transform: translateY(-50%);
+`
+
+const CrossSection = styled.div<{ $bg: string; $border: string }>`
+  flex: 1;
+  background: ${p => p.$bg};
+  position: relative;
+  border: 1px solid ${p => p.$border};
+  border-radius: 4px;
+  overflow: hidden;
+`
+
+const LayerSegment = styled.div<{ $top: string; $height: string; $bg: string; $isInit?: boolean }>`
+  position: absolute;
+  top: ${p => p.$top};
+  height: ${p => p.$height};
+  width: 100%;
+  background: ${p => p.$bg};
+  border-bottom: 1px solid ${p => p.$isInit ? 'rgba(0,0,0,0.1)' : 'rgba(255,255,255,0.2)'};
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  color: #fff;
+  font-size: ${p => p.$isInit ? '11px' : 'inherit'};
+  font-weight: ${p => p.$isInit ? 'bold' : 'inherit'};
+  text-shadow: 0 0 4px rgba(0,0,0,0.5);
+  transition: all 0.3s ease;
+`
+
+const SegIcon = styled.span`
+  font-size: 14px;
+`
+
+const SegLabel = styled.span`
+  font-size: 10px;
+  font-weight: 500;
+`
+
+const DrillPointer = styled.div<{ $top: string; $bg: string }>`
+  position: absolute;
+  top: ${p => p.$top};
+  width: 100%;
+  height: 2px;
+  background: ${p => p.$bg};
+  z-index: 10;
+  box-shadow: 0 0 8px rgba(255, 0, 0, 0.5);
+  transition: top 0.2s ease;
+`
+
+const DrillLabel = styled.div<{ $bg: string }>`
+  position: absolute;
+  right: 0;
+  top: -18px;
+  background: ${p => p.$bg};
+  color: #fff;
+  font-size: 10px;
+  padding: 1px 4px;
+  border-radius: 2px;
+`
+
+// Profile footer
+
+// ─── HoleProfile ──────────────────────────────────────────────────────────────
+
+const HoleProfile = ({
+  entries, designDepth, drillDepth, layerDepth, activeLayer,
+}: {
+  entries: LogEntry[]
+  designDepth: number
+  drillDepth: number   // drives only the red pointer
+  layerDepth: number   // drives layer segment extension
+  activeLayer: string  // the layer currently being drilled (fills the open trailing segment)
+}) => {
+  const { token } = useToken()
+
+  const markers = useMemo(() =>
+    entries.filter(e => e.type === 'layer').sort((a, b) => a.depth - b.depth),
+    [entries]
+  )
+
+  const maxDepth = Math.max(designDepth, drillDepth, layerDepth, 1)
+  const pct      = (d: number) => `${(d / maxDepth) * 100}%`
+
+  // Each marker means "markers[i].layer ENDED at markers[i].depth".
+  // So:
+  //   segment 0 → markers[0].depth        = markers[0].layer  (the layer that ended there)
+  //   segment markers[i].depth → markers[i+1].depth = markers[i+1].layer
+  //   segment markers[last].depth → layerDepth      = activeLayer  (still being drilled)
+  // When no markers: 0 → layerDepth = activeLayer
+
+  const segments: { from: number; to: number; layer: string }[] = []
+
+  if (markers.length === 0) {
+    if (layerDepth > 0) segments.push({ from: 0, to: layerDepth, layer: activeLayer })
+  } else {
+    // first: surface to first marker end
+    if (markers[0].depth > 0) {
+      segments.push({ from: 0, to: markers[0].depth, layer: markers[0].layer })
+    }
+    // middle: between consecutive markers — each gap is filled by the NEXT marker's layer
+    for (let i = 0; i < markers.length - 1; i++) {
+      const from = markers[i].depth
+      const to   = markers[i + 1].depth
+      if (to > from) segments.push({ from, to, layer: markers[i + 1].layer })
+    }
+    // trailing: last marker to layerDepth — filled by activeLayer (not yet ended)
+    const lastEnd = markers[markers.length - 1].depth
+    if (layerDepth > lastEnd) {
+      segments.push({ from: lastEnd, to: layerDepth, layer: activeLayer })
+    }
+  }
+
+  return (
+    <ProfileWrap $bg={token.colorBgContainer} $radius={token.borderRadiusLG}>
+
+      <DepthAxis $borderColor={token.colorBorderSecondary}>
+        {Array.from({ length: Math.ceil(maxDepth) + 1 }, (_, m) => (
+          <AxisTick key={m} $top={pct(m)} $color={token.colorTextSecondary}>
+            {m}m
+          </AxisTick>
+        ))}
+      </DepthAxis>
+
+      <CrossSection $bg={token.colorFillSecondary} $border={token.colorBorder}>
+
+        {segments.map((seg, idx) => {
+          const h    = seg.to - seg.from
+          const hPct = (h / maxDepth) * 100
+          const icon = layerIcon(seg.layer)
+          const name = seg.layer
+          return (
+            <Tooltip key={idx} title={`${name}: ${seg.from}м – ${seg.to}м`}>
+              <LayerSegment $top={pct(seg.from)} $height={pct(h)} $bg={layerColor(seg.layer)}>
+                {hPct > 4 && (
+                  <>
+                    <SegIcon>{icon}</SegIcon>
+                    <SegLabel>{name}</SegLabel>
+                  </>
                 )}
+              </LayerSegment>
+            </Tooltip>
+          )
+        })}
 
-                {/* Бүртгэгдсэн давхаргууд */}
-                {layerMarkers.map((marker, idx) => {
-                    const startDepth = marker.depth;
-                    const nextMarker = layerMarkers[idx + 1];
-                    const endDepth = nextMarker ? nextMarker.depth : Math.max(sliderDepth, startDepth);
-                    
-                    if (endDepth <= startDepth) return null;
+        <DrillPointer $top={pct(drillDepth)} $bg={token.colorError}>
+          <DrillLabel $bg={token.colorError}>{drillDepth}m</DrillLabel>
+        </DrillPointer>
 
-                    const topPct = (startDepth / maxViewDepth) * 100;
-                    const heightPct = ((endDepth - startDepth) / maxViewDepth) * 100;
-                    const preset = LAYER_PRESETS.find(p => p.label === marker.layer);
+      </CrossSection>
+    </ProfileWrap>
+  )
+}
 
-                    return (
-                        <Tooltip key={marker.id} title={`${marker.layer}: ${startDepth}м - ${endDepth}м`}>
-                            <div style={{
-                                position: 'absolute', 
-                                top: `${topPct}%`, 
-                                height: `${heightPct}%`, 
-                                width: '100%',
-                                background: preset?.color || '#bfbfbf', 
-                                borderBottom: '1px solid rgba(255,255,255,0.2)',
-                                display: 'flex', 
-                                flexDirection: 'column',
-                                alignItems: 'center', 
-                                justifyContent: 'center', 
-                                overflow: 'hidden',
-                                transition: 'all 0.3s ease',
-                                color: '#fff',
-                                textShadow: '0px 0px 4px rgba(0,0,0,0.5)'
-                            }}>
-                                {heightPct > 4 && (
-                                    <>
-                                        <span style={{ fontSize: '14px' }}>{preset?.icon}</span>
-                                        <span style={{ fontSize: '10px', fontWeight: '500', textAlign: 'center', padding: '0 4px' }}>
-                                            {marker.layer}
-                                        </span>
-                                    </>
-                                )}
-                            </div>
-                        </Tooltip>
-                    );
-                })}
+// ─── LogRow ───────────────────────────────────────────────────────────────────
 
-                {/* Одоогийн өрөмдөж буй заагч (Drill Pointer) */}
-                <div style={{
-                    position: 'absolute',
-                    top: `${(sliderDepth / maxViewDepth) * 100}%`,
-                    width: '100%',
-                    height: '2px',
-                    background: token.colorError,
-                    zIndex: 10,
-                    boxShadow: '0 0 8px rgba(255,0,0,0.5)',
-                    transition: 'top 0.2s ease'
-                }}>
-                    <div style={{
-                        position: 'absolute',
-                        right: 0,
-                        top: '-18px',
-                        background: token.colorError,
-                        color: 'white',
-                        fontSize: '10px',
-                        padding: '1px 4px',
-                        borderRadius: '2px'
-                    }}>
-                        {sliderDepth}m
-                    </div>
-                </div>
-            </div>
-        </div>
-    );
-};
+const LogRow = ({ e, onDelete }: { e: LogEntry, onDelete: () => void }) => {
+  const { token } = useToken()
+  return (
+    <LogRowWrap $borderColor={token.colorBorderSecondary}>
+      <Space size="small">
+        <LogTime type="secondary">{e.time}</LogTime>
+        <LogDepth strong>{e.depth.toFixed(1)}м</LogDepth>
+        <LogIcon>{layerIcon(e.layer)}</LogIcon>
+        <LogLayerName $color={layerColor(e.layer)}>{e.layer}</LogLayerName>
+      </Space>
+      <Button type="text" size="small" danger icon={<DeleteOutlined />} onClick={onDelete} />
+    </LogRowWrap>
+  )
+}
 
-// ─── Main Component ─────────────────────────────────────────────────────────
+// ─── StepSlider ───────────────────────────────────────────────────────────────
+
+const StepSlider = ({ value, onChange, max }: { value: number, onChange: (v: number) => void, max: number }) => (
+  <div>
+    <Slider min={0} max={Math.max(max, 25)} step={0.1} value={value} onChange={onChange} />
+    <Space size={4}>
+      {[0.1, 0.5, 1.0].map(s => (
+        <Button key={s} size="small" onClick={() => onChange(+(value + s).toFixed(1))}>+{s}м</Button>
+      ))}
+    </Space>
+  </div>
+)
+
+// ─── DrillSession ─────────────────────────────────────────────────────────────
 
 export default function DrillSession({
-    holeId = 'H-012',
-    designDepth = 15.0,
-    initialData = null,
-    onComplete = (data: any) => console.log("Hole Complete:", data)
+  holeId      = 'H-012',
+  designDepth = 15.0,
+  initialData = null,
+  onComplete  = (d: any) => console.log('Complete:', d),
 }: any) {
-    const { token } = useToken();
-    const [msgApi, contextHolder] = message.useMessage();
+  const { token }  = useToken()
+  const [msg, ctx] = message.useMessage()
 
-    const [state, setState] = useState<SessionState>(initialData ? 'done' : 'idle');
-    const [elapsedMs, setElapsedMs] = useState(initialData?.netDrillMs || 0);
-    const [totalPausedMs, setTotalPausedMs] = useState(initialData?.totalPausedMs || 0);
-    const [logEntries, setLogEntries] = useState<LogEntry[]>(initialData?.entries || []);
+  const [state, setState]             = useState<SessionState>(initialData ? 'done' : 'idle')
+  const [elapsedMs, setElapsedMs]     = useState(initialData?.netDrillMs ?? 0)
+  const [pausedMs, setPausedMs]       = useState(initialData?.totalPausedMs ?? 0)
+  const [entries, setEntries]         = useState<LogEntry[]>(initialData?.entries ?? [])
+  const [drillDepth, setDrillDepth]   = useState(initialData?.finalDepth ?? 0)
+  const [layerDepth, setLayerDepth]   = useState(initialData?.finalDepth ?? 0)
+  const [activeLayer, setActiveLayer]   = useState(DEFAULT_LAYER)
 
-    const [sliderDepth, setSliderDepth] = useState(initialData?.finalDepth || 0);
+  const timerRef      = useRef<any>(null)
+  const pauseTimerRef = useRef<any>(null)
+  const startTs       = useRef(0)
+  const pauseStartTs  = useRef(0)
+  const pauseBaseMs   = useRef(0)  // pausedMs value captured at moment of pausing
 
-    // Анхны утгыг "Хоосон чулуулаг" болгож тохируулсан
-    const [activeLayer, setActiveLayer] = useState<string>(DEFAULT_LAYER_LABEL);
+  const maxLogged = useMemo(() =>
+    entries.filter(e => e.type === 'depth').reduce((m, e) => Math.max(m, e.depth), 0),
+    [entries]
+  )
 
-    const timerRef = useRef<any>(null);
-    const startTs = useRef(0);
-    const pauseStartTs = useRef(0);
+  const fmt = (ms: number) => {
+    const s = Math.floor(ms / 1000)
+    return `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`
+  }
 
-    const maxLoggedDepth = useMemo(() =>
-        logEntries.length > 0 ? Math.max(...logEntries.map(e => e.depth)) : 0
-        , [logEntries]);
+  const startTimer = () => {
+    startTs.current  = Date.now() - elapsedMs
+    timerRef.current = setInterval(() => setElapsedMs(Date.now() - startTs.current), 1000)
+  }
+  const stopTimer      = () => clearInterval(timerRef.current)
+  const stopPauseTimer = () => clearInterval(pauseTimerRef.current)
+  useEffect(() => () => { stopTimer(); stopPauseTimer() }, [])
 
-    const formatTime = (ms: number) => {
-        const totalSeconds = Math.floor(ms / 1000);
-        const mins = Math.floor(totalSeconds / 60);
-        const secs = totalSeconds % 60;
-        return `${mins}:${secs.toString().padStart(2, '0')}`;
-    };
+  const handlePause = () => {
+    stopTimer()
+    pauseStartTs.current  = Date.now()
+    pauseBaseMs.current   = pausedMs
+    // tick pause time live so the display updates while paused
+    pauseTimerRef.current = setInterval(
+      () => setPausedMs(pauseBaseMs.current + (Date.now() - pauseStartTs.current)),
+      1000
+    )
+    setState('paused')
+  }
 
-    const startTimer = () => {
-        startTs.current = Date.now() - elapsedMs;
-        timerRef.current = setInterval(() => setElapsedMs(Date.now() - startTs.current), 1000);
-    };
+  const handleResume = () => {
+    stopPauseTimer()
+    setPausedMs(pauseBaseMs.current + (Date.now() - pauseStartTs.current))
+    setState('drilling')
+    startTimer()
+  }
 
-    const stopTimer = () => clearInterval(timerRef.current);
+  const handleComplete = () => {
+    stopTimer()
+    stopPauseTimer()
+    const finalPaused = state === 'paused'
+      ? pauseBaseMs.current + (Date.now() - pauseStartTs.current)
+      : pausedMs
+    setState('done')
+    onComplete({ holeId, finalDepth: Math.max(maxLogged, drillDepth), netDrillMs: elapsedMs, totalPausedMs: finalPaused, entries, completedAt: new Date().toISOString() })
+    msg.success('Цооногийн мэдээлэл хадгалагдлаа.')
+  }
 
-    useEffect(() => {
-        return () => stopTimer();
-    }, []);
+  const addEntry = (type: 'depth' | 'layer', depth: number) => {
+    if (type === 'depth' && depth <= maxLogged) {
+      msg.error(`Гүн ${maxLogged}м-ээс их байх ёстой!`)
+      return
+    }
+    setEntries(prev => [...prev, {
+      id: Math.random().toString(36).slice(2, 9),
+      type, depth, elapsedMs,
+      layer: type === 'layer' ? activeLayer : '',
+      time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+    }])
+    msg.success(`${type === 'layer' ? 'Үе өөрчлөгдлөө' : 'Гүн бүртгэгдлээ'}: ${depth}м`)
+  }
 
-    const handlePause = () => {
-        stopTimer();
-        pauseStartTs.current = Date.now();
-        setState('paused');
-    };
+  const handleContinue = () => {
+    startTs.current = Date.now() - elapsedMs  // resume timer from where it stopped
+    setState('drilling')
+    startTimer()
+    msg.info('Өрөмдлөгийг үргэлжлүүллээ.')
+  }
 
-    const handleResume = () => {
-        const pauseDuration = Date.now() - pauseStartTs.current;
-        setTotalPausedMs((prev: any) => prev + pauseDuration);
-        setState('drilling');
-        startTimer();
-    };
+  const removeEntry = (id: string) => setEntries(prev => prev.filter(e => e.id !== id))
 
-    const handleCompleteHole = () => {
-        let finalPausedMs = totalPausedMs;
-        if (state === 'paused') {
-            finalPausedMs += (Date.now() - pauseStartTs.current);
-        }
+  const depthEntries = entries.filter(e => e.type === 'depth')
+  const layerEntries = entries.filter(e => e.type === 'layer')
 
-        stopTimer();
-        setState('done');
+  return (
+    <PageWrap $bg={token.colorBgLayout}>
+      {ctx}
+      <Row gutter={24}>
+        <Col span={18}>
 
-        if (onComplete) {
-            onComplete({
-                holeId,
-                finalDepth: Math.max(maxLoggedDepth, sliderDepth),
-                netDrillMs: elapsedMs,
-                totalPausedMs: finalPausedMs,
-                entries: logEntries,
-                completedAt: new Date().toISOString()
-            });
-            msgApi.success("Цооногийн мэдээлэл хадгалагдлаа.");
-        }
-    };
+          {/* Header */}
+          <CardSpacer>
+            <Card>
+              <Row justify="space-between" align="middle">
+                <Space direction="vertical" size={0}>
+                  <Title level={4} style={{ margin: 0 }}>Цооног: {holeId}</Title>
+                  <Text type="secondary">Зорилтот гүн: {designDepth}м</Text>
+                </Space>
+                <Space direction="vertical" align="center">
+                  <TimerTitle level={2}>{fmt(elapsedMs)}</TimerTitle>
+                  <PauseLabel type="danger">ЗОГСОЛТ: {fmt(pausedMs)}</PauseLabel>
+                </Space>
+                <Space>
+                  {state === 'idle'     && <Button type="primary" size="large" icon={<CaretRightOutlined />} onClick={() => { setState('drilling'); startTimer() }}>Өрөмдөж эхлэх</Button>}
+                  {state === 'drilling' && <Button danger size="large" icon={<PauseOutlined />} onClick={handlePause}>Түр зогсоох</Button>}
+                  {state === 'paused'   && <Button type="primary" size="large" icon={<CaretRightOutlined />} onClick={handleResume}>Үргэлжлүүлэх</Button>}
+                  {state === 'done'
+                    ? <Button size="large" icon={<CaretRightOutlined />} onClick={handleContinue}>Үргэлжлүүлэн өрөмдөх</Button>
+                    : (
+                      <Popconfirm title="Дуусгах уу?" onConfirm={handleComplete} okText="Тийм" cancelText="Үгүй">
+                        <Button type="primary" size="large">Дуусгах</Button>
+                      </Popconfirm>
+                    )
+                  }
+                </Space>
+              </Row>
+            </Card>
+          </CardSpacer>
 
-    const addLog = (type: 'depth' | 'layer', targetDepth: number) => {
-        if (type === 'depth' && targetDepth <= maxLoggedDepth) {
-            msgApi.error(`Гүн ${maxLoggedDepth}м-ээс их байх ёстой!`);
-            return;
-        }
+          {/* Depth logging */}
+          <CardSpacer>
+            <Card
+              size="small"
+              title="Өрөмдлөгийн явц"
+              extra={
+                <Text type="secondary" style={{ fontSize: 11 }}>
+                  Одоогийн гүн: <Text strong style={{ fontFamily: 'monospace' }}>{drillDepth}м</Text>
+                </Text>
+              }
+            >
+              <StepSlider value={drillDepth} onChange={setDrillDepth} max={designDepth} />
+              <DepthCardFooter>
+                {drillDepth <= maxLogged
+                  ? <Text type="danger" style={{ fontSize: 11 }}>{maxLogged}м-ээс их байх ёстой</Text>
+                  : <span />
+                }
+                <Button
+                  type="primary" icon={<ThunderboltOutlined />}
+                  onClick={() => addEntry('depth', drillDepth)}
+                  disabled={state !== 'drilling' && state !== 'paused'}
+                >
+                  Гүн бүртгэх: {drillDepth}м
+                </Button>
+              </DepthCardFooter>
+            </Card>
+          </CardSpacer>
 
-        const newEntry: LogEntry = {
-            id: Math.random().toString(36).substr(2, 9),
-            type,
-            time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-            elapsedMs,
-            depth: targetDepth,
-            layer: activeLayer // default: Хоосон чулуулаг
-        };
-
-        setLogEntries(prev => [...prev, newEntry]);
-        msgApi.success(`${type === 'layer' ? 'Үе өөрчлөгдлөө' : 'Гүн бүртгэгдлээ'}: ${targetDepth}м`);
-    };
-
-    return (
-        <div style={{ padding: '24px', background: token.colorBgLayout, minHeight: '100vh' }}>
-            {contextHolder}
-            <Row gutter={24}>
-                <Col span={16}>
-                    <Card style={{ marginBottom: 16 }}>
-                        <Row justify="space-between" align="middle">
-                            <Space direction="vertical" size={0}>
-                                <Title level={4} style={{ margin: 0 }}>Цооног: {holeId}</Title>
-                                <Text type="secondary">Зорилтот гүн: {designDepth}м</Text>
-                            </Space>
-
-                            <Space direction="vertical" align="center">
-                                <Title level={2} style={{ margin: 0, fontFamily: 'monospace' }}>
-                                    {formatTime(elapsedMs)}
-                                </Title>
-                                <Text type="danger" style={{ fontSize: '11px', fontWeight: 'bold' }}>
-                                    ЗОГСОЛТ: {formatTime(totalPausedMs)}
-                                </Text>
-                            </Space>
-
-                            <Space>
-                                {state === 'idle' && <Button type="primary" size="large" icon={<CaretRightOutlined />} onClick={() => { setState('drilling'); startTimer(); }}>Өрөмдөж эхлэх</Button>}
-                                {state === 'drilling' && <Button danger size="large" icon={<PauseOutlined />} onClick={handlePause}>Түр зогсоох</Button>}
-                                {state === 'paused' && <Button type="primary" size="large" icon={<CaretRightOutlined />} onClick={handleResume}>Үргэлжлүүлэх</Button>}
-
-                                <Popconfirm
-                                    title="Дуусгах уу?"
-                                    onConfirm={handleCompleteHole}
-                                    okText="Тийм"
-                                    cancelText="Үгүй"
-                                >
-                                    <Button type="primary" size="large" disabled={state === 'done'}>Дуусгах</Button>
-                                </Popconfirm>
-                            </Space>
-                        </Row>
-                    </Card>
-
-                    <Card title="Хөрсний үе давхарга" size="small" style={{ marginBottom: 16 }}>
-                        <Row gutter={[8, 8]} style={{ marginBottom: 16 }}>
-                            {LAYER_PRESETS.map(l => (
-                                <Col span={6} key={l.name}>
-                                    <Button
-                                        block size="small"
-                                        type={activeLayer === l.label ? 'primary' : 'default'}
-                                        onClick={() => setActiveLayer(l.label)}
-                                    >
-                                        {l.icon} {l.label}
-                                    </Button>
-                                </Col>
-                            ))}
-                        </Row>
-                        <Row gutter={12} align="bottom">
-                            <Col span={12}>
-                                <Text type="secondary" style={{ fontSize: '11px' }}>ҮЕ ӨӨРЧЛӨГДСӨН ГҮН (м)</Text>
-                                <InputNumber
-                                    style={{ width: '100%' }}
-                                    value={sliderDepth}
-                                    onChange={v => setSliderDepth(v || 0)}
-                                    step={0.1}
-                                />
-                            </Col>
-                            <Col span={12}>
-                                <Button
-                                    block type="primary" ghost icon={<HistoryOutlined />}
-                                    onClick={() => addLog('layer', sliderDepth)}
-                                >
-                                    Давхаргыг бүртгэх
-                                </Button>
-                            </Col>
-                        </Row>
-                    </Card>
-
-                    <Card title="Өрөмдлөгийн явц" size="small" style={{ marginBottom: 16 }}>
-                        <Slider min={0} max={Math.max(designDepth, 25)} step={0.1} value={sliderDepth} onChange={setSliderDepth} />
-                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                            <Space>
-                                <Button onClick={() => setSliderDepth((prev: any) => +(prev + 0.1).toFixed(1))}>+0.1м</Button>
-                                <Button onClick={() => setSliderDepth((prev: any) => +(prev + 0.5).toFixed(1))}>+0.5м</Button>
-                                <Button onClick={() => setSliderDepth((prev: any) => +(prev + 1.0).toFixed(1))}>+1.0м</Button>
-                            </Space>
-                            <div style={{ textAlign: 'right' }}>
-                                <div style={{ fontSize: '10px', color: token.colorError, marginBottom: '4px', visibility: sliderDepth <= maxLoggedDepth ? 'visible' : 'hidden' }}>
-                                    {maxLoggedDepth}м-ээс их байх ёстой
-                                </div>
-                                <Button
-                                    type="primary"
-                                    size="large"
-                                    icon={<ThunderboltOutlined />}
-                                    onClick={() => addLog('depth', sliderDepth)}
-                                    disabled={state !== 'drilling' || sliderDepth <= maxLoggedDepth}
-                                >
-                                    Гүн бүртгэх: {sliderDepth}м
-                                </Button>
-                            </div>
-                        </div>
-                    </Card>
-
-                    <Card title="Түүх" size="small">
-                        <div style={{ maxHeight: '200px', overflowY: 'auto' }}>
-                            {logEntries.slice().reverse().map(e => (
-                                <div key={e.id} style={{ display: 'flex', justifyContent: 'space-between', padding: '8px 0', borderBottom: `1px solid ${token.colorBorderSecondary}` }}>
-                                    <Space size="middle">
-                                        <Text type="secondary" style={{ width: '60px' }}>{e.time}</Text>
-                                        <Tag color={e.type === 'layer' ? 'orange' : 'blue'}>{e.type === 'layer' ? 'ҮЕ' : 'ГҮН'}</Tag>
-                                        <Text strong>{e.depth.toFixed(1)}м</Text>
-                                        <Text>{e.layer}</Text>
-                                    </Space>
-                                    <Button type="text" size="small" danger icon={<DeleteOutlined />} onClick={() => setLogEntries(prev => prev.filter(i => i.id !== e.id))} />
-                                </div>
-                            ))}
-                        </div>
-                    </Card>
+          {/* Layer logging */}
+          <CardSpacer>
+            <Card
+              size="small"
+              title={
+                <Space>
+                  Хөрсний үе давхарга
+                  <Tag color="orange">{layerIcon(activeLayer)} {activeLayer}</Tag>
+                </Space>
+              }
+            >
+              <Row gutter={[8, 8]} style={{ marginBottom: 12 }}>
+                {LAYERS.map(l => (
+                  <Col span={6} key={l.name}>
+                    <Button
+                      block size="small"
+                      type={activeLayer === l.name ? 'primary' : 'default'}
+                      onClick={() => setActiveLayer(l.name)}
+                    >
+                      {l.icon} {l.name}
+                    </Button>
+                  </Col>
+                ))}
+              </Row>
+              <StepSlider value={layerDepth} onChange={setLayerDepth} max={designDepth} />
+              <Row gutter={12} align="middle" style={{ marginTop: 8 }}>
+                <Col span={12}>
+                  <Text type="secondary" style={{ fontSize: 11, display: 'block', marginBottom: 4 }}>ҮЕ ӨӨРЧЛӨГДСӨН ГҮН (м)</Text>
+                  <InputNumber style={{ width: '100%' }} value={layerDepth} onChange={v => setLayerDepth(v ?? 0)} step={0.1} />
                 </Col>
+                <LayerBtnCol span={12}>
+                  <Button block type="primary" ghost icon={<HistoryOutlined />} onClick={() => addEntry('layer', layerDepth)}>
+                    Давхаргыг бүртгэх
+                  </Button>
+                </LayerBtnCol>
+              </Row>
+            </Card>
+          </CardSpacer>
 
-                <Col span={8}>
-                    <Card title="Цооногийн зүсэлт">
-                        <HoleProfile entries={logEntries} designDepth={designDepth} sliderDepth={sliderDepth} />
-                        <div style={{ marginTop: 16, textAlign: 'center' }}>
-                            <Progress percent={Math.round((sliderDepth / designDepth) * 100)} status={state === 'drilling' ? 'active' : 'normal'} />
-                            <Text strong>Одоогийн гүн: {sliderDepth}м</Text>
-                        </div>
-                    </Card>
-                </Col>
-            </Row>
-        </div>
-    );
+          {/* Log cards */}
+          <Row gutter={12}>
+            <Col span={12}>
+              <Card size="small" title={<Space><Tag color="blue">ГҮН</Tag>Гүний бүртгэл</Space>}>
+                <LogScroll>
+                  {depthEntries.length === 0
+                    ? <Text type="secondary" style={{ fontSize: 12 }}>Гүн бүртгэгдээгүй байна</Text>
+                    : depthEntries.slice().reverse().map(e => <LogRow key={e.id} e={e} onDelete={() => removeEntry(e.id)} />)
+                  }
+                </LogScroll>
+              </Card>
+            </Col>
+            <Col span={12}>
+              <Card size="small" title={<Space><Tag color="orange">ҮЕ</Tag>Давхаргын өөрчлөлт</Space>}>
+                <LogScroll>
+                  {layerEntries.length === 0
+                    ? <Text type="secondary" style={{ fontSize: 12 }}>Давхарга бүртгэгдээгүй байна</Text>
+                    : layerEntries.slice().reverse().map(e => <LogRow key={e.id} e={e} onDelete={() => removeEntry(e.id)} />)
+                  }
+                </LogScroll>
+              </Card>
+            </Col>
+          </Row>
+
+        </Col>
+
+        {/* Hole profile */}
+        <Col span={6}>
+          <Card title="Цооногийн зүсэлт">
+            <HoleProfile
+              entries={entries}
+              designDepth={designDepth}
+              drillDepth={drillDepth}
+              layerDepth={layerDepth}
+              activeLayer={activeLayer}
+            />
+          </Card>
+        </Col>
+      </Row>
+    </PageWrap>
+  )
 }

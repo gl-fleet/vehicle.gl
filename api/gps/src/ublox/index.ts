@@ -33,6 +33,14 @@ const simulation_testing = (me: any, publish: any, GPS: any) => {
 
     }, 'Simulate')
 
+
+    me === 'D65i' && Safe(() => {
+
+        const remote = new Connection({ name: 'data', proxy: 'https://d65-gantulgak.as2.pitunnel.com', rejectUnauthorized: false })
+        remote.on('stream', Simulationhandler)
+
+    }, 'Simulate')
+
 }
 
 const offline_testing = (gps = 1, cb: any) => {
@@ -175,8 +183,6 @@ export const start_ublox = (module: string) => {
                 log.success(`GPS(1): ${gps1.fix} ${gps1.est} ${gps1.nrt} ${gps1.ele}:${gps1.alt} ${gps1.vac} ${gps1.hac}`)
                 log.success(`GPS(2): ${gps2.fix} ${gps2.est} ${gps2.nrt} ${gps2.ele}:${gps2.alt} ${gps2.vac} ${gps2.hac}`)
             }
-
-            Process.add(gps1)
 
             const calculated = Calculate.calculate(GPS)
             if (calculated && gps1.vac <= VAC && gps2.vac <= VAC) publish('data_gps', calculated)

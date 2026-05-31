@@ -15,7 +15,8 @@ const cfg: iArgs = {
     isDarkMode: true,
     proxy: Win.location.origin,
     env: Win.env,
-    api: new Connection({ /* proxy: 'https://hdm036-gantulgak.as2.pitunnel.com' */ name: 'data', timeout: 60 * 1000 }),
+    api: new Connection({ name: 'data', timeout: 60 * 1000 }),
+    cloud: undefined // mode === "development" ? new Connection({ name: 'data', proxy: 'https://d65-gantulgak.as2.pitunnel.com', timeout: 60 * 1000 }) : undefined,
 }
 
 cfg.api.on('stream', (args: any) => {

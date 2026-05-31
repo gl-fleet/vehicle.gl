@@ -160,16 +160,17 @@ const PlanDigView = (cfg: iArgs) => {
 
 /*** *** *** @___MIDDLE_PLAN_SHOT_VIEW___ *** *** ***/
 
-const PlanShotView = (cfg: iArgs) => {
+export const PlanShotView = (cfg: iArgs & { cid?: string }) => {
 
     const [_, setStatus] = useState({ x: '', y: '', el: '*', di: 0 })
     const [ray, setRay] = useState({ d2: 0, d3: 0, dir: '*' })
     const ref: any = useRef()
+    const cid = `center-view-${cfg.cid ?? `2`}`
 
     useEffect(() => {
 
         ref.current = new ThreeView({
-            containerId: 'center-view-2',
+            containerId: cid,
             isDarkMode: cfg.isDarkMode,
             simulate: true,
             axesHelper: true,
@@ -242,7 +243,7 @@ const PlanShotView = (cfg: iArgs) => {
 
     return <Layout id="center-view-0" style={{ width: '100%', height: '100%' }}>
 
-        <Layout id="center-view-2" style={{ width: '100%', height: '100%', background: 'orange' }}></Layout>
+        <Layout id={cid} style={{ width: '100%', height: '100%', background: 'orange' }}></Layout>
 
         {Number(_.di) >= 5 ? <Row gutter={16} style={{ position: 'absolute', width: '100%', padding: 16, fontWeight: 800, overflow: 'hidden' }}>
 
@@ -266,7 +267,6 @@ const PlanShotView = (cfg: iArgs) => {
         </>}
 
     </Layout>
-
 
 
 }

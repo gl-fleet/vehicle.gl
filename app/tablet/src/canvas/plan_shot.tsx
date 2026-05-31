@@ -1,10 +1,11 @@
 import type { MapView } from 'uweb/maptalks'
 import type { ThreeView } from 'uweb/three'
-
-import { React, Button, Drawer, Row, Col, Tabs, message } from 'uweb'
+import { colorize, ColorG2R } from 'uweb/utils'
+import { React, Button, Drawer, Row, Col, Tabs, Card, Select, Space, message } from 'uweb'
 import { Safe, Delay } from 'utils/web'
 
 import DrillSession from '../comps/drill'
+
 import { Clynder } from '../helper/clynder'
 import { CSV_GeoJson_Parser } from '../helper/parsers'
 
@@ -35,8 +36,6 @@ const ShotPoller = ({ api, body, name, hid }: any) => {
 
     if (init === false) return 'Loading...'
 
-    console.log(name, hid, init)
-
     return <DrillSession
         initialData={init}
         {...body}
@@ -52,6 +51,9 @@ export const HelperShot = (cfg: iArgs & { half: boolean }) => {
 
     const [msgApi, contextHolder] = message.useMessage()
     const [open, setOpen] = useState(false)
+    const [title, setTitle]: any = useState(`-`)
+    const [subTitle, setSubTitle]: any = useState(`-`)
+    const [selectItems, setSelectItems] = useState([])
     const [shot, setShot] = useState('')
     const [shots, setShots] = useState([])
 
@@ -67,6 +69,17 @@ export const HelperShot = (cfg: iArgs & { half: boolean }) => {
             else {
 
                 const { name, rows } = arg
+
+                setTitle(`${name} ( ${rows.length} )`)
+
+                setSelectItems(rows.map(([hid, east, north, elev, depth]: any) => {
+
+                    return {
+                        value: hid,
+                        label: <span>{hid}</span>
+                    }
+
+                }))
 
                 setShots(rows.map(([hid, east, north, elev, depth]: any) => {
 
@@ -93,6 +106,10 @@ export const HelperShot = (cfg: iArgs & { half: boolean }) => {
 
         event.on('shot_plan_status', (e: any) => Safe(() => {
 
+            const d3c = ColorG2R(Number(e.d3), [0.10, 0.25, 0.50, 1, 5])
+            const d2c = ColorG2R(Number(e.d2), [0.10, 0.25, 0.50, 1, 5])
+            setSubTitle(<span><b>{e.n}</b> ( <b style={{ color: d3c }}>3D: {(e.d3).toFixed(2)}m</b> <b style={{ color: d2c }}>2D: {(e.d2).toFixed(2)}m</b> )</span>)
+
             setShot((c) => {
 
                 if (c === '') {
@@ -106,11 +123,11 @@ export const HelperShot = (cfg: iArgs & { half: boolean }) => {
 
                         asked[e.n] += 1
                         if (asked[e.n] === 20) {
-                            Delay(() => { setShot(e.n) }, 15 * 1000)
+                            Delay(() => { setShot(e.n) }, 60 * 1000)
                             msgApi.open({
                                 type: 'success',
-                                content: `Automatic selection of ${e.n} in 10 seconds.`,
-                                duration: 15,
+                                content: `Automatic selection of ${e.n} in 60 seconds.`,
+                                duration: 60,
                             })
                         }
 
@@ -139,14 +156,24 @@ export const HelperShot = (cfg: iArgs & { half: boolean }) => {
     return <>
         {contextHolder}
         <Drawer
-            title={null}
+            title={<>{title} / {subTitle}</>}
             closable={{ 'aria-label': 'Close Button' }}
             onClose={() => { setOpen(false) }}
+            extra={
+                <Space>
+                    <Select
+                        style={{ minWidth: 240 }}
+                        onChange={(k) => setShot(k)}
+                        value={shot}
+                        options={selectItems}
+                    />
+                    <Button onClick={() => setOpen(false)}>Cancel</Button>
+                </Space>
+            }
             open={open}
             placement='bottom'
-            height="50vh"
+            height="100vh"
             styles={{
-                header: { display: 'none' },
                 body: { padding: 0 },
                 mask: { backgroundColor: 'transparent' },
             }}
@@ -158,6 +185,24 @@ export const HelperShot = (cfg: iArgs & { half: boolean }) => {
                 tabPosition={'top'}
                 items={shots}
             />
+            {/* <Row>
+                <Col span={20}>
+                    <Tabs
+                        centered={true}
+                        activeKey={shot}
+                        onChange={(k) => setShot(k)}
+                        tabPosition={'top'}
+                        items={shots}
+                    />
+                </Col>
+                <Col span={24}>
+                    <Card style={{ marginBottom: 16 }}>
+                        <div style={{ position: 'relative', width: 320, height: 240 }}>
+                            <PlanShotView {...cfg} cid={'inside-drawer'} />
+                        </div>
+                    </Card>
+                </Col>
+            </Row> */}
         </Drawer>
     </>
 
@@ -170,7 +215,7 @@ export class PlanShot {
 
     constructor(Maptalks: MapView, Three: ThreeView, cfg: iArgs) {
 
-        const { api, event } = cfg
+        const { api, cloud, event } = cfg
 
         const clynder = new Clynder({ Maptalks, Three })
         const type = 'plan_shot'
@@ -188,9 +233,9 @@ export class PlanShot {
 
         event.on('csv-geojson', (name) => {
 
-            event.emit('alert', { key: type, message: `[CSV] "${name}" is loading ...` })
+            event.emit('alert', { key: type, message: `[CSV] "${name}" is loading ...` });
 
-            api.pull('get-chunks-merged', { name }, (err: any, data: any) => {
+            (cloud ?? api).pull('get-chunks-merged', { name }, (err: any, data: any) => {
 
                 try {
 

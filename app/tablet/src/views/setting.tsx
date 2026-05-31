@@ -4,13 +4,13 @@ import { FolderOutlined, ReloadOutlined } from '@ant-design/icons'
 const { useEffect, useState } = React
 const { Title, Text } = Typography
 
-export default ({ api, event }: iArgs) => {
+export default ({ api, cloud, event }: iArgs) => {
 
     const [list, setList] = useState({ loading: false, data: [] })
 
     const fileList = () => setList(() => {
 
-        api.poll('get-chunks-distinct', {}, (e: any, data: []) => {
+        (cloud ?? api).poll('get-chunks-distinct', {}, (e: any, data: []) => {
 
             setList({ loading: false, data: data ?? [] })
 

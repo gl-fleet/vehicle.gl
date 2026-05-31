@@ -43,6 +43,7 @@ sudo cat > /etc/ppp/peers/rnet << EOL
 connect "/usr/sbin/chat -v -f /etc/chatscripts/gprs -T net"
 /dev/ttyS0
 460800
+noipv6
 noipdefault
 usepeerdns
 defaultroute
@@ -73,9 +74,6 @@ ABORT           "DELAYED"
 ABORT           "ERROR"
 ABORT           "+CGATT: 0"
 ""              AT
-""              AT+CSQ
-""              AT+COPS?
-""              AT+CPSI?
 TIMEOUT         12
 OK              ATH
 OK              ATE1
@@ -83,6 +81,15 @@ OK              AT+CGDCONT=1,"IP","\T","",0,0
 OK              ATD*99#
 TIMEOUT         22
 CONNECT         ""
+EOL
+
+echo "Setting up [NetworkManager.PPP]"
+sleep 2
+
+sudo touch /etc/NetworkManager/conf.d/unmanaged-ppp.conf
+sudo cat > /etc/NetworkManager/conf.d/unmanaged-ppp.conf << EOL
+[keyfile]
+unmanaged-devices=interface-name:ppp*
 EOL
 
 echo "Setting up [Interfaces]"

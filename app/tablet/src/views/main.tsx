@@ -2,7 +2,7 @@ import { React, Row, Col } from 'uweb'
 import { THREE, ThreeView } from 'uweb/three'
 import type { MapView } from 'uweb/maptalks'
 import { Point, Vehicle } from 'uweb/utils'
-import { Loop, Safe } from 'utils/web'
+import { Loop, Safe, Win } from 'utils/web'
 
 import { camera_angle } from '../helper/camera'
 import { useWebcam } from '../helper/capture'
@@ -65,19 +65,6 @@ export default (cfg: iArgs) => {
             const right = rv.can
             const vehicle = new Vehicles(left, right)
 
-
-            /* setInterval(() => {
-
-                setHalf(h => {
-                    event.emit('alert', { key: 'open-drawer', type: !h ? 'success' : 'info' })
-                    return !h
-                })
-                setTimeout(() => {
-                    rv.resize()
-                })
-
-            }, 5000) */
-
             vehicle.on((name) => name === 'ready' && Safe(() => {
 
                 vehicle.can && listen(left, right, vehicle.can) /** Update Maps and Vehicle **/
@@ -100,7 +87,7 @@ export default (cfg: iArgs) => {
                 if (ename === 'position-map') {
 
                     const { T, R, G, A, B, C, shapes, camera } = data
-                    const { lines, points } = shapes
+                    const { lines, points, colored } = shapes
 
                     itrc.is_left_ok() && left.map.setCenter([G[1], G[0], 0])
                     itrc.is_right_ok() && right.update(camera_angle({ ...camera, A }, true), data.A)
@@ -109,7 +96,8 @@ export default (cfg: iArgs) => {
                     right.arroHelper.direction(A[0], A[1], A[2])
 
                     /** Drawing points **/
-                    for (let i = 0; i < points.length; i++) point.update(`p_${i}`, 'blue', points[i])
+                    if (colored) for (const clr in colored) for (let i = 0; i < colored[clr].length; i++) point.update(`${clr}_${i}`, clr, points[i])
+                    else for (let i = 0; i < points.length; i++) point.update(`p_${i}`, 'blue', points[i])
 
                     /** Drawing lines **/
                     for (let i = 0; i < lines.length; i++) {
@@ -151,8 +139,8 @@ export default (cfg: iArgs) => {
 
     return <Row id="main" style={{ height: '100%' }}>
 
-        <Col id='left' span={12} style={{ height: half ? '50%' : '100%' }} />
-        <Col id='right' span={12} style={{ height: half ? '50%' : '100%' }} />
+        <Col id='left' span={12} style={{ height: half ? '100%' : '100%' }} />
+        <Col id='right' span={12} style={{ height: half ? '100%' : '100%' }} />
 
         <Connection {...cfg} />
         <BotLeft {...cfg} />

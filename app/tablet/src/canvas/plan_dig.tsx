@@ -12,7 +12,7 @@ export class PlanDig {
 
     constructor(Maptalks: MapView, Three: ThreeView, cfg: iArgs) {
 
-        const { api, event } = cfg
+        const { api, cloud, event } = cfg
 
         const Polygon = new Triangle({ Maptalks, Three })
         const Lines = new LineString({ Maptalks, Three })
@@ -36,9 +36,9 @@ export class PlanDig {
 
         event.on('dxf-geojson', (name) => {
 
-            event.emit('alert', { key: type, message: `[DXF] "${name}" is loading ...` })
+            event.emit('alert', { key: type, message: `[DXF] "${name}" is loading ...` });
 
-            api.pull('get-chunks-merged', { name }, (err: any, data: any) => {
+            (cloud ?? api).pull('get-chunks-merged', { name }, (err: any, data: any) => {
 
                 try {
 

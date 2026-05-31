@@ -104,6 +104,10 @@ export class Calculus {
                         [A.x, A.y, A.z], [B.x, B.y, B.z],
                         [M.x, M.y, M.z], [MP.x, MP.y, Z]
                     ],
+                    colored: {
+                        'green': [[A.x, A.y, A.z], [B.x, B.y, B.z]],
+                        'red': [[M.x, M.y, M.z], [MP.x, MP.y, Z]],
+                    },
                     lines: [
                         [[A.x, A.y, A.z], [B.x, B.y, B.z]],
                         [[M.x, M.y, M.z], [BM.x, BM.y, BM.z]],

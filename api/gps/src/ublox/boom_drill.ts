@@ -219,10 +219,18 @@ export class Calculus {
 
     constructor(config: any) {
 
-        const { offset, type } = config
+        const { gps1, gps2, type, offset, host } = config
+
         for (let i = 0; i < offset.length; i++) offset[i] = Number(offset[i])
         const [Ri, Fr, Do, BRi, C1, C2, C3, C4] = offset
-        this.cfg = { Ri, Fr, Do, BRi, C1, C2, C3, C4, type, i: 0 }
+        this.cfg = {
+            Ri, Fr, Do, BRi, C1, C2, C3, C4, i: 0,
+            type: type ?? [],
+            left: Number(gps1[2]),
+            right: Number(gps2[2]),
+            host: host[0],
+            port: Number(host[1]),
+        }
         console.log(this.cfg)
 
     }
@@ -269,16 +277,28 @@ export class Calculus {
             return {
                 T: this.cfg.type[0],
                 R: heading,
-                G: [lng, lat, out.Target[2]],
+                G: [lat, lng, out.Target[2]],
                 A: [out.Target[0], out.Target[1], out.Target[2]],
                 B: [out.G2[0], out.G2[1], out.G2[2]],
                 C: [out.Bit[0], out.Bit[1], out.Bit[2]],
+                status: {
+                    dist_tar: Number((distance * 100).toFixed(2)),
+                    dist_act: Number((distance * 100).toFixed(2)),
+                    zoneNumber,
+                    zoneLetter,
+                    rtcm: `${this.cfg.host}:${this.cfg.port}`,
+                },
                 shapes: {
                     points: [
                         out.G1, out.G2, out.G3,
                         out.P0, out.P1, out.P2, out.P3, out.P4, out.P5, out.P6,
                         out.Bit, out.Target
                     ],
+                    colored: {
+                        'green': [out.G1, out.G2, out.G3],
+                        'red': [out.P0, out.P1, out.P2, out.P3, out.P4, out.P5, out.P6],
+                        'blue': [out.Bit, out.Target],
+                    },
                     lines: [
                         [out.P0, out.P2],
                         [out.G3, out.P5],
@@ -293,6 +313,39 @@ export class Calculus {
                     BL: this.cn(out.P0), BM: this.mid(out.P0, out.P2), BR: this.cn(out.P2),
                 }
             }
+
+            /* return {
+                T: this.config.type[0],
+                R: _z,
+                G: [LL_TM.lat, LL_TM.lng, Z],
+                A: [MP.x, MP.y, Z],
+                B: [TM.x, TM.y, TM.z],
+                C: [BP.x, BP.y, BP.z],
+                status: {
+                    dist_tar: this.config.distance ?? 0,
+                    dist_act: Number((this.distance3D(A, B) * 100).toFixed(2)),
+                    zoneNumber,
+                    zoneLetter,
+                    rtcm: `${this.config.host}:${this.config.port}`,
+                },
+                shapes: {
+                    points: [
+                        [A.x, A.y, A.z], [B.x, B.y, B.z],
+                        [M.x, M.y, M.z], [MP.x, MP.y, Z]
+                    ],
+                    lines: [
+                        [[A.x, A.y, A.z], [B.x, B.y, B.z]],
+                        [[M.x, M.y, M.z], [BM.x, BM.y, BM.z]],
+                        [[BM.x, BM.y, BM.z], [TM.x, TM.y, TM.z]],
+                        [[TM.x, TM.y, TM.z], [MP.x, MP.y, MP.z]],
+                        [[MP.x, MP.y, MP.z], [MP.x, MP.y, Z]],
+                    ]
+                },
+                camera: {
+                    TL, TM, TR,
+                    BL, BM, BR,
+                }
+            } */
 
         } catch (err: any) {
 
