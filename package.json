@@ -1,10 +1,11 @@
 {
   "name": "org",
-  "version": "0.1.35",
+  "version": "0.1.36",
   "license": "MIT",
   "private": true,
   "scripts": {
     "start": "pm2 list && MODE=development nx run-many -t _serve",
+    "reload": "yarn nx run-many -t clear --projects=$PROJECT && yarn nx run-many -t build --projects=$PROJECT && yarn nx run-many -t _serve --projects=$PROJECT",
     "serve": "MODE=production nx run-many -t _serve",
     "build": "nx run-many -t build",
     "clear": "nx run-many -t clear",

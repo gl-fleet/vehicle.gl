@@ -232,8 +232,6 @@ export class Event {
         const { T, R, G, A, B, C, status, shapes, camera } = e
         const local = { T, R, G, A, B, C, status, shapes, camera }
 
-        console.log(e)
-
         let cloud = {
             prec3d: f((Math.abs(status.dist_tar - status.dist_act)), 1),
             prec2d: f((Math.abs(status.dist_tar - status.dist_act)), 1),

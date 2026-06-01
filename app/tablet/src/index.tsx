@@ -16,7 +16,9 @@ const cfg: iArgs = {
     proxy: Win.location.origin,
     env: Win.env,
     api: new Connection({ name: 'data', timeout: 60 * 1000 }),
-    cloud: undefined // mode === "development" ? new Connection({ name: 'data', proxy: 'https://d65-gantulgak.as2.pitunnel.com', timeout: 60 * 1000 }) : undefined,
+    cloud: undefined,
+    // cloud: mode === "development" ? new Connection({ name: 'data', proxy: 'https://hdm036-gantulgak.as2.pitunnel.com', timeout: 60 * 1000 }) : undefined,
+    // cloud: mode === "development" ? new Connection({ name: 'data', proxy: 'https://d65-gantulgak.as2.pitunnel.com', timeout: 60 * 1000 }) : undefined,
 }
 
 cfg.api.on('stream', (args: any) => {
