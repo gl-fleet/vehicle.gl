@@ -1,7 +1,7 @@
 import { THREE, ThreeView } from 'uweb/three'
 import { MapView } from 'uweb/maptalks'
-import { log } from 'utils/web'
-import { Coordinate } from 'uweb/utils'
+import { log, KeyValue } from 'utils/web'
+import { UTM, Coordinate } from 'uweb/utils'
 
 import TextSprite from '@seregpie/three.text-sprite' /** WARNING: Multiple instances of Three.js being imported. */
 
@@ -63,16 +63,35 @@ export class Clynder {
 
         try {
 
+            let zoneNumber = 48, zoneLetter = 'T'
+            const common_gps = KeyValue('common_gps')
+
+            if (common_gps) {
+
+                const common = JSON.parse(common_gps)
+                zoneNumber = common.zoneNumber
+                zoneLetter = common.zoneLetter
+
+            }
+
+            console.log(`[Clynder]: Adding ${rows.length} items with zone ${zoneNumber}${zoneLetter} ...`)
+
             const add_one = ([n, x, y, z, h]: csvItems) => {
 
-                const [aU, aL, oU, oL]: any = Coordinate(x, y, z - (h / 2))
+                // const [aU, aL, oU, oL]: any = Coordinate(x, y, z - (h / 2))
+
+                const { lat, lng } = UTM.convertUtmToLatLng(x, y, `${zoneNumber}`, `${zoneLetter}`)
+                const elev = z - (h / 2)
+                const aU = [x, y, elev]
+                const oL = { x: lng, y: lat, z: elev }
+
                 const div = 50
                 const color = '#1668dc'
 
                 if (this.Three) {
 
                     const geometry = new THREE.CylinderGeometry(0.2, 0.2, h, 32, 1, false)
-                    const material = new THREE.MeshBasicMaterial({ color })
+                    const material = new THREE.MeshBasicMaterial({ color, transparent: true, opacity: 0.75 })
                     const cylinder = new THREE.Mesh(geometry, material)
                     cylinder.rotateX(Math.PI / 2)
                     cylinder.name = n
@@ -81,8 +100,17 @@ export class Clynder {
                     this.GroupThree.add(cylinder)
 
                     if (!this.hidetext) {
-                        const text: any = new TextSprite({ text: n, fontFamily: 'Arial, Helvetica, sans-serif', fontSize: 1, color: '#ffffffbf', padding: 0, fontWeight: 'bold' })
-                        text.position.set(aU[0], aU[1], aU[2] + (h / 2))
+                        const text: any = new TextSprite({
+                            fontFamily: `Roboto, Arial, Helvetica, sans-serif`,
+                            fontSize: 0.4,
+                            text: n,
+                            color: '#ffffffbf',
+                            padding: 0,
+                            fontWeight: '900',
+                            strokeWidth: 0.05,         // Border thickness relative to font size
+                            strokeColor: '#000000',    // Border color
+                        })
+                        text.position.set(aU[0], aU[1], aU[2] + (h / 2 + 0.5))
                         this.GroupThree.add(text)
                     }
 

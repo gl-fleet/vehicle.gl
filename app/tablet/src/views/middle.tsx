@@ -35,9 +35,9 @@ const BasicView = ({ event }: iArgs) => {
         event.on('stream', ({ data_gps }) => Safe(() => {
 
             if (typeof data_gps !== 'object') return
-            const x = data_gps.A[0] ?? 0
-            const y = data_gps.A[1] ?? 0
-            const el = data_gps.A[2] ?? 0
+            const x = (data_gps.A[0] ?? 0).toFixed(2)
+            const y = (data_gps.A[1] ?? 0).toFixed(2)
+            const el = (data_gps.A[2] ?? 0).toFixed(2)
             const di = data_gps.prec3d ?? 0
             setStatus({ x, y, el, di })
 
@@ -109,9 +109,9 @@ const PlanDigView = (cfg: iArgs) => {
             event.on('stream', ({ data_gps }) => Safe(() => {
 
                 if (typeof data_gps !== 'object') return
-                const x = data_gps.A[0] ?? 0
-                const y = data_gps.A[1] ?? 0
-                const el = data_gps.A[2] ?? 0
+                const x = (data_gps.A[0] ?? 0).toFixed(2)
+                const y = (data_gps.A[1] ?? 0).toFixed(2)
+                const el = (data_gps.A[2] ?? 0).toFixed(2)
                 const di = data_gps.prec3d ?? 0
                 setStatus({ x, y, el, di })
 
@@ -207,9 +207,9 @@ export const PlanShotView = (cfg: iArgs & { cid?: string }) => {
                 const { A, camera, status } = data_gps
                 const { dist_act, dist_tar } = status
 
-                const x = A[0] ?? 0
-                const y = A[1] ?? 0
-                const el = A[2] ?? 0
+                const x = (A[0] ?? 0).toFixed(2)
+                const y = (A[1] ?? 0).toFixed(2)
+                const el = (A[2] ?? 0).toFixed(2)
                 const di = Number((Math.abs(dist_act - dist_tar) ?? 0).toFixed(2)) /** Distance to Target **/
 
                 setStatus({ x, y, el, di })

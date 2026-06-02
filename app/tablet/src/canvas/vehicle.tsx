@@ -27,7 +27,7 @@ export class Vehicles {
         }
 
         const style: any = {
-            opacity: 0.75
+            opacity: 0.5
         }
 
         LoadRequiredFiles(() => {

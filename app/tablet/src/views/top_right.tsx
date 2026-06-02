@@ -14,7 +14,7 @@ const { useEffect, useState } = React
 
 export default (cfg: iArgs) => {
 
-    const [text, setText] = useState(`...`)
+    const [text, setText] = useState(`Mode: ${cfg.env.type} < ${cfg.env.me} >`)
     const [alert, setAlert] = useState<any>({})
     const [messageApi, contextHolder] = message.useMessage()
 

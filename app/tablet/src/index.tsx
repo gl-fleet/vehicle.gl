@@ -5,6 +5,7 @@ import { Win, log } from 'utils/web'
 
 import Main from './views/main'
 import Settings from './views/setting'
+import { generateComonAndPersist } from './helper/utils'
 
 const { name, version, mode } = Win.env
 
@@ -24,6 +25,7 @@ const cfg: iArgs = {
 cfg.api.on('stream', (args: any) => {
 
     Date.now() % 10000 <= 1000 && console.log(args)
+    generateComonAndPersist(args)
     cfg.event.emit('stream', args)
 
 })

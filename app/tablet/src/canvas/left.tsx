@@ -43,7 +43,7 @@ export class Left {
         }
 
         this.can = new MapView({
-            zoom: 19.5,
+            zoom: 21,
             containerId: id,
             isDarkMode: cfg.isDarkMode,
             // animateDuration: 250,
