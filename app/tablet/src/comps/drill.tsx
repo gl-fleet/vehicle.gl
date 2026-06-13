@@ -7,12 +7,10 @@ import {
   CaretRightOutlined, DeleteOutlined, HistoryOutlined,
   PauseOutlined, ThunderboltOutlined
 } from '@ant-design/icons'
-import styled, { css } from 'styled-components'
+import styled from 'styled-components'
 
 const { Title, Text } = Typography
 const { useToken } = theme
-
-// ─── Types ────────────────────────────────────────────────────────────────────
 
 type SessionState = 'idle' | 'drilling' | 'paused' | 'done'
 
@@ -25,27 +23,33 @@ export interface LogEntry {
   layer: string
 }
 
-// ─── Constants ────────────────────────────────────────────────────────────────
-
 const LAYERS = [
   { name: 'Хоосон чулуулаг', icon: '🟧', color: '#d48806' },
   { name: 'Элсэн чулуу',     icon: '🟨', color: '#a89030' },
-  { name: 'Шавар',            icon: '🟤', color: '#8c6a3f' },
-  { name: 'Нүүрс',            icon: '⬛', color: '#262626' },
-  { name: 'Завсар үе',        icon: '🟩', color: '#389e0d' },
-  { name: 'Шавран чулуу',     icon: '🔴', color: '#cf1322' },
-  { name: 'Хатуу чулуулаг',   icon: '⬜', color: '#434343' },
-  { name: 'Ус',               icon: '💧', color: '#0284c7' },
+  { name: 'Шавар',           icon: '🟤', color: '#8c6a3f' },
+  { name: 'Нүүрс',           icon: '⬛', color: '#262626' },
+  { name: 'Завсар үе',       icon: '🟩', color: '#389e0d' },
+  { name: 'Шавран чулуу',    icon: '🔴', color: '#cf1322' },
+  { name: 'Хатуу чулуулаг',  icon: '⬜', color: '#434343' },
+  { name: 'Ус',              icon: '💧', color: '#0284c7' },
 ]
 
 const DEFAULT_LAYER = 'Хоосон чулуулаг'
 
 const layerColor = (name: string) => LAYERS.find(l => l.name === name)?.color ?? '#bfbfbf'
-const layerIcon  = (name: string) => LAYERS.find(l => l.name === name)?.icon  ?? ''
 
 // ─── Styled components ────────────────────────────────────────────────────────
 
-// Layout
+const LayerDot = styled.span<{ $color: string }>`
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  border-radius: 2px;
+  background: ${p => p.$color};
+  flex-shrink: 0;
+  vertical-align: middle;
+`
+
 const PageWrap = styled.div<{ $bg: string }>`
   padding: 24px;
   background: ${p => p.$bg};
@@ -56,22 +60,14 @@ const CardSpacer = styled.div`
   margin-bottom: 16px;
 `
 
-// Header card
 const TimerTitle = styled(Title)`
-  && {
-    margin: 0;
-    font-family: monospace;
-  }
+  && { margin: 0; font-family: monospace; }
 `
 
 const PauseLabel = styled(Text)`
-  && {
-    font-size: 11px;
-    font-weight: bold;
-  }
+  && { font-size: 11px; font-weight: bold; }
 `
 
-// Depth card
 const DepthCardFooter = styled.div`
   display: flex;
   justify-content: space-between;
@@ -79,12 +75,10 @@ const DepthCardFooter = styled.div`
   margin-top: 8px;
 `
 
-// Layer card — col with manual top padding to align button with input
 const LayerBtnCol = styled(Col)`
   padding-top: 20px;
 `
 
-// Log cards
 const LogScroll = styled.div`
   max-height: 200px;
   overflow-y: auto;
@@ -99,30 +93,17 @@ const LogRowWrap = styled.div<{ $borderColor: string }>`
 `
 
 const LogTime = styled(Text)`
-  && {
-    width: 48px;
-    font-size: 11px;
-  }
+  && { width: 48px; font-size: 11px; }
 `
 
 const LogDepth = styled(Text)`
-  && {
-    font-family: monospace;
-  }
-`
-
-const LogIcon = styled.span`
-  font-size: 14px;
+  && { font-family: monospace; }
 `
 
 const LogLayerName = styled(Text)<{ $color: string }>`
-  && {
-    font-size: 11px;
-    color: ${p => p.$color};
-  }
+  && { font-size: 11px; color: ${p => p.$color}; }
 `
 
-// Profile
 const ProfileWrap = styled.div<{ $bg: string; $radius: number }>`
   display: flex;
   height: 550px;
@@ -157,27 +138,21 @@ const CrossSection = styled.div<{ $bg: string; $border: string }>`
   overflow: hidden;
 `
 
-const LayerSegment = styled.div<{ $top: string; $height: string; $bg: string; $isInit?: boolean }>`
+const LayerSegment = styled.div<{ $top: string; $height: string; $bg: string }>`
   position: absolute;
   top: ${p => p.$top};
   height: ${p => p.$height};
   width: 100%;
   background: ${p => p.$bg};
-  border-bottom: 1px solid ${p => p.$isInit ? 'rgba(0,0,0,0.1)' : 'rgba(255,255,255,0.2)'};
+  border-bottom: 1px solid rgba(255,255,255,0.2);
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
   overflow: hidden;
   color: #fff;
-  font-size: ${p => p.$isInit ? '11px' : 'inherit'};
-  font-weight: ${p => p.$isInit ? 'bold' : 'inherit'};
   text-shadow: 0 0 4px rgba(0,0,0,0.5);
   transition: all 0.3s ease;
-`
-
-const SegIcon = styled.span`
-  font-size: 14px;
 `
 
 const SegLabel = styled.span`
@@ -192,7 +167,7 @@ const DrillPointer = styled.div<{ $top: string; $bg: string }>`
   height: 2px;
   background: ${p => p.$bg};
   z-index: 10;
-  box-shadow: 0 0 8px rgba(255, 0, 0, 0.5);
+  box-shadow: 0 0 8px rgba(255,0,0,0.5);
   transition: top 0.2s ease;
 `
 
@@ -207,8 +182,6 @@ const DrillLabel = styled.div<{ $bg: string }>`
   border-radius: 2px;
 `
 
-// Profile footer
-
 // ─── HoleProfile ──────────────────────────────────────────────────────────────
 
 const HoleProfile = ({
@@ -216,9 +189,9 @@ const HoleProfile = ({
 }: {
   entries: LogEntry[]
   designDepth: number
-  drillDepth: number   // drives only the red pointer
-  layerDepth: number   // drives layer segment extension
-  activeLayer: string  // the layer currently being drilled (fills the open trailing segment)
+  drillDepth: number
+  layerDepth: number
+  activeLayer: string
 }) => {
   const { token } = useToken()
 
@@ -230,60 +203,40 @@ const HoleProfile = ({
   const maxDepth = Math.max(designDepth, drillDepth, layerDepth, 1)
   const pct      = (d: number) => `${(d / maxDepth) * 100}%`
 
-  // Each marker means "markers[i].layer ENDED at markers[i].depth".
-  // So:
-  //   segment 0 → markers[0].depth        = markers[0].layer  (the layer that ended there)
-  //   segment markers[i].depth → markers[i+1].depth = markers[i+1].layer
-  //   segment markers[last].depth → layerDepth      = activeLayer  (still being drilled)
-  // When no markers: 0 → layerDepth = activeLayer
-
   const segments: { from: number; to: number; layer: string }[] = []
 
   if (markers.length === 0) {
     if (layerDepth > 0) segments.push({ from: 0, to: layerDepth, layer: activeLayer })
   } else {
-    // first: surface to first marker end
-    if (markers[0].depth > 0) {
-      segments.push({ from: 0, to: markers[0].depth, layer: markers[0].layer })
-    }
-    // middle: between consecutive markers — each gap is filled by the NEXT marker's layer
+    if (markers[0].depth > 0) segments.push({ from: 0, to: markers[0].depth, layer: markers[0].layer })
     for (let i = 0; i < markers.length - 1; i++) {
       const from = markers[i].depth
       const to   = markers[i + 1].depth
       if (to > from) segments.push({ from, to, layer: markers[i + 1].layer })
     }
-    // trailing: last marker to layerDepth — filled by activeLayer (not yet ended)
     const lastEnd = markers[markers.length - 1].depth
-    if (layerDepth > lastEnd) {
-      segments.push({ from: lastEnd, to: layerDepth, layer: activeLayer })
-    }
+    if (layerDepth > lastEnd) segments.push({ from: lastEnd, to: layerDepth, layer: activeLayer })
   }
 
   return (
     <ProfileWrap $bg={token.colorBgContainer} $radius={token.borderRadiusLG}>
-
       <DepthAxis $borderColor={token.colorBorderSecondary}>
         {Array.from({ length: Math.ceil(maxDepth) + 1 }, (_, m) => (
-          <AxisTick key={m} $top={pct(m)} $color={token.colorTextSecondary}>
-            {m}m
-          </AxisTick>
+          <AxisTick key={m} $top={pct(m)} $color={token.colorTextSecondary}>{m}m</AxisTick>
         ))}
       </DepthAxis>
 
       <CrossSection $bg={token.colorFillSecondary} $border={token.colorBorder}>
-
         {segments.map((seg, idx) => {
           const h    = seg.to - seg.from
           const hPct = (h / maxDepth) * 100
-          const icon = layerIcon(seg.layer)
-          const name = seg.layer
           return (
-            <Tooltip key={idx} title={`${name}: ${seg.from}м – ${seg.to}м`}>
+            <Tooltip key={idx} title={`${seg.layer}: ${seg.from}м – ${seg.to}м`}>
               <LayerSegment $top={pct(seg.from)} $height={pct(h)} $bg={layerColor(seg.layer)}>
                 {hPct > 4 && (
                   <>
-                    <SegIcon>{icon}</SegIcon>
-                    <SegLabel>{name}</SegLabel>
+                    <LayerDot $color="rgba(255,255,255,0.8)" />
+                    <SegLabel>{seg.layer}</SegLabel>
                   </>
                 )}
               </LayerSegment>
@@ -294,7 +247,6 @@ const HoleProfile = ({
         <DrillPointer $top={pct(drillDepth)} $bg={token.colorError}>
           <DrillLabel $bg={token.colorError}>{drillDepth}m</DrillLabel>
         </DrillPointer>
-
       </CrossSection>
     </ProfileWrap>
   )
@@ -309,7 +261,7 @@ const LogRow = ({ e, onDelete }: { e: LogEntry, onDelete: () => void }) => {
       <Space size="small">
         <LogTime type="secondary">{e.time}</LogTime>
         <LogDepth strong>{e.depth.toFixed(1)}м</LogDepth>
-        <LogIcon>{layerIcon(e.layer)}</LogIcon>
+        {e.layer && <LayerDot $color={layerColor(e.layer)} />}
         <LogLayerName $color={layerColor(e.layer)}>{e.layer}</LogLayerName>
       </Space>
       <Button type="text" size="small" danger icon={<DeleteOutlined />} onClick={onDelete} />
@@ -341,19 +293,19 @@ export default function DrillSession({
   const { token }  = useToken()
   const [msg, ctx] = message.useMessage()
 
-  const [state, setState]             = useState<SessionState>(initialData ? 'done' : 'idle')
-  const [elapsedMs, setElapsedMs]     = useState(initialData?.netDrillMs ?? 0)
-  const [pausedMs, setPausedMs]       = useState(initialData?.totalPausedMs ?? 0)
-  const [entries, setEntries]         = useState<LogEntry[]>(initialData?.entries ?? [])
-  const [drillDepth, setDrillDepth]   = useState(initialData?.finalDepth ?? 0)
-  const [layerDepth, setLayerDepth]   = useState(initialData?.finalDepth ?? 0)
-  const [activeLayer, setActiveLayer]   = useState(DEFAULT_LAYER)
+  const [state, setState]           = useState<SessionState>(initialData ? 'done' : 'idle')
+  const [elapsedMs, setElapsedMs]   = useState(initialData?.netDrillMs ?? 0)
+  const [pausedMs, setPausedMs]     = useState(initialData?.totalPausedMs ?? 0)
+  const [entries, setEntries]       = useState<LogEntry[]>(initialData?.entries ?? [])
+  const [drillDepth, setDrillDepth] = useState(initialData?.finalDepth ?? 0)
+  const [layerDepth, setLayerDepth] = useState(initialData?.finalDepth ?? 0)
+  const [activeLayer, setActiveLayer] = useState(DEFAULT_LAYER)
 
   const timerRef      = useRef<any>(null)
   const pauseTimerRef = useRef<any>(null)
   const startTs       = useRef(0)
   const pauseStartTs  = useRef(0)
-  const pauseBaseMs   = useRef(0)  // pausedMs value captured at moment of pausing
+  const pauseBaseMs   = useRef(0)
 
   const maxLogged = useMemo(() =>
     entries.filter(e => e.type === 'depth').reduce((m, e) => Math.max(m, e.depth), 0),
@@ -365,10 +317,7 @@ export default function DrillSession({
     return `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`
   }
 
-  const startTimer = () => {
-    startTs.current  = Date.now() - elapsedMs
-    timerRef.current = setInterval(() => setElapsedMs(Date.now() - startTs.current), 1000)
-  }
+  const startTimer     = () => { startTs.current = Date.now() - elapsedMs; timerRef.current = setInterval(() => setElapsedMs(Date.now() - startTs.current), 1000) }
   const stopTimer      = () => clearInterval(timerRef.current)
   const stopPauseTimer = () => clearInterval(pauseTimerRef.current)
   useEffect(() => () => { stopTimer(); stopPauseTimer() }, [])
@@ -377,11 +326,7 @@ export default function DrillSession({
     stopTimer()
     pauseStartTs.current  = Date.now()
     pauseBaseMs.current   = pausedMs
-    // tick pause time live so the display updates while paused
-    pauseTimerRef.current = setInterval(
-      () => setPausedMs(pauseBaseMs.current + (Date.now() - pauseStartTs.current)),
-      1000
-    )
+    pauseTimerRef.current = setInterval(() => setPausedMs(pauseBaseMs.current + (Date.now() - pauseStartTs.current)), 1000)
     setState('paused')
   }
 
@@ -395,19 +340,21 @@ export default function DrillSession({
   const handleComplete = () => {
     stopTimer()
     stopPauseTimer()
-    const finalPaused = state === 'paused'
-      ? pauseBaseMs.current + (Date.now() - pauseStartTs.current)
-      : pausedMs
+    const finalPaused = state === 'paused' ? pauseBaseMs.current + (Date.now() - pauseStartTs.current) : pausedMs
     setState('done')
     onComplete({ holeId, finalDepth: Math.max(maxLogged, drillDepth), netDrillMs: elapsedMs, totalPausedMs: finalPaused, entries, completedAt: new Date().toISOString() })
     msg.success('Цооногийн мэдээлэл хадгалагдлаа.')
   }
 
+  const handleContinue = () => {
+    startTs.current = Date.now() - elapsedMs
+    setState('drilling')
+    startTimer()
+    msg.info('Өрөмдлөгийг үргэлжлүүллээ.')
+  }
+
   const addEntry = (type: 'depth' | 'layer', depth: number) => {
-    if (type === 'depth' && depth <= maxLogged) {
-      msg.error(`Гүн ${maxLogged}м-ээс их байх ёстой!`)
-      return
-    }
+    if (type === 'depth' && depth <= maxLogged) { msg.error(`Гүн ${maxLogged}м-ээс их байх ёстой!`); return }
     setEntries(prev => [...prev, {
       id: Math.random().toString(36).slice(2, 9),
       type, depth, elapsedMs,
@@ -417,17 +364,9 @@ export default function DrillSession({
     msg.success(`${type === 'layer' ? 'Үе өөрчлөгдлөө' : 'Гүн бүртгэгдлээ'}: ${depth}м`)
   }
 
-  const handleContinue = () => {
-    startTs.current = Date.now() - elapsedMs  // resume timer from where it stopped
-    setState('drilling')
-    startTimer()
-    msg.info('Өрөмдлөгийг үргэлжлүүллээ.')
-  }
-
-  const removeEntry = (id: string) => setEntries(prev => prev.filter(e => e.id !== id))
-
-  const depthEntries = entries.filter(e => e.type === 'depth')
-  const layerEntries = entries.filter(e => e.type === 'layer')
+  const removeEntry    = (id: string) => setEntries(prev => prev.filter(e => e.id !== id))
+  const depthEntries   = entries.filter(e => e.type === 'depth')
+  const layerEntries   = entries.filter(e => e.type === 'layer')
 
   return (
     <PageWrap $bg={token.colorBgLayout}>
@@ -453,11 +392,7 @@ export default function DrillSession({
                   {state === 'paused'   && <Button type="primary" size="large" icon={<CaretRightOutlined />} onClick={handleResume}>Үргэлжлүүлэх</Button>}
                   {state === 'done'
                     ? <Button size="large" icon={<CaretRightOutlined />} onClick={handleContinue}>Үргэлжлүүлэн өрөмдөх</Button>
-                    : (
-                      <Popconfirm title="Дуусгах уу?" onConfirm={handleComplete} okText="Тийм" cancelText="Үгүй">
-                        <Button type="primary" size="large">Дуусгах</Button>
-                      </Popconfirm>
-                    )
+                    : <Popconfirm title="Дуусгах уу?" onConfirm={handleComplete} okText="Тийм" cancelText="Үгүй"><Button type="primary" size="large">Дуусгах</Button></Popconfirm>
                   }
                 </Space>
               </Row>
@@ -469,11 +404,7 @@ export default function DrillSession({
             <Card
               size="small"
               title="Өрөмдлөгийн явц"
-              extra={
-                <Text type="secondary" style={{ fontSize: 11 }}>
-                  Одоогийн гүн: <Text strong style={{ fontFamily: 'monospace' }}>{drillDepth}м</Text>
-                </Text>
-              }
+              extra={<Text type="secondary" style={{ fontSize: 11 }}>Одоогийн гүн: <Text strong style={{ fontFamily: 'monospace' }}>{drillDepth}м</Text></Text>}
             >
               <StepSlider value={drillDepth} onChange={setDrillDepth} max={designDepth} />
               <DepthCardFooter>
@@ -481,11 +412,7 @@ export default function DrillSession({
                   ? <Text type="danger" style={{ fontSize: 11 }}>{maxLogged}м-ээс их байх ёстой</Text>
                   : <span />
                 }
-                <Button
-                  type="primary" icon={<ThunderboltOutlined />}
-                  onClick={() => addEntry('depth', drillDepth)}
-                  disabled={state !== 'drilling' && state !== 'paused'}
-                >
+                <Button type="primary" icon={<ThunderboltOutlined />} onClick={() => addEntry('depth', drillDepth)} disabled={state !== 'drilling' && state !== 'paused'}>
                   Гүн бүртгэх: {drillDepth}м
                 </Button>
               </DepthCardFooter>
@@ -499,19 +426,15 @@ export default function DrillSession({
               title={
                 <Space>
                   Хөрсний үе давхарга
-                  <Tag color="orange">{layerIcon(activeLayer)} {activeLayer}</Tag>
+                  <Tag color="orange"><Space size={4}><LayerDot $color={layerColor(activeLayer)} />{activeLayer}</Space></Tag>
                 </Space>
               }
             >
               <Row gutter={[8, 8]} style={{ marginBottom: 12 }}>
                 {LAYERS.map(l => (
                   <Col span={6} key={l.name}>
-                    <Button
-                      block size="small"
-                      type={activeLayer === l.name ? 'primary' : 'default'}
-                      onClick={() => setActiveLayer(l.name)}
-                    >
-                      {l.icon} {l.name}
+                    <Button block size="small" type={activeLayer === l.name ? 'primary' : 'default'} onClick={() => setActiveLayer(l.name)}>
+                      <Space size={4}><LayerDot $color={l.color} />{l.name}</Space>
                     </Button>
                   </Col>
                 ))}
@@ -523,9 +446,7 @@ export default function DrillSession({
                   <InputNumber style={{ width: '100%' }} value={layerDepth} onChange={v => setLayerDepth(v ?? 0)} step={0.1} />
                 </Col>
                 <LayerBtnCol span={12}>
-                  <Button block type="primary" ghost icon={<HistoryOutlined />} onClick={() => addEntry('layer', layerDepth)}>
-                    Давхаргыг бүртгэх
-                  </Button>
+                  <Button block type="primary" ghost icon={<HistoryOutlined />} onClick={() => addEntry('layer', layerDepth)}>Давхаргыг бүртгэх</Button>
                 </LayerBtnCol>
               </Row>
             </Card>

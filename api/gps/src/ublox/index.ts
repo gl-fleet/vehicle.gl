@@ -6,6 +6,7 @@ import { ProcessActivity } from './process'
 
 import { Calculus as Default_Drill } from './calculus'
 import { Calculus as Boom_Drill } from './boom_drill'
+import { Calculus as Boom_Drill_V2 } from './boom_drill_v2'
 
 const simulation_testing = (me: any, publish: any, GPS: any) => {
 
@@ -107,7 +108,7 @@ export const start_ublox = (module: string) => {
 
     const API_DATA = new Connection({ name: 'data', timeout: 500 })
     const GPS: any = { gps1: {}, gps2: {} } /** Temporary GPS data store **/
-    const Calculate = type[0] === 'boom_drill' ? new Boom_Drill(cf) : new Default_Drill(cf)
+    const Calculate = type[0] === 'boom_drill' ? new Boom_Drill_V2(cf) : new Default_Drill(cf)
     const Process = new ProcessActivity({})
     const LOG: any = log
     const DEV = cf.mode === 'development', PROD = !DEV
