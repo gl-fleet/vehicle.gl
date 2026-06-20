@@ -263,10 +263,10 @@ export class Calculus {
             const { zoneNumber, zoneLetter } = this.getUTMZone(gps1.lat, gps1.lon)
             gps1.egm = egm96.ellipsoidToEgm96(gps1.lat, gps1.lon, gps1.ele)
             gps2.egm = egm96.ellipsoidToEgm96(gps2.lat, gps2.lon, gps2.ele)
+
             const G1: Vec3 = [gps1.est, gps1.nrt, gps1[altitude]]
             const G2: Vec3 = [gps2.est, gps2.nrt, gps2[altitude]]
             const distance = this.distance3D(G1, G2)
-            // this.cfg.C3 = ++this.cfg.i
             const out = computeTarget({ G1, G2, ...this.cfg })
             const { P1, P2 } = out
 
@@ -313,39 +313,6 @@ export class Calculus {
                     BL: this.cn(out.P0), BM: this.mid(out.P0, out.P2), BR: this.cn(out.P2),
                 }
             }
-
-            /* return {
-                T: this.config.type[0],
-                R: _z,
-                G: [LL_TM.lat, LL_TM.lng, Z],
-                A: [MP.x, MP.y, Z],
-                B: [TM.x, TM.y, TM.z],
-                C: [BP.x, BP.y, BP.z],
-                status: {
-                    dist_tar: this.config.distance ?? 0,
-                    dist_act: Number((this.distance3D(A, B) * 100).toFixed(2)),
-                    zoneNumber,
-                    zoneLetter,
-                    rtcm: `${this.config.host}:${this.config.port}`,
-                },
-                shapes: {
-                    points: [
-                        [A.x, A.y, A.z], [B.x, B.y, B.z],
-                        [M.x, M.y, M.z], [MP.x, MP.y, Z]
-                    ],
-                    lines: [
-                        [[A.x, A.y, A.z], [B.x, B.y, B.z]],
-                        [[M.x, M.y, M.z], [BM.x, BM.y, BM.z]],
-                        [[BM.x, BM.y, BM.z], [TM.x, TM.y, TM.z]],
-                        [[TM.x, TM.y, TM.z], [MP.x, MP.y, MP.z]],
-                        [[MP.x, MP.y, MP.z], [MP.x, MP.y, Z]],
-                    ]
-                },
-                camera: {
-                    TL, TM, TR,
-                    BL, BM, BR,
-                }
-            } */
 
         } catch (err: any) {
 
