@@ -1,8 +1,10 @@
 import pm2 from 'pm2'
-import { log, env } from 'utils'
+import { Delay, Shell, log, env } from 'utils'
+import { get, get_block, update } from './config_update'
 
 export class Manage {
 
+    shell = null
     isDev = false
     debug = false
 
@@ -22,6 +24,37 @@ export class Manage {
 
     }
 
+
+    env_get = (name: string, field: any = null) => new Promise((res, rej) => {
+
+        try {
+            field === null ? res(get_block(name)) : res(get(name, field))
+        } catch (err: any) { rej(`env_get: ${err.message}`) }
+
+    })
+
+    env_set = (name: string, field: string, value: string) => new Promise((res, rej) => {
+
+        try {
+
+            update(name, field, value)
+            res(true)
+
+        } catch (err: any) { rej(`env_set: ${err.message}`) }
+
+    })
+
+    env_apply = (name: string) => new Promise((res, rej) => {
+
+        try {
+
+            Shell.exec(`yarn nx run-many -t _serve --projects=${name}`, { cwd: '../../' })
+            Delay(() => res(Shell.exec('pwd', { cwd: '../../' })), 5000)
+
+        } catch (err: any) { rej(`env_apply: ${err.message}`) }
+
+    })
+
     start = (name: string) => new Promise((res, rej) => {
 
         pm2.start(name, (err, proc: any) => {
@@ -33,7 +66,7 @@ export class Manage {
 
     restart = (name: string) => new Promise((res, rej) => {
 
-        pm2.restart(name, (err, proc: any) => {
+        (pm2.restart as any)(name, { updateEnv: true }, (err: any, proc: any) => {
             err ? log.warn(`PM2: While restarting ${name} / ${err.message}`) : log.success(`PM2: ${name} Restarted!`)
             typeof proc === 'undefined' ? res({}) : res({ ...proc[0], pm2_env: '***' })
         })
@@ -72,6 +105,19 @@ export class Manage {
         pm2.delete(name, (err, proc: any) => {
             this.debug && (err ? log.warn(`PM2: While deleting ${name} / ${err.message}`) : log.success(`PM2: ${name} Deleted!`))
             typeof proc === 'undefined' ? res({}) : res({ ...proc[0], pm2_env: '***' })
+        })
+
+    })
+
+    save = () => new Promise((res, rej) => {
+
+        pm2.dump((err) => {
+            if (err) {
+                log.warn(`PM2: While saving process list / ${err.message}`)
+                return rej(err)
+            }
+            log.success(`PM2: Process list saved!`)
+            res(true)
         })
 
     })

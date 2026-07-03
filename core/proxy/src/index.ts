@@ -12,6 +12,7 @@ Run({
     onStart: (_: any) => {
 
         /** Process Manage **/
+        log.success(`Proxier is running on ${port}`)
         _.name = process.env.LERNA_PACKAGE_NAME
         _.manage = new Manage()
         _.proxy = new Core({
@@ -29,6 +30,11 @@ Run({
 
         /** Process Manage **/
         const API = new Host({ name: 'proxy', port: 8440, timeout: 30 * 1000 })
+
+        API.on('env_get', async ({ query }: any) => await _.manage.env_get(query.name, query.field))
+        API.on('env_set', async ({ query }: any) => await _.manage.env_set(query.name, query.field, query.value))
+        API.on('env_apply', async ({ query }: any) => await _.manage.env_apply(query.name))
+        API.on('save', async ({ query }: any) => await _.manage.save())
 
         API.on('start', async ({ query }: any) => await _.manage.start(query.name))
         API.on('stop', async ({ query }: any) => await _.manage.stop(query.name))

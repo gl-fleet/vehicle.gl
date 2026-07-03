@@ -12,6 +12,7 @@ declare global {
         proxy: string
         env: any
         api: Connection
+        pm2: Connection
         cloud?: Connection
 
     }

@@ -137,7 +137,7 @@ export default (cfg: iArgs) => {
 
     }, [])
 
-    return <Row id="main" style={{ height: '100%' }}>
+    return <Row id="main" style={{ height: '100%', opacity: 0.05, filter: 'grayscale(1)' }}>
 
         <Col id='left' span={12} style={{ height: half ? '100%' : '100%' }} />
         <Col id='right' span={12} style={{ height: half ? '100%' : '100%' }} />
