@@ -42,8 +42,8 @@ bool readTilt(float &x, float &y, float &z) {
   return true;
 }
 
-bool readProx1() { return digitalRead(PROX1_PIN) == HIGH; }
-bool readProx2() { return digitalRead(PROX2_PIN) == HIGH; }
+bool readProx1() { return digitalRead(PROX1_PIN) == LOW; }
+bool readProx2() { return digitalRead(PROX2_PIN) == LOW; }
 
 void zeroEncoder() {
   node.begin(0x01, RS485Serial);
