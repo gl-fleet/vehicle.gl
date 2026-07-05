@@ -44,62 +44,6 @@ const simulation_testing = (me: any, publish: any, GPS: any) => {
 
 }
 
-const offline_testing = (gps = 1, cb: any) => {
-
-    log.info(`Offline-testing: ${gps}`)
-    let i = 0
-
-    /* let g1 = `43.67266, 105.537283
-   43.672656, 105.536959
-   43.672683, 105.536599
-   43.672902, 105.536487
-   43.673145, 105.536551
-   43.673178, 105.536969
-   43.673174, 105.537221
-   43.673073, 105.537358
-   43.672916, 105.537364`
-       let g2 = `43.672757, 105.537294
-   43.672757, 105.536953
-   43.672782, 105.536631
-   43.672929, 105.536594
-   43.67309, 105.536637
-   43.673098, 105.536937
-   43.673094, 105.537197
-   43.673021, 105.537232
-   43.672823, 105.537235` */
-
-    let g1 = [
-        [43.673630, 105.537240],
-        [43.673630, 105.537240],
-        [43.673630, 105.537240],
-    ]
-
-    let g2 = [
-        [43.673640, 105.537250],
-        [43.673650, 105.537250],
-        [43.673660, 105.537250],
-    ]
-
-    let s = (gps === 1 ? g1 : g2)
-    let g: any = []
-    for (const x of s) {
-        const [_x, _y] = x
-        const { Easting: e, Northing: n } = UTM.convertLatLngToUtm(_x, _y, 2)
-        g.push({ es: Number(e), nr: Number(n), el: gps === 1 ? 1540 : 1544 })
-    }
-
-    const len = g.length
-
-    Loop(async () => {
-
-        let p = g[(i++) % len]
-        let s = { "time": i, "lat": 43.6, "lon": 105.4, "est": p.es, "nrt": p.nr, "ele": p.el, "fix": "rtk", "alt": 1580.8, "geo": -38.8, "spd": 0.011, "deg": 151.18, "vac": 1, "hac": 1.4, "sat": 27, "vco": "#52c41a", "hco": "#52c41a" }
-        cb(s)
-
-    }, 5000)
-
-}
-
 export const start_ublox = (module: string) => {
 
     const cf = decodeENV()

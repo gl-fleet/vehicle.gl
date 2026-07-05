@@ -10,8 +10,12 @@ Safe(() => {
 
     const API = new Host({ name: 'iot', port: 4099 })
 
-    API.on('*', async (req: any) => {
-        return sensors
+    API.on('data', async (req: any) => {
+
+        console.log(req.body)
+        API.emit('sensors', req.body ?? {})
+        return { status: 'ok' }
+
     })
 
 }, '[IOT]')
