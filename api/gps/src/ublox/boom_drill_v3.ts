@@ -6,6 +6,90 @@ import * as egm96 from 'egm96-universal'
 
 type Vec3 = [number, number, number]
 
+// Build an N-sized 3D square, positioned & oriented from an HWT905 (tilt)
+// and two RTK GPS antennas (heading).
+//
+//   x, y, z : HWT905 roll, pitch, yaw in DEGREES  (z is ignored - see note)
+//   gps1    : [east, north, elevation]  antenna 1
+//   gps2    : [east, north, elevation]  antenna 2
+//   size    : side length of the square (same units as GPS, e.g. metres)
+//
+// Frame: ENU (x=East, y=North, z=Up). Heading is clockwise from North.
+
+type ENU = [number, number, number] // [east, north, elevation]
+
+interface Square {
+    heading: number // degrees, clockwise from North
+    origin: ENU
+    corners: [ENU, ENU, ENU, ENU]
+}
+
+const rad = (deg: number): number => (deg * Math.PI) / 180
+
+const generateSquare = (
+    x: number,
+    y: number,
+    z: number,
+    gps1: ENU,
+    gps2: ENU,
+    size = 1
+): Square => {
+    // --- heading from the two antennas (clockwise from North) ---
+    const dE = gps2[0] - gps1[0]
+    const dN = gps2[1] - gps1[1]
+    const heading = Math.atan2(dE, dN)
+
+    // --- orientation: roll & pitch from HWT905, yaw from GPS heading ---
+    // (z / HWT yaw is intentionally NOT used - GPS heading is more reliable)
+    const roll = rad(x)
+    const pitch = rad(y)
+    const yaw = heading
+
+    const cy = Math.cos(yaw), sy = Math.sin(yaw)
+    const cp = Math.cos(pitch), sp = Math.sin(pitch)
+    const cr = Math.cos(roll), sr = Math.sin(roll)
+
+    // body -> NED rotation (ZYX: yaw, pitch, roll)
+    const R = [
+        [cy * cp, cy * sp * sr - sy * cr, cy * sp * cr + sy * sr],
+        [sy * cp, sy * sp * sr + cy * cr, sy * sp * cr - cy * sr],
+        [-sp, cp * sr, cp * cr]
+    ]
+
+    // anchor point = midpoint of the two antennas
+    const origin: ENU = [
+        (gps1[0] + gps2[0]) / 2,
+        (gps1[1] + gps2[1]) / 2,
+        (gps1[2] + gps2[2]) / 2
+    ]
+
+    // square corners in the sensor plane (body XY), centred on the sensor
+    const h = size / 2
+    const cornersBody: ENU[] = [
+        [h, h, 0],
+        [h, -h, 0],
+        [-h, -h, 0],
+        [-h, h, 0]
+    ]
+
+    // body -> NED -> ENU, then translate to the anchor
+    const toENU = ([bx, by, bz]: ENU): ENU => {
+        const north = R[0][0] * bx + R[0][1] * by + R[0][2] * bz
+        const east = R[1][0] * bx + R[1][1] * by + R[1][2] * bz
+        const down = R[2][0] * bx + R[2][1] * by + R[2][2] * bz
+        return [east + origin[0], north + origin[1], -down + origin[2]]
+    }
+
+    return {
+        heading: ((heading * 180) / Math.PI + 360) % 360,
+        origin,
+        corners: cornersBody.map(toENU) as [ENU, ENU, ENU, ENU]
+    }
+}
+
+export { generateSquare }
+export type { ENU, Square }
+
 export class Calculus {
 
     cfg: any = {}
@@ -19,7 +103,7 @@ export class Calculus {
         this.cfg.head = Number(config.head)
         this.cfg.bit = Number(config.bit)
 
-        const IOT = new Connection({ name: 'iot', timeout: 1000 })
+        const IOT = new Connection({ name: 'iot', proxy: 'https://dl430-gantulgak.as2.pitunnel.com', rejectUnauthorized: false })
         IOT.on('sensors', (sensors: any) => { this.cfg.sensors = sensors })
 
     }
@@ -55,12 +139,23 @@ export class Calculus {
 
             console.log(mid, heading)
 
-            // this.cfg.heading = heading
-            // this.cfg.mid = mid
+            this.cfg.mid = mid
+            this.cfg.heading = heading
+            this.cfg.g1 = `${gps1.fix},${gps1.hac}`
+            this.cfg.g2 = `${gps2.fix},${gps2.hac}`
+
+            const { x, y, z } = this.cfg.sensors.tilt
+            this.cfg.sqr = generateSquare(x, y, z, G1, G2, this.cfg.dst)
+
+            const { lat, lng } = Utm.convertUtmToLatLng(mid.x, mid.y, `${zoneNumber}`, zoneLetter)
 
             console.log(this.cfg)
 
-            return {}
+            return {
+                T: this.cfg.type[0],
+                R: heading,
+                G: [lat, lng, 0],
+            }
 
             /* const heading = Math.atan2(G2[1] - G1[1], G2[0] - G1[0]) - Math.PI / 2
 

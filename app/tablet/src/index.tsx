@@ -18,8 +18,8 @@ const cfg: iArgs = {
     env: Win.env,
     api: new Connection({ name: 'data', timeout: 60 * 1000 }),
     pm2: new Connection({ name: 'proxy', timeout: 60 * 1000 }),
-    cloud: undefined,
-    // cloud: mode === "development" ? new Connection({ name: 'data', proxy: 'https://hdm036-gantulgak.as2.pitunnel.com', timeout: 60 * 1000 }) : undefined,
+    // cloud: undefined,
+    cloud: mode === "development" ? new Connection({ name: 'data', proxy: 'https://dl430-gantulgak.as2.pitunnel.com', timeout: 60 * 1000 }) : undefined,
     // cloud: mode === "development" ? new Connection({ name: 'data', proxy: 'https://d65-gantulgak.as2.pitunnel.com', timeout: 60 * 1000 }) : undefined,
 }
 
