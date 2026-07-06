@@ -96,7 +96,7 @@ export default (cfg: iArgs) => {
                     right.arroHelper.direction(A[0], A[1], A[2])
 
                     /** Drawing points **/
-                    if (colored) for (const clr in colored) for (let i = 0; i < colored[clr].length; i++) point.update(`${clr}_${i}`, clr, points[i])
+                    if (colored) for (const clr in colored) for (let i = 0; i < colored[clr].length; i++) point.update(`${clr}_${i}`, clr, colored[clr][i])
                     else for (let i = 0; i < points.length; i++) point.update(`p_${i}`, 'blue', points[i])
 
                     /** Drawing lines **/

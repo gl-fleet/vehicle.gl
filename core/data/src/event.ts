@@ -229,19 +229,25 @@ export class Event {
 
     parser_gps = (e: any) => wr(() => {
 
-        const { T, R, G, A, B, C, status, shapes, camera } = e
-        const local = { T, R, G, A, B, C, status, shapes, camera }
+        console.log(e)
 
-        let cloud = {
-            prec3d: f((Math.abs(status.dist_tar - status.dist_act)), 1),
-            prec2d: f((Math.abs(status.dist_tar - status.dist_act)), 1),
-            gps: [f(G[1], 6), f(G[0], 6), 0], // map[lat,lon] -> gps[lon,lat]
-            utm: [f(A[0]), f(A[1]), f(A[2])],
-            head: f(R, 4),
-            extra: status,
-        }
+        try {
 
-        return { cloud, local }
+            const { T, R, G, A, B, C, status, shapes, camera } = e
+            const local = { T, R, G, A, B, C, status, shapes, camera }
+
+            let cloud = {
+                prec3d: f((Math.abs(status.dist_tar - status.dist_act)), 1),
+                prec2d: f((Math.abs(status.dist_tar - status.dist_act)), 1),
+                gps: [f(G[1], 6), f(G[0], 6), 0], // map[lat,lon] -> gps[lon,lat]
+                utm: [f(A[0]), f(A[1]), f(A[2])],
+                head: f(R, 4),
+                extra: status,
+            }
+
+            return { cloud, local }
+
+        } catch (err) { return { cloud: null, local: e } }
 
     })
 

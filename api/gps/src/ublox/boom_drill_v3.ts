@@ -6,22 +6,28 @@ import * as egm96 from 'egm96-universal'
 
 type Vec3 = [number, number, number]
 
-// Build an N-sized 3D square, positioned & oriented from an HWT905 (tilt)
-// and two RTK GPS antennas (heading).
+// Build an N-sized 3D square from an HWT905 (tilt) + two RTK GPS antennas
+// (heading), then copy it distance M to the "top" and "bottom" along the
+// square's own normal (the sensor's up-face direction).
 //
 //   x, y, z : HWT905 roll, pitch, yaw in DEGREES  (z is ignored - see note)
 //   gps1    : [east, north, elevation]  antenna 1
 //   gps2    : [east, north, elevation]  antenna 2
 //   size    : side length of the square (same units as GPS, e.g. metres)
+//   m       : offset distance to top and bottom, along the plane normal
 //
 // Frame: ENU (x=East, y=North, z=Up). Heading is clockwise from North.
 
 type ENU = [number, number, number] // [east, north, elevation]
+type Corners = [ENU, ENU, ENU, ENU]
 
-interface Square {
+interface Prism {
     heading: number // degrees, clockwise from North
-    origin: ENU
-    corners: [ENU, ENU, ENU, ENU]
+    origin: ENU // antenna midpoint (centre of the middle square)
+    normal: ENU // unit normal, points along the sensor's up-face
+    middle: Corners // the original square
+    top: Corners // middle + m * normal
+    bottom: Corners // middle - m * normal
 }
 
 const rad = (deg: number): number => (deg * Math.PI) / 180
@@ -32,15 +38,15 @@ const generateSquare = (
     z: number,
     gps1: ENU,
     gps2: ENU,
-    size = 1
-): Square => {
+    size = 1,
+    m = 0.5
+): Prism => {
     // --- heading from the two antennas (clockwise from North) ---
     const dE = gps2[0] - gps1[0]
     const dN = gps2[1] - gps1[1]
     const heading = Math.atan2(dE, dN)
 
     // --- orientation: roll & pitch from HWT905, yaw from GPS heading ---
-    // (z / HWT yaw is intentionally NOT used - GPS heading is more reliable)
     const roll = rad(x)
     const pitch = rad(y)
     const yaw = heading
@@ -63,6 +69,17 @@ const generateSquare = (
         (gps1[2] + gps2[2]) / 2
     ]
 
+    // rotate a body vector into ENU (direction only, no translation)
+    const rotate = ([bx, by, bz]: ENU): ENU => {
+        const north = R[0][0] * bx + R[0][1] * by + R[0][2] * bz
+        const east = R[1][0] * bx + R[1][1] * by + R[1][2] * bz
+        const down = R[2][0] * bx + R[2][1] * by + R[2][2] * bz
+        return [east, north, -down]
+    }
+
+    // plane normal, pointing along the sensor's up-face (body -Z)
+    const normal = rotate([0, 0, -1])
+
     // square corners in the sensor plane (body XY), centred on the sensor
     const h = size / 2
     const cornersBody: ENU[] = [
@@ -72,23 +89,32 @@ const generateSquare = (
         [-h, h, 0]
     ]
 
-    // body -> NED -> ENU, then translate to the anchor
-    const toENU = ([bx, by, bz]: ENU): ENU => {
-        const north = R[0][0] * bx + R[0][1] * by + R[0][2] * bz
-        const east = R[1][0] * bx + R[1][1] * by + R[1][2] * bz
-        const down = R[2][0] * bx + R[2][1] * by + R[2][2] * bz
-        return [east + origin[0], north + origin[1], -down + origin[2]]
-    }
+    // middle square: rotate corners, then translate to the anchor
+    const middle = cornersBody.map((c): ENU => {
+        const [e, n, u] = rotate(c)
+        return [e + origin[0], n + origin[1], u + origin[2]]
+    }) as Corners
+
+    // shift a whole square along the normal by signed distance s
+    const shift = (sq: Corners, s: number): Corners =>
+        sq.map(([e, n, u]): ENU => [
+            e + s * normal[0],
+            n + s * normal[1],
+            u + s * normal[2]
+        ]) as Corners
 
     return {
         heading: ((heading * 180) / Math.PI + 360) % 360,
         origin,
-        corners: cornersBody.map(toENU) as [ENU, ENU, ENU, ENU]
+        normal,
+        middle,
+        top: shift(middle, m),
+        bottom: shift(middle, -m)
     }
 }
 
 export { generateSquare }
-export type { ENU, Square }
+export type { ENU, Corners, Prism }
 
 export class Calculus {
 
@@ -132,12 +158,8 @@ export class Calculus {
             const G1: Vec3 = [gps1.est, gps1.nrt, gps1[altitude]]
             const G2: Vec3 = [gps2.est, gps2.nrt, gps2[altitude]]
 
-            const out = {} // computeTarget({ G1, G2, ...this.cfg })
-
             const heading = Math.atan2(G2[1] - G1[1], G2[0] - G1[0]) - Math.PI / 2
             const mid = this.mid(G1, G2)
-
-            console.log(mid, heading)
 
             this.cfg.mid = mid
             this.cfg.heading = heading
@@ -145,17 +167,55 @@ export class Calculus {
             this.cfg.g2 = `${gps2.fix},${gps2.hac}`
 
             const { x, y, z } = this.cfg.sensors.tilt
-            this.cfg.sqr = generateSquare(x, y, z, G1, G2, this.cfg.dst)
+            this.cfg.sqr = generateSquare(x, y, z, G1, G2, this.cfg.dst / 100, this.cfg.bit / 100)
 
             const { lat, lng } = Utm.convertUtmToLatLng(mid.x, mid.y, `${zoneNumber}`, zoneLetter)
 
+            console.log(gps1)
+            /* console.log(mid, heading, this.cfg.type)
             console.log(this.cfg)
+            console.log(this.cfg.sqr.origin) */
 
-            return {
+            const res = {
                 T: this.cfg.type[0],
                 R: heading,
-                G: [lat, lng, 0],
+                G: [lat, lng, mid.z],
+                A: this.cfg.sqr.bottom[0],
+                B: G1,
+                C: G2,
+                status: {
+                    dist_tar: this.cfg.dst,
+                    dist_act: this.distance3D(G1, G2),
+                    dist_dif: Number((this.cfg.dst - (this.distance3D(G1, G2) * 100)).toFixed(1)),
+                    azimuth: 0,
+                    inclination: 0,
+                    zoneNumber,
+                    zoneLetter,
+                    rtcm: `${this.cfg.host}:${this.cfg.port}`,
+                },
+                shapes: {
+                    colored: {
+                        'red': [G1],
+                        'green': [G2],
+                        'orange': [[mid.x, mid.y, mid.z]],
+                        'grey': this.cfg.sqr.top,
+                        'blue': this.cfg.sqr.middle,
+
+                        'white': [this.cfg.sqr.bottom[0]],
+                        'black': [this.cfg.sqr.bottom[1]],
+                        'brown': [this.cfg.sqr.bottom[2]],
+                        'yellow': [this.cfg.sqr.bottom[3]],
+                    }
+                },
+                camera: {
+                    TL: this.cn(G1), TM: this.mid(G1, G2), TR: this.cn(G2),
+                    BL: this.cn(G1), BM: this.mid(G1, G2), BR: this.cn(G2),
+                }
             }
+
+            console.log(res.status)
+
+            return res
 
             /* const heading = Math.atan2(G2[1] - G1[1], G2[0] - G1[0]) - Math.PI / 2
 
