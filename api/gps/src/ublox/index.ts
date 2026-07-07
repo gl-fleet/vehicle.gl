@@ -57,12 +57,12 @@ export const start_ublox = (module: string) => {
     const { me, version, mode, type = [] } = cf
     log.success(`"${env.npm_package_name}"."${module}" <${version}> module is running on "${process.pid}" / [${mode}] [${me}] 🚀🚀🚀\n`)
 
+    const DEV = cf.mode === 'development', PROD = !DEV
     const API_DATA = new Connection({ name: 'data', timeout: 500 })
     const GPS: any = { gps1: {}, gps2: {} } /** Temporary GPS data store **/
     const Calculate = type[0] === 'boom_drill' ? new Boom_Drill_V3(cf) : new Default_Drill(cf)
     const Process = new ProcessActivity({})
     const LOG: any = log
-    const DEV = cf.mode === 'development', PROD = !DEV
     const VAC = DEV ? 100000 : Number(cf.threshold[0])     /** Bad GPS Threshold (cm) **/
 
     const publish = (channel: string, data: any) => Safe(async () => await API_DATA.set(channel, data), `[${channel}]`)

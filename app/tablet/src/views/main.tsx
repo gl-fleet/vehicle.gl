@@ -66,7 +66,6 @@ export default (cfg: iArgs) => {
             const vehicle = new Vehicles(left, right)
 
             vehicle.on((name) => name === 'ready' && Safe(() => {
-
                 vehicle.can && listen(left, right, vehicle.can) /** Update Maps and Vehicle **/
                 vehicle.can && new PlanDig(left, right, cfg)    /** Support Dig_Plan  -> [Dozer, Supervisor ...] **/
                 vehicle.can && new PlanShot(left, right, cfg)   /** Support Shot_Plan -> [Drill, Supervisor ...] **/
@@ -100,7 +99,7 @@ export default (cfg: iArgs) => {
                     else for (let i = 0; i < points.length; i++) point.update(`p_${i}`, 'blue', points[i])
 
                     /** Drawing lines **/
-                    for (let i = 0; i < lines.length; i++) {
+                    for (let i = 0; i < lines?.length; i++) {
 
                         const [start, end] = lines[i]
                         let key = `l_${i}`

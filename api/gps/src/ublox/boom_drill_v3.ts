@@ -139,7 +139,7 @@ export class Calculus {
 
         this.cfg.type = config.type
         this.cfg.dst = Number(config.dst)
-        this.cfg.top = config.top.map((n: string) => Number(n))
+        this.cfg.ofs = config.ofs.map((n: string) => n === '-' ? '-' : Number(n))
         this.cfg.head = Number(config.head)
         this.cfg.bit = Number(config.bit)
 
@@ -184,7 +184,7 @@ export class Calculus {
             const G1: Vec3 = [gps1.est, gps1.nrt, gps1[altitude]]
             const G2: Vec3 = [gps2.est, gps2.nrt, gps2[altitude]]
 
-            const heading = Math.atan2(G2[1] - G1[1], G2[0] - G1[0]) - Math.PI / 2
+            const heading = Math.atan2(G2[1] - G1[1], G2[0] - G1[0])
             const mid = this.mid(G1, G2)
 
             this.cfg.mid = mid
@@ -193,26 +193,29 @@ export class Calculus {
             this.cfg.g2 = `${gps2.fix},${gps2.hac}`
 
             const { x, y, z } = this.cfg.sensors.axis
-            // this.cfg.sqr = generateSquare(x - 1.5, y + 4, z, G1, G2, this.cfg.dst / 100, this.cfg.bit / 100)
             this.cfg.sqr = generateSquare(x, y, z, G1, G2, this.cfg.dst / 100, this.cfg.bit / 100)
 
-            const { lat, lng } = Utm.convertUtmToLatLng(mid.x, mid.y, `${zoneNumber}`, zoneLetter)
-
             console.log(this.cfg.sqr)
-            /* console.log(mid, heading, this.cfg.type)
-            console.log(this.cfg)
-            console.log(this.cfg.sqr.origin) */
-            /** Find point at given distance on AB vector */
 
-            // Yellow -> Black
-            const k = this.findPointInVector(this.cfg.sqr.bottom[3], this.cfg.sqr.bottom[2], 0.35)
-            const g = this.findPointInVector(this.cfg.sqr.bottom[0], [k.x, k.y, k.z], 1.12)
+            const [to_right, to_front] = this.cfg.ofs
+
+            const b = this.cfg.sqr.bottom
+
+            const p0 = this.findPointInVector(this.cfg.sqr.middle[2], this.cfg.sqr.middle[1], to_right / 100)
+            const p1 = this.findPointInVector(this.cfg.sqr.middle[3], this.cfg.sqr.middle[0], to_right / 100)
+            const g0 = this.findPointInVector([p1.x, p1.y, p1.z], [p0.x, p0.y, p0.z], to_front)
+
+            const k0 = this.findPointInVector(this.cfg.sqr.bottom[2], this.cfg.sqr.bottom[1], to_right / 100)
+            const k1 = this.findPointInVector(this.cfg.sqr.bottom[3], this.cfg.sqr.bottom[0], to_right / 100)
+            const g1 = this.findPointInVector([k1.x, k1.y, k1.z], [k0.x, k0.y, k0.z], to_front)
+
+            const { lat, lng } = Utm.convertUtmToLatLng(g1.x, g1.y, `${zoneNumber}`, zoneLetter)
 
             const res = {
                 T: this.cfg.type[0],
                 R: heading,
-                G: [lat, lng, mid.z],
-                A: [g.x, g.y, g.z],
+                G: [lat, lng,],
+                A: [g1.x, g1.y, g1.z],
                 B: G1,
                 C: G2,
                 status: {
@@ -233,21 +236,22 @@ export class Calculus {
                         'grey': this.cfg.sqr.top,
                         'blue': this.cfg.sqr.middle,
 
-                        'white': [this.cfg.sqr.bottom[0]],
-                        'black': [this.cfg.sqr.bottom[1]],
-                        'brown': [this.cfg.sqr.bottom[2]],
-                        'yellow': [this.cfg.sqr.bottom[3]],
+                        'white': [b[0]],
+                        'black': [b[1]],
+                        'brown': [b[2]],
+                        'yellow': [b[3]],
 
-                        'purple': [[g.x, g.y, g.z]],
-                    }
+                        'purple': [[g0.x, g0.y, g0.z], [g1.x, g1.y, g1.z]],
+                    },
+                    lines: [
+                        [[g0.x, g0.y, g0.z], [g1.x, g1.y, g1.z]]
+                    ]
                 },
                 camera: {
-                    TL: this.cn(G1), TM: this.mid(G1, G2), TR: this.cn(G2),
-                    BL: this.cn(G1), BM: this.mid(G1, G2), BR: this.cn(G2),
+                    TL: this.cn(b[0]), TM: this.mid(b[0], b[1]), TR: this.cn(b[1]),
+                    BL: this.cn(b[3]), BM: this.mid(b[3], b[0]), BR: this.cn(b[0]),
                 }
             }
-
-            console.log(res.status)
 
             return res
 

@@ -24,9 +24,9 @@ Safe(() => {
         const fxd = {
             axis: {
                 ok: tilt.ok,
-                x: Number(tilt.x) + x,
-                y: Number(tilt.y) + y,
-                z: Number(tilt.z) + z,
+                x: x + Number(tilt[0]),
+                y: y + Number(tilt[1]),
+                z: z + Number(tilt[2]),
             },
             depth: {
                 ok: enc.ok,
