@@ -7,8 +7,8 @@ import * as egm96 from 'egm96-universal'
 type Vec3 = [number, number, number]
 
 // Build an N-sized 3D square from an HWT905 (tilt) + two RTK GPS antennas
-// (heading), then copy it distance M to the "top" and "bottom" along the
-// square's own normal (the sensor's up-face direction).
+// (heading), copy it distance M to top and bottom along the plane normal,
+// and derive the drilling angles (azimuth / inclination / dip) of the hole.
 //
 //   x, y, z : HWT905 roll, pitch, yaw in DEGREES  (z is ignored - see note)
 //   gps1    : [east, north, elevation]  antenna 1
@@ -16,21 +16,32 @@ type Vec3 = [number, number, number]
 //   size    : side length of the square (same units as GPS, e.g. metres)
 //   m       : offset distance to top and bottom, along the plane normal
 //
-// Frame: ENU (x=East, y=North, z=Up). Heading is clockwise from North.
+// Frame: ENU (x=East, y=North, z=Up). Heading/azimuth are cw from North.
 
 type ENU = [number, number, number] // [east, north, elevation]
 type Corners = [ENU, ENU, ENU, ENU]
 
-interface Prism {
-    heading: number // degrees, clockwise from North
-    origin: ENU // antenna midpoint (centre of the middle square)
-    normal: ENU // unit normal, points along the sensor's up-face
-    middle: Corners // the original square
-    top: Corners // middle + m * normal
-    bottom: Corners // middle - m * normal
+interface Drill {
+    vector: ENU // unit vector pointing DOWN the hole (sensor +Z)
+    azimuth: number | null // deg cw from North; null when the hole is vertical
+    inclination: number // deg from vertical (0 = vertical, 90 = horizontal)
+    dip: number // deg below horizontal (90 = vertical, 0 = horizontal)
+    isVertical: boolean
 }
 
-const rad = (deg: number): number => (deg * Math.PI) / 180
+interface Prism {
+    heading: number // rig heading, deg cw from North (from GPS baseline)
+    origin: ENU // antenna midpoint (centre of the middle square)
+    normal: ENU // unit normal, points along the sensor's up-face
+    middle: Corners
+    top: Corners
+    bottom: Corners
+    drill: Drill
+}
+
+const rad = (d: number): number => (d * Math.PI) / 180
+const deg = (r: number): number => (r * 180) / Math.PI
+const clamp = (v: number): number => Math.max(-1, Math.min(1, v))
 
 const generateSquare = (
     x: number,
@@ -41,35 +52,32 @@ const generateSquare = (
     size = 1,
     m = 0.5
 ): Prism => {
-    // --- heading from the two antennas (clockwise from North) ---
+    // --- heading from the two antennas (cw from North) ---
     const dE = gps2[0] - gps1[0]
     const dN = gps2[1] - gps1[1]
     const heading = Math.atan2(dE, dN)
 
-    // --- orientation: roll & pitch from HWT905, yaw from GPS heading ---
+    // --- roll & pitch from HWT905, yaw from GPS heading ---
     const roll = rad(x)
-    const pitch = rad(y)
+    const pitch = rad(-y)
     const yaw = heading
 
     const cy = Math.cos(yaw), sy = Math.sin(yaw)
     const cp = Math.cos(pitch), sp = Math.sin(pitch)
     const cr = Math.cos(roll), sr = Math.sin(roll)
 
-    // body -> NED rotation (ZYX: yaw, pitch, roll)
     const R = [
         [cy * cp, cy * sp * sr - sy * cr, cy * sp * cr + sy * sr],
         [sy * cp, sy * sp * sr + cy * cr, sy * sp * cr - cy * sr],
         [-sp, cp * sr, cp * cr]
     ]
 
-    // anchor point = midpoint of the two antennas
     const origin: ENU = [
         (gps1[0] + gps2[0]) / 2,
         (gps1[1] + gps2[1]) / 2,
         (gps1[2] + gps2[2]) / 2
     ]
 
-    // rotate a body vector into ENU (direction only, no translation)
     const rotate = ([bx, by, bz]: ENU): ENU => {
         const north = R[0][0] * bx + R[0][1] * by + R[0][2] * bz
         const east = R[1][0] * bx + R[1][1] * by + R[1][2] * bz
@@ -77,10 +85,8 @@ const generateSquare = (
         return [east, north, -down]
     }
 
-    // plane normal, pointing along the sensor's up-face (body -Z)
-    const normal = rotate([0, 0, -1])
+    const normal = rotate([0, 0, -1]) // sensor up-face
 
-    // square corners in the sensor plane (body XY), centred on the sensor
     const h = size / 2
     const cornersBody: ENU[] = [
         [h, h, 0],
@@ -89,13 +95,11 @@ const generateSquare = (
         [-h, h, 0]
     ]
 
-    // middle square: rotate corners, then translate to the anchor
     const middle = cornersBody.map((c): ENU => {
         const [e, n, u] = rotate(c)
         return [e + origin[0], n + origin[1], u + origin[2]]
     }) as Corners
 
-    // shift a whole square along the normal by signed distance s
     const shift = (sq: Corners, s: number): Corners =>
         sq.map(([e, n, u]): ENU => [
             e + s * normal[0],
@@ -103,18 +107,28 @@ const generateSquare = (
             u + s * normal[2]
         ]) as Corners
 
+    // --- drilling angles from the down-the-hole axis (sensor +Z) ---
+    const vector = rotate([0, 0, 1]) // down the hole
+    const [vE, vN, vU] = vector
+    const horiz = Math.hypot(vE, vN)
+    const isVertical = horiz < 1e-9
+    const azimuth = isVertical ? null : (deg(Math.atan2(vE, vN)) + 360) % 360
+    const inclination = deg(Math.acos(clamp(-vU))) // from vertical
+    const dip = 90 - inclination // below horizontal
+
     return {
-        heading: ((heading * 180) / Math.PI + 360) % 360,
+        heading: (deg(heading) + 360) % 360,
         origin,
         normal,
         middle,
         top: shift(middle, m),
-        bottom: shift(middle, -m)
+        bottom: shift(middle, -m),
+        drill: { vector, azimuth, inclination, dip, isVertical }
     }
 }
 
 export { generateSquare }
-export type { ENU, Corners, Prism }
+export type { ENU, Corners, Drill, Prism }
 
 export class Calculus {
 
@@ -129,7 +143,8 @@ export class Calculus {
         this.cfg.head = Number(config.head)
         this.cfg.bit = Number(config.bit)
 
-        const IOT = new Connection({ name: 'iot', proxy: 'https://dl430-gantulgak.as2.pitunnel.com', rejectUnauthorized: false })
+        const isDev = config.mode === 'development'
+        const IOT = new Connection({ name: 'iot', proxy: isDev ? 'https://dl430-gantulgak.as2.pitunnel.com' : undefined, rejectUnauthorized: false })
         IOT.on('sensors', (sensors: any) => { this.cfg.sensors = sensors })
 
     }
@@ -143,6 +158,14 @@ export class Calculus {
         const letters = "CDEFGHJKLMNPQRSTUVWX"
         const zoneLetter = (lat >= -80 && lat <= 84) ? letters[Math.floor((lat + 80) / 8)] : 'Z'
         return { zoneNumber, zoneLetter }
+    }
+    findPointInVector = (A: Vec3, B: Vec3, r: number) => {
+        const d = this.distance3D(A, B)
+        return {
+            x: (A[0] + ((B[0] - A[0]) / d) * r),
+            y: (A[1] + ((B[1] - A[1]) / d) * r),
+            z: (A[2] + ((B[2] - A[2]) / d) * r)
+        }
     }
 
     calculate = ({ gps1, gps2 }: any) => {
@@ -167,25 +190,30 @@ export class Calculus {
             this.cfg.g2 = `${gps2.fix},${gps2.hac}`
 
             const { x, y, z } = this.cfg.sensors.tilt
-            this.cfg.sqr = generateSquare(x, y, z, G1, G2, this.cfg.dst / 100, this.cfg.bit / 100)
+            this.cfg.sqr = generateSquare(x - 1.5, y + 4, z, G1, G2, this.cfg.dst / 100, this.cfg.bit / 100)
 
             const { lat, lng } = Utm.convertUtmToLatLng(mid.x, mid.y, `${zoneNumber}`, zoneLetter)
 
-            console.log(gps1)
+            console.log(this.cfg.sqr)
             /* console.log(mid, heading, this.cfg.type)
             console.log(this.cfg)
             console.log(this.cfg.sqr.origin) */
+            /** Find point at given distance on AB vector */
+
+            // Yellow -> Black
+            const k = this.findPointInVector(this.cfg.sqr.bottom[3], this.cfg.sqr.bottom[1], 0.75)
+            const g = this.findPointInVector([k.x, k.y, k.z], this.cfg.sqr.bottom[0], 0.15)
 
             const res = {
                 T: this.cfg.type[0],
                 R: heading,
                 G: [lat, lng, mid.z],
-                A: this.cfg.sqr.bottom[0],
+                A: [g.x, g.y, g.z],
                 B: G1,
                 C: G2,
                 status: {
                     dist_tar: this.cfg.dst,
-                    dist_act: this.distance3D(G1, G2),
+                    dist_act: this.distance3D(G1, G2) * 100,
                     dist_dif: Number((this.cfg.dst - (this.distance3D(G1, G2) * 100)).toFixed(1)),
                     azimuth: 0,
                     inclination: 0,
@@ -205,6 +233,7 @@ export class Calculus {
                         'black': [this.cfg.sqr.bottom[1]],
                         'brown': [this.cfg.sqr.bottom[2]],
                         'yellow': [this.cfg.sqr.bottom[3]],
+                        'purple': [[g.x, g.y, g.z]],
                     }
                 },
                 camera: {
