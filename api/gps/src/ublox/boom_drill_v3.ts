@@ -144,8 +144,11 @@ export class Calculus {
         this.cfg.bit = Number(config.bit)
 
         const isDev = config.mode === 'development'
+
         const IOT = new Connection({ name: 'iot', proxy: isDev ? 'https://dl430-gantulgak.as2.pitunnel.com' : undefined, rejectUnauthorized: false })
-        IOT.on('sensors', (sensors: any) => { this.cfg.sensors = sensors })
+        IOT.on('sensors', (sensors: any) => {
+            this.cfg.sensors = sensors
+        })
 
     }
 
@@ -189,8 +192,9 @@ export class Calculus {
             this.cfg.g1 = `${gps1.fix},${gps1.hac}`
             this.cfg.g2 = `${gps2.fix},${gps2.hac}`
 
-            const { x, y, z } = this.cfg.sensors.tilt
-            this.cfg.sqr = generateSquare(x - 1.5, y + 4, z, G1, G2, this.cfg.dst / 100, this.cfg.bit / 100)
+            const { x, y, z } = this.cfg.sensors.axis
+            // this.cfg.sqr = generateSquare(x - 1.5, y + 4, z, G1, G2, this.cfg.dst / 100, this.cfg.bit / 100)
+            this.cfg.sqr = generateSquare(x, y, z, G1, G2, this.cfg.dst / 100, this.cfg.bit / 100)
 
             const { lat, lng } = Utm.convertUtmToLatLng(mid.x, mid.y, `${zoneNumber}`, zoneLetter)
 
