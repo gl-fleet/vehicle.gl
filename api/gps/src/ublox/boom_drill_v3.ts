@@ -150,7 +150,6 @@ export class Calculus {
 
         const IOT = new Connection({ name: 'iot', proxy: isDev ? 'https://dl430-gantulgak.as2.pitunnel.com' : undefined, rejectUnauthorized: false })
         IOT.on('sensors', (sensors: any) => {
-            console.log(sensors)
             this.cfg.sensors = sensors
         })
 
@@ -198,7 +197,9 @@ export class Calculus {
 
             const { x, y, z } = this.cfg.sensors.axis
             const [_x, _y, _z] = this.cfg.tilt
-            this.cfg.sqr = generateSquare(x + _x, y + _y, z + _z, G1, G2, this.cfg.dst / 100, this.cfg.bit / 100)
+            this.cfg.sqr = generateSquare((x + _x), (y + _y), z + _z, G1, G2, this.cfg.dst / 100, this.cfg.bit / 100)
+
+            console.log(this.cfg.sqr.drill)
 
             const [to_right, to_front] = this.cfg.ofs
 
@@ -206,11 +207,11 @@ export class Calculus {
 
             const p0 = this.findPointInVector(this.cfg.sqr.middle[2], this.cfg.sqr.middle[1], to_right / 100)
             const p1 = this.findPointInVector(this.cfg.sqr.middle[3], this.cfg.sqr.middle[0], to_right / 100)
-            const g0 = this.findPointInVector([p1.x, p1.y, p1.z], [p0.x, p0.y, p0.z], to_front)
+            const g0 = this.findPointInVector([p1.x, p1.y, p1.z], [p0.x, p0.y, p0.z], to_front / 100)
 
             const k0 = this.findPointInVector(this.cfg.sqr.bottom[2], this.cfg.sqr.bottom[1], to_right / 100)
             const k1 = this.findPointInVector(this.cfg.sqr.bottom[3], this.cfg.sqr.bottom[0], to_right / 100)
-            const g1 = this.findPointInVector([k1.x, k1.y, k1.z], [k0.x, k0.y, k0.z], to_front)
+            const g1 = this.findPointInVector([k1.x, k1.y, k1.z], [k0.x, k0.y, k0.z], to_front / 100)
 
             const { lat, lng } = Utm.convertUtmToLatLng(g1.x, g1.y, `${zoneNumber}`, zoneLetter)
 
