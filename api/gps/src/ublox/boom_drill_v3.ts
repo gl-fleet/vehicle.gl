@@ -142,11 +142,15 @@ export class Calculus {
         this.cfg.ofs = config.ofs.map((n: string) => n === '-' ? '-' : Number(n))
         this.cfg.head = Number(config.head)
         this.cfg.bit = Number(config.bit)
+        // this.cfg.axis = config.tilt.map((n: string) => Number(n))
+
+        console.log(this.cfg)
 
         const isDev = config.mode === 'development'
 
         const IOT = new Connection({ name: 'iot', proxy: isDev ? 'https://dl430-gantulgak.as2.pitunnel.com' : undefined, rejectUnauthorized: false })
         IOT.on('sensors', (sensors: any) => {
+            console.log(sensors)
             this.cfg.sensors = sensors
         })
 
@@ -194,8 +198,6 @@ export class Calculus {
 
             const { x, y, z } = this.cfg.sensors.axis
             this.cfg.sqr = generateSquare(x, y, z, G1, G2, this.cfg.dst / 100, this.cfg.bit / 100)
-
-            console.log(this.cfg.sqr)
 
             const [to_right, to_front] = this.cfg.ofs
 
