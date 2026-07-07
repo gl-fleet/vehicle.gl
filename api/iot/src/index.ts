@@ -11,11 +11,8 @@ Safe(() => {
     const API = new Host({ name: 'iot', port: 4099 })
     console.log(cfg)
 
-    const [x, y, z] = cfg.tilt.map((n: string) => Number(n))
     const ecd = Number(cfg.encoder)
     const cnd = Number(cfg.clynder)
-
-    console.log(`Tilt`, x, y, z)
 
     API.on('data', async (req: any) => {
 
@@ -24,9 +21,9 @@ Safe(() => {
         const fxd = {
             axis: {
                 ok: tilt.ok,
-                x: Number(tilt.x) + x,
-                y: Number(tilt.y) + y,
-                z: Number(tilt.z) + z,
+                x: Number(tilt.x),
+                y: Number(tilt.y),
+                z: Number(tilt.z),
             },
             depth: {
                 ok: enc.ok,

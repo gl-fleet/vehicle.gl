@@ -142,7 +142,7 @@ export class Calculus {
         this.cfg.ofs = config.ofs.map((n: string) => n === '-' ? '-' : Number(n))
         this.cfg.head = Number(config.head)
         this.cfg.bit = Number(config.bit)
-        // this.cfg.axis = config.tilt.map((n: string) => Number(n))
+        this.cfg.tilt = config.tilt.map((n: string) => Number(n))
 
         console.log(this.cfg)
 
@@ -197,7 +197,8 @@ export class Calculus {
             this.cfg.g2 = `${gps2.fix},${gps2.hac}`
 
             const { x, y, z } = this.cfg.sensors.axis
-            this.cfg.sqr = generateSquare(x, y, z, G1, G2, this.cfg.dst / 100, this.cfg.bit / 100)
+            const [_x, _y, _z] = this.cfg.tilt
+            this.cfg.sqr = generateSquare(x + _x, y + _y, z + _z, G1, G2, this.cfg.dst / 100, this.cfg.bit / 100)
 
             const [to_right, to_front] = this.cfg.ofs
 
