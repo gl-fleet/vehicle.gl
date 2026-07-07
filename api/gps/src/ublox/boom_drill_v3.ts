@@ -205,8 +205,8 @@ export class Calculus {
             /** Find point at given distance on AB vector */
 
             // Yellow -> Black
-            const k = this.findPointInVector(this.cfg.sqr.bottom[3], this.cfg.sqr.bottom[1], 0.75)
-            const g = this.findPointInVector([k.x, k.y, k.z], this.cfg.sqr.bottom[0], 0.15)
+            const k = this.findPointInVector(this.cfg.sqr.bottom[3], this.cfg.sqr.bottom[2], 0.35)
+            const g = this.findPointInVector(this.cfg.sqr.bottom[0], [k.x, k.y, k.z], 1.12)
 
             const res = {
                 T: this.cfg.type[0],
@@ -237,6 +237,7 @@ export class Calculus {
                         'black': [this.cfg.sqr.bottom[1]],
                         'brown': [this.cfg.sqr.bottom[2]],
                         'yellow': [this.cfg.sqr.bottom[3]],
+
                         'purple': [[g.x, g.y, g.z]],
                     }
                 },
