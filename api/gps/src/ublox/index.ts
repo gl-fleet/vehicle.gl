@@ -27,6 +27,13 @@ const simulation_testing = (me: any, publish: any, GPS: any) => {
 
     }
 
+    me === 'DL429i' && Safe(() => {
+
+        const remote = new Connection({ name: 'data', proxy: 'https://dl429-gantulgak.as2.pitunnel.com', rejectUnauthorized: false })
+        remote.on('stream', Simulationhandler)
+
+    }, 'Simulate')
+
     me === 'DL430i' && Safe(() => {
 
         const remote = new Connection({ name: 'data', proxy: 'https://dl430-gantulgak.as2.pitunnel.com', rejectUnauthorized: false })

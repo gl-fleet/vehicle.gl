@@ -148,10 +148,9 @@ export class Calculus {
 
         const isDev = config.mode === 'development'
 
-        const IOT = new Connection({ name: 'iot', proxy: isDev ? 'https://dl430-gantulgak.as2.pitunnel.com' : undefined, rejectUnauthorized: false })
-        IOT.on('sensors', (sensors: any) => {
-            this.cfg.sensors = sensors
-        })
+        const IOT = new Connection({ name: 'iot', proxy: isDev ? 'https://dl429-gantulgak.as2.pitunnel.com' : undefined, rejectUnauthorized: false })
+
+        IOT.on('sensors', (sensors: any) => { this.cfg.sensors = sensors })
 
     }
 
@@ -197,11 +196,11 @@ export class Calculus {
 
             const { x, y, z } = this.cfg.sensors.axis
             const [_x, _y, _z] = this.cfg.tilt
-            this.cfg.sqr = generateSquare((x + _x), (y + _y), z + _z, G1, G2, this.cfg.dst / 100, this.cfg.bit / 100)
 
-            console.log(this.cfg.sqr.drill)
+            this.cfg.sqr = generateSquare((x + _x), (y + _y), (z + _z), G1, G2, this.cfg.dst / 100, this.cfg.bit / 100)
 
             const [to_right, to_front] = this.cfg.ofs
+            // const to_right = 13.5, to_front = 45.5
 
             const b = this.cfg.sqr.bottom
 
@@ -252,7 +251,7 @@ export class Calculus {
                     ]
                 },
                 camera: {
-                    TL: this.cn(b[0]), TM: this.mid(b[0], b[1]), TR: this.cn(b[1]),
+                    TL: this.cn(b[2]), TM: this.mid(b[2], b[1]), TR: this.cn(b[1]),
                     BL: this.cn(b[3]), BM: this.mid(b[3], b[0]), BR: this.cn(b[0]),
                 }
             }
