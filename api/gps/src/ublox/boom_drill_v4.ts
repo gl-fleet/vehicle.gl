@@ -5,19 +5,6 @@ import { Connection } from 'unet'
 import * as egm96 from 'egm96-universal'
 
 type Vec3 = [number, number, number]
-
-// Build an N-sized 3D square from an HWT905 (tilt) + two RTK GPS antennas
-// (heading), copy it distance M to top and bottom along the plane normal,
-// and derive the drilling angles (azimuth / inclination / dip) of the hole.
-//
-//   x, y, z : HWT905 roll, pitch, yaw in DEGREES  (z is ignored - see note)
-//   gps1    : [east, north, elevation]  antenna 1
-//   gps2    : [east, north, elevation]  antenna 2
-//   size    : side length of the square (same units as GPS, e.g. metres)
-//   m       : offset distance to top and bottom, along the plane normal
-//
-// Frame: ENU (x=East, y=North, z=Up). Heading/azimuth are cw from North.
-
 type ENU = [number, number, number] // [east, north, elevation]
 type Corners = [ENU, ENU, ENU, ENU]
 
@@ -27,6 +14,9 @@ interface Drill {
     inclination: number // deg from vertical (0 = vertical, 90 = horizontal)
     dip: number // deg below horizontal (90 = vertical, 0 = horizontal)
     isVertical: boolean
+    // --- New Boom Position Fields ---
+    boomTipLocation: ENU // Absolute [East, North, Elevation] coordinate of the drill bit
+    horizontalDriftCm: number // How many centimeters the bit has moved away from the vertical line
 }
 
 interface Prism {
@@ -44,32 +34,32 @@ const deg = (r: number): number => (r * 180) / Math.PI
 const clamp = (v: number): number => Math.max(-1, Math.min(1, v))
 
 const generateSquare = (
-    x: number,
-    y: number,
-    z: number,
+    x: number, // Roll from HWT905 (degrees)
+    y: number, // Pitch from HWT905 (degrees)
     gps1: ENU,
     gps2: ENU,
     size = 1,
-    m = 0.5
+    m = 0.5,
+    boomLength = 10 // Added: Length of the drill boom in meters
 ): Prism => {
-    // --- heading from the two antennas (cw from North) ---
+    // --- Heading calculated directly from GPS Baseline (0 = North, 90 = East) ---
     const dE = gps2[0] - gps1[0]
     const dN = gps2[1] - gps1[1]
     const heading = Math.atan2(dE, dN)
 
-    // --- roll & pitch from HWT905, yaw from GPS heading ---
     const roll = rad(x)
-    const pitch = rad(-y)
+    const pitch = rad(y)
     const yaw = heading
 
     const cy = Math.cos(yaw), sy = Math.sin(yaw)
     const cp = Math.cos(pitch), sp = Math.sin(pitch)
     const cr = Math.cos(roll), sr = Math.sin(roll)
 
+    // --- ENU Tait-Bryan Rotation Matrix (Z-Y'-X'' sequence) ---
     const R = [
-        [cy * cp, cy * sp * sr - sy * cr, cy * sp * cr + sy * sr],
-        [sy * cp, sy * sp * sr + cy * cr, sy * sp * cr - cy * sr],
-        [-sp, cp * sr, cp * cr]
+        [cy * cr + sy * sp * sr, cy * sp * cr - sy * sr, cy * cp], // East output
+        [sy * cr - cy * sp * sr, cy * sr + sy * sp * cr, sy * cp], // North output
+        [-cp * sr, -cp * cr, sp]     // Up output
     ]
 
     const origin: ENU = [
@@ -79,13 +69,13 @@ const generateSquare = (
     ]
 
     const rotate = ([bx, by, bz]: ENU): ENU => {
-        const north = R[0][0] * bx + R[0][1] * by + R[0][2] * bz
-        const east = R[1][0] * bx + R[1][1] * by + R[1][2] * bz
-        const down = R[2][0] * bx + R[2][1] * by + R[2][2] * bz
-        return [east, north, -down]
+        const east = R[0][0] * bx + R[0][1] * by + R[0][2] * bz
+        const north = R[1][0] * bx + R[1][1] * by + R[1][2] * bz
+        const up = R[2][0] * bx + R[2][1] * by + R[2][2] * bz
+        return [east, north, up]
     }
 
-    const normal = rotate([0, 0, -1]) // sensor up-face
+    const normal = rotate([0, 0, 1])
 
     const h = size / 2
     const cornersBody: ENU[] = [
@@ -107,14 +97,26 @@ const generateSquare = (
             u + s * normal[2]
         ]) as Corners
 
-    // --- drilling angles from the down-the-hole axis (sensor +Z) ---
-    const vector = rotate([0, 0, 1]) // down the hole
+    // --- Vector pointing down the drill hole (-Z local relative to normal) ---
+    const vector = rotate([0, 0, -1])
     const [vE, vN, vU] = vector
     const horiz = Math.hypot(vE, vN)
     const isVertical = horiz < 1e-9
+
     const azimuth = isVertical ? null : (deg(Math.atan2(vE, vN)) + 360) % 360
-    const inclination = deg(Math.acos(clamp(-vU))) // from vertical
-    const dip = 90 - inclination // below horizontal
+    const inclination = deg(Math.acos(clamp(-vU))) // Angle away from straight down
+    const dip = 90 - inclination
+
+    // --- Calculate Exact 3D Position of the Drill Bit ---
+    // Multiply the normalized direction vector by your boom length
+    const boomTipLocation: ENU = [
+        origin[0] + vector[0] * boomLength,
+        origin[1] + vector[1] * boomLength,
+        origin[2] + vector[2] * boomLength
+    ]
+
+    // Calculate total displacement away from the vertical line in centimeters
+    const horizontalDriftCm = horiz * boomLength * 100
 
     return {
         heading: (deg(heading) + 360) % 360,
@@ -123,7 +125,15 @@ const generateSquare = (
         middle,
         top: shift(middle, m),
         bottom: shift(middle, -m),
-        drill: { vector, azimuth, inclination, dip, isVertical }
+        drill: {
+            vector,
+            azimuth,
+            inclination,
+            dip,
+            isVertical,
+            boomTipLocation,
+            horizontalDriftCm
+        }
     }
 }
 
@@ -148,7 +158,9 @@ export class Calculus {
 
         const isDev = config.mode === 'development'
 
-        const IOT = new Connection({ name: 'iot', proxy: isDev ? 'https://dl421-gantulgak.as2.pitunnel.com' : undefined, rejectUnauthorized: false })
+        console.log(config.virtually)
+
+        const IOT = new Connection({ name: 'iot', proxy: isDev ? config.virtually : undefined, rejectUnauthorized: false })
 
         IOT.on('sensors', (sensors: any) => { this.cfg.sensors = sensors })
 
@@ -197,11 +209,11 @@ export class Calculus {
             const { x, y, z } = this.cfg.sensors.axis
             const [_x, _y, _z] = this.cfg.tilt
 
-            console.log(this.cfg.sensors.axis)
+            // console.log(this.cfg.sensors.axis)
             // this.cfg.sqr = generateSquare((x + _x), (y + _y), (z + _z), G1, G2, this.cfg.dst / 100, this.cfg.bit / 100)
-            this.cfg.sqr = generateSquare((x + 0), (y - 0), (z + _z), G1, G2, this.cfg.dst / 100, this.cfg.bit / 100)
+            this.cfg.sqr = generateSquare((x + 0), (y - 0), G1, G2, this.cfg.dst / 100, this.cfg.bit / 100)
             // const [to_right, to_front] = this.cfg.ofs
-            const to_right = 14, to_front = 28
+            const to_right = 0, to_front = 0
 
             const b = this.cfg.sqr.bottom
 
@@ -257,71 +269,9 @@ export class Calculus {
                 }
             }
 
-            // console.log(res)
+            console.log(res.A)
 
             return res
-
-            /* const heading = Math.atan2(G2[1] - G1[1], G2[0] - G1[0]) - Math.PI / 2
-
-            const { lat, lng } = Utm.convertUtmToLatLng(out.Target[0], out.Target[1], `${zoneNumber}`, zoneLetter)
-
-            const dist_act = Number((this.distance3D(G1, G2) * 100).toFixed(2))
-
-            return {
-                T: this.cfg.type[0],
-                R: heading,
-                G: [lat, lng, out.Target[2]],
-                A: [out.Target[0], out.Target[1], out.Target[2]],
-                B: [out.G2[0], out.G2[1], out.G2[2]],
-                C: [out.Bit[0], out.Bit[1], out.Bit[2]],
-                status: {
-                    dist_tar: dist_act,
-                    dist_act: dist_act,
-                    azimuth: Number(out.AzimuthDeg.toFixed(2)),
-                    inclination: Number(out.InclinationDeg.toFixed(2)),
-                    zoneNumber,
-                    zoneLetter,
-                    rtcm: `${this.cfg.host}:${this.cfg.port}`,
-                },
-                shapes: {
-                    points: [
-                        out.G1, out.G2,
-                        out.Joint1, out.BoomTip, out.MastPivot,
-                        out.Bit, out.Target
-                    ],
-                    colored: {
-                        'green': [out.G1, out.G2],
-                        'red': [out.Joint1, out.BoomTip, out.MastPivot],
-                        'blue': [out.Bit, out.Target],
-                    },
-                    lines: [
-                        [out.G1, out.Joint1],    // cabin GPS → boom base
-                        [out.Joint1, out.BoomTip],   // boom base → boom tip
-                        [out.BoomTip, out.MastPivot], // boom tip → mast pivot
-                        [out.MastPivot, out.G2],       // mast pivot → GPS2 (up)
-                        [out.MastPivot, out.Bit],      // mast pivot → bit (down)
-                        [out.Bit, out.Target],    // bit → target (BRi)
-                    ]
-                },
-                camera: (() => {
-                    // Exact same P0/P1/P2/P3 as original code
-                    const P0: Vec3 = [G1[0], G1[1], G1[2] - out.params.Do]
-                    const P1: Vec3 = [G2[0], G2[1], P0[2]]
-                    const dx = P1[0] - P0[0]
-                    const dy = P1[1] - P0[1]
-                    const D1 = Math.sqrt(dx * dx + dy * dy)
-                    const U: Vec3 = D1 === 0 ? [0, 1, 0] : [-dy / D1, dx / D1, 0]
-                    const E: Vec3 = D1 === 0 ? [1, 0, 0] : [dx / D1, dy / D1, 0]
-                    const Alp = D1 === 0 ? 0 : (out.params.Ri * out.params.Ri) / D1
-                    const Bet = Math.sqrt(Math.max(0, Alp * (D1 - Alp)))
-                    const P2: Vec3 = [P0[0] + E[0] * Alp - U[0] * Bet, P0[1] + E[1] * Alp - U[1] * Bet, P0[2]]
-                    const P3: Vec3 = [P1[0] - E[0] * Alp + U[0] * Bet, P1[1] - E[1] * Alp + U[1] * Bet, P1[2]]
-                    return {
-                        TL: this.cn(P3), TM: this.mid(P3, P1), TR: this.cn(P1),
-                        BL: this.cn(P0), BM: this.mid(P0, P2), BR: this.cn(P2),
-                    }
-                })()
-            } */
 
         } catch (err: any) {
             log.error(`[Calculus] While parsing GPS: ${err.message}`)

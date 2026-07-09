@@ -7,8 +7,9 @@ import { ProcessActivity } from './process'
 import { Calculus as Default_Drill } from './calculus'
 import { Calculus as Boom_Drill } from './boom_drill'
 import { Calculus as Boom_Drill_V3 } from './boom_drill_v3'
+import { Calculus as Boom_Drill_V4 } from './boom_drill_v4'
 
-const simulation_testing = (me: any, publish: any, GPS: any) => {
+const simulation_testing = (me: any, publish: any, GPS: any, cf: any) => {
 
     log.success(`[Simulation]: Simulating GPS data for ${me} ...`)
 
@@ -27,47 +28,25 @@ const simulation_testing = (me: any, publish: any, GPS: any) => {
 
     }
 
-    me === 'DL429i' && Safe(() => {
-
-        const remote = new Connection({ name: 'data', proxy: 'https://dl429-gantulgak.as2.pitunnel.com', rejectUnauthorized: false })
+    cf.virtually && Safe(() => {
+        const remote = new Connection({ name: 'data', proxy: cf.virtually, rejectUnauthorized: false })
         remote.on('stream', Simulationhandler)
-
-    }, 'Simulate')
-
-    me === 'DL430i' && Safe(() => {
-
-        const remote = new Connection({ name: 'data', proxy: 'https://dl430-gantulgak.as2.pitunnel.com', rejectUnauthorized: false })
-        remote.on('stream', Simulationhandler)
-
-    }, 'Simulate')
-
-    me === 'HDM036i' && Safe(() => {
-
-        const remote = new Connection({ name: 'data', proxy: 'https://hdm036-gantulgak.as2.pitunnel.com', rejectUnauthorized: false })
-        remote.on('stream', Simulationhandler)
-
-    }, 'Simulate')
-
-
-    me === 'D65i' && Safe(() => {
-
-        const remote = new Connection({ name: 'data', proxy: 'https://d65-gantulgak.as2.pitunnel.com', rejectUnauthorized: false })
-        remote.on('stream', Simulationhandler)
-
-    }, 'Simulate')
+    }, `Simulate: ${cf.virtually}`)
 
 }
 
 export const start_ublox = (module: string) => {
 
     const cf = decodeENV()
+
+    console.log(cf)
     const { me, version, mode, type = [] } = cf
     log.success(`"${env.npm_package_name}"."${module}" <${version}> module is running on "${process.pid}" / [${mode}] [${me}] 🚀🚀🚀\n`)
 
     const DEV = cf.mode === 'development', PROD = !DEV
     const API_DATA = new Connection({ name: 'data', timeout: 500 })
     const GPS: any = { gps1: {}, gps2: {} } /** Temporary GPS data store **/
-    const Calculate = type[0] === 'boom_drill' ? new Boom_Drill_V3(cf) : new Default_Drill(cf)
+    const Calculate = type[0] === 'boom_drill' ? new Boom_Drill_V4(cf) : new Default_Drill(cf)
     const Process = new ProcessActivity({})
     const LOG: any = log
     const VAC = DEV ? 100000 : Number(cf.threshold[0])     /** Bad GPS Threshold (cm) **/
@@ -75,7 +54,7 @@ export const start_ublox = (module: string) => {
     const publish = (channel: string, data: any) => Safe(async () => await API_DATA.set(channel, data), `[${channel}]`)
 
     /** For testing purpose **/
-    DEV && simulation_testing(me, publish, GPS)
+    DEV && simulation_testing(me, publish, GPS, cf)
 
     Safe(() => {
 

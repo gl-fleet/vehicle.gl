@@ -7,7 +7,7 @@ import Main from './views/main'
 import Settings from './views/setting'
 import { generateComonAndPersist } from './helper/utils'
 
-const { name, version, mode } = Win.env
+const { name, version, mode, virtually } = Win.env
 
 log.success(`${mode}: ${name} ${version}`)
 
@@ -18,7 +18,7 @@ const cfg: iArgs = {
     env: Win.env,
     api: new Connection({ name: 'data', timeout: 60 * 1000 }),
     pm2: new Connection({ name: 'proxy', timeout: 60 * 1000 }),
-    cloud: mode === "development" ? new Connection({ name: 'data', proxy: 'https://dl429-gantulgak.as2.pitunnel.com', timeout: 60 * 1000 }) : undefined,
+    cloud: mode === "development" ? new Connection({ name: 'data', proxy: virtually, timeout: 60 * 1000 }) : undefined,
 }
 
 cfg.api.on('stream', (args: any) => {
