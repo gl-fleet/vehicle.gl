@@ -16,9 +16,14 @@ export const generateComonAndPersist = (args: any = {}) => {
         }
     }
 
-    if (is_all_ok) {
-        const { zoneNumber, zoneLetter } = args.data_gps?.status
+    if (is_all_ok && args?.data_gps?.status) {
+
+        const { A, B, C, G, R, T, status } = args.data_gps
+        const { zoneNumber, zoneLetter } = status
+        gps.push({ key: 'data_gps', A, B, C, G, R, T })
         if (zoneNumber && zoneLetter) KeyValue('common_gps', JSON.stringify({ zoneNumber, zoneLetter, gps }))
+        KeyValue('status', JSON.stringify(status))
+
     }
 
 }

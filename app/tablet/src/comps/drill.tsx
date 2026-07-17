@@ -7,6 +7,7 @@ import {
   CaretRightOutlined, DeleteOutlined, HistoryOutlined,
   PauseOutlined, ThunderboltOutlined
 } from '@ant-design/icons'
+import { Safe, Delay, Loop, KeyValue } from 'utils/web'
 import styled from 'styled-components'
 
 const { Title, Text } = Typography
@@ -25,13 +26,13 @@ export interface LogEntry {
 
 const LAYERS = [
   { name: 'Хоосон чулуулаг', icon: '🟧', color: '#d48806' },
-  { name: 'Элсэн чулуу',     icon: '🟨', color: '#a89030' },
-  { name: 'Шавар',           icon: '🟤', color: '#8c6a3f' },
-  { name: 'Нүүрс',           icon: '⬛', color: '#262626' },
-  { name: 'Завсар үе',       icon: '🟩', color: '#389e0d' },
-  { name: 'Шавран чулуу',    icon: '🔴', color: '#cf1322' },
-  { name: 'Хатуу чулуулаг',  icon: '⬜', color: '#434343' },
-  { name: 'Ус',              icon: '💧', color: '#0284c7' },
+  { name: 'Элсэн чулуу', icon: '🟨', color: '#a89030' },
+  { name: 'Шавар', icon: '🟤', color: '#8c6a3f' },
+  { name: 'Нүүрс', icon: '⬛', color: '#262626' }, // Хүдэр
+  { name: 'Завсар үе', icon: '🟩', color: '#389e0d' },
+  { name: 'Шавран чулуу', icon: '🔴', color: '#cf1322' },
+  { name: 'Хатуу чулуулаг', icon: '⬜', color: '#434343' },
+  { name: 'Ус', icon: '💧', color: '#0284c7' },
 ]
 
 const DEFAULT_LAYER = 'Хоосон чулуулаг'
@@ -100,7 +101,7 @@ const LogDepth = styled(Text)`
   && { font-family: monospace; }
 `
 
-const LogLayerName = styled(Text)<{ $color: string }>`
+const LogLayerName = styled(Text) <{ $color: string }>`
   && { font-size: 11px; color: ${p => p.$color}; }
 `
 
@@ -201,7 +202,7 @@ const HoleProfile = ({
   )
 
   const maxDepth = Math.max(designDepth, drillDepth, layerDepth, 1)
-  const pct      = (d: number) => `${(d / maxDepth) * 100}%`
+  const pct = (d: number) => `${(d / maxDepth) * 100}%`
 
   const segments: { from: number; to: number; layer: string }[] = []
 
@@ -211,7 +212,7 @@ const HoleProfile = ({
     if (markers[0].depth > 0) segments.push({ from: 0, to: markers[0].depth, layer: markers[0].layer })
     for (let i = 0; i < markers.length - 1; i++) {
       const from = markers[i].depth
-      const to   = markers[i + 1].depth
+      const to = markers[i + 1].depth
       if (to > from) segments.push({ from, to, layer: markers[i + 1].layer })
     }
     const lastEnd = markers[markers.length - 1].depth
@@ -228,7 +229,7 @@ const HoleProfile = ({
 
       <CrossSection $bg={token.colorFillSecondary} $border={token.colorBorder}>
         {segments.map((seg, idx) => {
-          const h    = seg.to - seg.from
+          const h = seg.to - seg.from
           const hPct = (h / maxDepth) * 100
           return (
             <Tooltip key={idx} title={`${seg.layer}: ${seg.from}м – ${seg.to}м`}>
@@ -285,27 +286,27 @@ const StepSlider = ({ value, onChange, max }: { value: number, onChange: (v: num
 // ─── DrillSession ─────────────────────────────────────────────────────────────
 
 export default function DrillSession({
-  holeId      = 'H-012',
+  holeId = 'H-012',
   designDepth = 15.0,
   initialData = null,
-  onComplete  = (d: any) => console.log('Complete:', d),
+  onComplete = (d: any) => console.log('Complete:', d),
 }: any) {
-  const { token }  = useToken()
+  const { token } = useToken()
   const [msg, ctx] = message.useMessage()
 
-  const [state, setState]           = useState<SessionState>(initialData ? 'done' : 'idle')
-  const [elapsedMs, setElapsedMs]   = useState(initialData?.netDrillMs ?? 0)
-  const [pausedMs, setPausedMs]     = useState(initialData?.totalPausedMs ?? 0)
-  const [entries, setEntries]       = useState<LogEntry[]>(initialData?.entries ?? [])
+  const [state, setState] = useState<SessionState>(initialData ? 'done' : 'idle')
+  const [elapsedMs, setElapsedMs] = useState(initialData?.netDrillMs ?? 0)
+  const [pausedMs, setPausedMs] = useState(initialData?.totalPausedMs ?? 0)
+  const [entries, setEntries] = useState<LogEntry[]>(initialData?.entries ?? [])
   const [drillDepth, setDrillDepth] = useState(initialData?.finalDepth ?? 0)
   const [layerDepth, setLayerDepth] = useState(initialData?.finalDepth ?? 0)
   const [activeLayer, setActiveLayer] = useState(DEFAULT_LAYER)
 
-  const timerRef      = useRef<any>(null)
+  const timerRef = useRef<any>(null)
   const pauseTimerRef = useRef<any>(null)
-  const startTs       = useRef(0)
-  const pauseStartTs  = useRef(0)
-  const pauseBaseMs   = useRef(0)
+  const startTs = useRef(0)
+  const pauseStartTs = useRef(0)
+  const pauseBaseMs = useRef(0)
 
   const maxLogged = useMemo(() =>
     entries.filter(e => e.type === 'depth').reduce((m, e) => Math.max(m, e.depth), 0),
@@ -317,15 +318,48 @@ export default function DrillSession({
     return `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`
   }
 
-  const startTimer     = () => { startTs.current = Date.now() - elapsedMs; timerRef.current = setInterval(() => setElapsedMs(Date.now() - startTs.current), 1000) }
-  const stopTimer      = () => clearInterval(timerRef.current)
+  const startTimer = () => { startTs.current = Date.now() - elapsedMs; timerRef.current = setInterval(() => setElapsedMs(Date.now() - startTs.current), 1000) }
+  const stopTimer = () => clearInterval(timerRef.current)
   const stopPauseTimer = () => clearInterval(pauseTimerRef.current)
   useEffect(() => () => { stopTimer(); stopPauseTimer() }, [])
 
+  useEffect(() => {
+
+    return
+    Loop(() => {
+
+      const status = KeyValue('status')
+      const parsed = JSON.parse(status)
+      const { depth } = parsed
+      const dpt = Number((depth / 100).toFixed(2))
+
+      console.log(holeId, dpt)
+
+      setDrillDepth((pdpt: number) => {
+
+        if (dpt - pdpt >= 0.5) {
+          addEntry('depth', dpt)
+          return dpt
+        }
+
+        if (dpt - pdpt <= -0.5) {
+          handlePause()
+        }
+
+        // if()
+
+        return pdpt
+
+      })
+
+    }, 2500)
+
+  }, [])
+
   const handlePause = () => {
     stopTimer()
-    pauseStartTs.current  = Date.now()
-    pauseBaseMs.current   = pausedMs
+    pauseStartTs.current = Date.now()
+    pauseBaseMs.current = pausedMs
     pauseTimerRef.current = setInterval(() => setPausedMs(pauseBaseMs.current + (Date.now() - pauseStartTs.current)), 1000)
     setState('paused')
   }
@@ -364,9 +398,9 @@ export default function DrillSession({
     msg.success(`${type === 'layer' ? 'Үе өөрчлөгдлөө' : 'Гүн бүртгэгдлээ'}: ${depth}м`)
   }
 
-  const removeEntry    = (id: string) => setEntries(prev => prev.filter(e => e.id !== id))
-  const depthEntries   = entries.filter(e => e.type === 'depth')
-  const layerEntries   = entries.filter(e => e.type === 'layer')
+  const removeEntry = (id: string) => setEntries(prev => prev.filter(e => e.id !== id))
+  const depthEntries = entries.filter(e => e.type === 'depth')
+  const layerEntries = entries.filter(e => e.type === 'layer')
 
   return (
     <PageWrap $bg={token.colorBgLayout}>
@@ -387,9 +421,9 @@ export default function DrillSession({
                   <PauseLabel type="danger">ЗОГСОЛТ: {fmt(pausedMs)}</PauseLabel>
                 </Space>
                 <Space>
-                  {state === 'idle'     && <Button type="primary" size="large" icon={<CaretRightOutlined />} onClick={() => { setState('drilling'); startTimer() }}>Өрөмдөж эхлэх</Button>}
+                  {state === 'idle' && <Button type="primary" size="large" icon={<CaretRightOutlined />} onClick={() => { setState('drilling'); startTimer() }}>Өрөмдөж эхлэх</Button>}
                   {state === 'drilling' && <Button danger size="large" icon={<PauseOutlined />} onClick={handlePause}>Түр зогсоох</Button>}
-                  {state === 'paused'   && <Button type="primary" size="large" icon={<CaretRightOutlined />} onClick={handleResume}>Үргэлжлүүлэх</Button>}
+                  {state === 'paused' && <Button type="primary" size="large" icon={<CaretRightOutlined />} onClick={handleResume}>Үргэлжлүүлэх</Button>}
                   {state === 'done'
                     ? <Button size="large" icon={<CaretRightOutlined />} onClick={handleContinue}>Үргэлжлүүлэн өрөмдөх</Button>
                     : <Popconfirm title="Дуусгах уу?" onConfirm={handleComplete} okText="Тийм" cancelText="Үгүй"><Button type="primary" size="large">Дуусгах</Button></Popconfirm>

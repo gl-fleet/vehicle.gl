@@ -1,7 +1,7 @@
 import { React, Render } from 'uweb'
 import { Connection } from 'unet/web'
 import { EventEmitter } from "events"
-import { Win, log } from 'utils/web'
+import { Win, log, Safe } from 'utils/web'
 
 import Main from './views/main'
 import Settings from './views/setting'
@@ -20,6 +20,8 @@ const cfg: iArgs = {
     pm2: new Connection({ name: 'proxy', timeout: 60 * 1000 }),
     cloud: mode === "development" ? new Connection({ name: 'data', proxy: virtually, timeout: 60 * 1000 }) : undefined,
 }
+
+cfg.cloud?.cio.disconnect()
 
 cfg.api.on('stream', (args: any) => {
 

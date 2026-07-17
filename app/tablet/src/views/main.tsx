@@ -22,14 +22,7 @@ import Middle from '../views/middle'
 
 const arrows: any = {}
 
-let blink = true
-
-Loop(() => {
-
-    blink = !blink
-    for (const x in arrows) arrows[x].setColor(blink ? 'red' : 'green')
-
-}, 500)
+let blink = true; Loop(() => { blink = !blink; for (const x in arrows) arrows[x].setColor(blink ? 'red' : 'green'); }, 500)
 
 export default (cfg: iArgs) => {
 
@@ -85,7 +78,7 @@ export default (cfg: iArgs) => {
 
                 if (ename === 'position-map') {
 
-                    const { T, R, G, A, B, C, shapes, camera } = data
+                    const { T, R, G, A, B, C, K, shapes, camera } = data
                     const { lines, points, colored } = shapes
 
                     itrc.is_left_ok() && left.map.setCenter([G[1], G[0], 0])

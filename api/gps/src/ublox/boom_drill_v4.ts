@@ -160,29 +160,11 @@ export class Calculus {
 
         console.log(config.virtually)
 
-        const IOT = new Connection({ name: 'iot', proxy: isDev ? config.virtually : undefined, rejectUnauthorized: false })
+        // const IOT = new Connection({ name: 'iot', proxy: isDev ? config.virtually : undefined, rejectUnauthorized: false })
+        const IOT = new Connection({ name: 'iot', rejectUnauthorized: false })
 
         IOT.on('sensors', (sensors: any) => { this.cfg.sensors = sensors })
 
-    }
-
-    on = (cb: any) => { this.callback = cb }
-    cn = (X: Vec3) => ({ x: X[0], y: X[1], z: X[2] })
-    mid = (A: Vec3, B: Vec3) => ({ x: (A[0] + B[0]) / 2, y: (A[1] + B[1]) / 2, z: (A[2] + B[2]) / 2 })
-    distance3D = (a: Vec3, b: Vec3) => Math.sqrt((b[0] - a[0]) ** 2 + (b[1] - a[1]) ** 2 + (b[2] - a[2]) ** 2)
-    getUTMZone = (lat: number, lon: number) => {
-        const zoneNumber = Math.floor((lon + 180) / 6) + 1
-        const letters = "CDEFGHJKLMNPQRSTUVWX"
-        const zoneLetter = (lat >= -80 && lat <= 84) ? letters[Math.floor((lat + 80) / 8)] : 'Z'
-        return { zoneNumber, zoneLetter }
-    }
-    findPointInVector = (A: Vec3, B: Vec3, r: number) => {
-        const d = this.distance3D(A, B)
-        return {
-            x: (A[0] + ((B[0] - A[0]) / d) * r),
-            y: (A[1] + ((B[1] - A[1]) / d) * r),
-            z: (A[2] + ((B[2] - A[2]) / d) * r)
-        }
     }
 
     calculate = ({ gps1, gps2 }: any) => {
@@ -278,4 +260,24 @@ export class Calculus {
             return null
         }
     }
+
+    on = (cb: any) => { this.callback = cb }
+    cn = (X: Vec3) => ({ x: X[0], y: X[1], z: X[2] })
+    mid = (A: Vec3, B: Vec3) => ({ x: (A[0] + B[0]) / 2, y: (A[1] + B[1]) / 2, z: (A[2] + B[2]) / 2 })
+    distance3D = (a: Vec3, b: Vec3) => Math.sqrt((b[0] - a[0]) ** 2 + (b[1] - a[1]) ** 2 + (b[2] - a[2]) ** 2)
+    getUTMZone = (lat: number, lon: number) => {
+        const zoneNumber = Math.floor((lon + 180) / 6) + 1
+        const letters = "CDEFGHJKLMNPQRSTUVWX"
+        const zoneLetter = (lat >= -80 && lat <= 84) ? letters[Math.floor((lat + 80) / 8)] : 'Z'
+        return { zoneNumber, zoneLetter }
+    }
+    findPointInVector = (A: Vec3, B: Vec3, r: number) => {
+        const d = this.distance3D(A, B)
+        return {
+            x: (A[0] + ((B[0] - A[0]) / d) * r),
+            y: (A[1] + ((B[1] - A[1]) / d) * r),
+            z: (A[2] + ((B[2] - A[2]) / d) * r)
+        }
+    }
+
 }

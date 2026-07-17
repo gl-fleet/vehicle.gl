@@ -229,12 +229,10 @@ export class Event {
 
     parser_gps = (e: any) => wr(() => {
 
-        console.log(e)
-
         try {
 
-            const { T, R, G, A, B, C, status, shapes, camera } = e
-            const local = { T, R, G, A, B, C, status, shapes, camera }
+            const { T, R, G, A, B, C, K, status, shapes, camera } = e
+            const local = { T, R, G, A, B, C, K, status, shapes, camera }
 
             let cloud = {
                 prec3d: f((Math.abs(status.dist_tar - status.dist_act)), 1),
@@ -334,8 +332,7 @@ export class Event {
 
             this.emit('update', key)
             this.pub_local()
-            this.pub_cloud()
-            // mode !== 'development' && this.pub_cloud()
+            mode !== 'development' && this.pub_cloud()
 
         }
 

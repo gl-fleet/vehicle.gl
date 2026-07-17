@@ -1,8 +1,9 @@
 import type { MapView } from 'uweb/maptalks'
 import type { ThreeView } from 'uweb/three'
+import { THREE } from 'uweb/three'
 import { colorize, ColorG2R } from 'uweb/utils'
 import { React, Button, Drawer, Row, Col, Tabs, Card, Select, Space, message } from 'uweb'
-import { Safe, Delay } from 'utils/web'
+import { Safe, Delay, KeyValue } from 'utils/web'
 
 import DrillSession from '../comps/drill'
 
@@ -28,9 +29,7 @@ const ShotPoller = ({ api, body, name, hid }: any) => {
                 setInit(undefined)
             }
 
-        }).catch((e: any) => {
-            setInit(undefined)
-        })
+        }).catch((e: any) => { setInit(undefined) })
 
     }, [])
 
@@ -220,16 +219,59 @@ export class PlanShot {
         const clynder = new Clynder({ Maptalks, Three })
         const type = 'plan_shot'
 
-        event.on('stream', (data) => {
+        type V3 = [number, number, number] // x, y, z
+        const dist = (A: V3, B: V3) => { try { return Math.sqrt(Math.pow(B[0] - A[0], 2) + Math.pow(B[1] - A[1], 2) + Math.pow(B[2] - A[2], 2)) } catch (error) { return -1 } }
+        // const arrow = new THREE.ArrowHelper(new THREE.Vector3(0, 0, 0), new THREE.Vector3(0, 0, 0), 1, '#52c41a', 0.75, 0.75)
+        // Three.scene.add(arrow)
+        const pointAtZ = (a: V3, b: V3, z: number): V3 | null => {
+            const dz = b[2] - a[2]
+            if (dz === 0) return null // line is horizontal, no unique point at this z
+            const t = (z - a[2]) / dz
+            return [a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t, z]
+        }
 
-            const { d2, d3, v, n } = clynder.nearest(data.data_gps?.A ?? [0, 0, 0], 500 /** Within 500 meters **/)
-            if (n && n !== '*') event.emit('shot_plan_status', { d2, d3, v, n })
+        event.on('stream', ({ data_gps = {} }) => {
+
+            const { K, A } = data_gps
+
+            const { d2, d3, v, n }: any = clynder.nearest(A ?? [0, 0, 0], 500 /** Within 500 meters **/)
+            const pz = pointAtZ(K, A, v[2])
+
+            if (pz) {
+
+                /* const dir = new THREE.Vector3().subVectors(new THREE.Vector3(pz[0], pz[1], pz[2]), new THREE.Vector3(A[0], A[1], A[2])).normalize()
+                const length = new THREE.Vector3().subVectors(new THREE.Vector3(pz[0], pz[1], pz[2]), new THREE.Vector3(A[0], A[1], A[2])).length()
+                arrow.setDirection(dir)
+                arrow.setLength(length, 0.02, 0.02)
+                arrow.position.set(A[0], A[1], A[2]) */
+                const ds = dist(pz, v)
+                if (n && n !== '*') event.emit('shot_plan_status', { d2: ds, d3, v, n })
+
+            }
 
         })
 
         event.on('csv-dispose', () => {
             clynder.removeAll()
         })
+
+        cloud && Delay(() => Safe(() => {
+
+            const cm = KeyValue('common_gps')
+            const p = JSON.parse(cm)
+            const { B, A, C } = p.gps[2]
+            B[2] = C[2] = A[2]
+            const rows: any = [
+                ['D0', ...B, 10],
+                ['D1', ...A, 10],
+                ['D2', ...C, 10],
+            ]
+            console.log(rows)
+
+            clynder.updateAll(rows)
+            event.emit('shots', { name: 'demo', rows })
+
+        }, 'Add demo shot'), 2500)
 
         event.on('csv-geojson', (name) => {
 
@@ -240,6 +282,8 @@ export class PlanShot {
                 try {
 
                     const rows = CSV_GeoJson_Parser(data)
+
+                    console.log(rows)
 
                     clynder.updateAll(rows)
 

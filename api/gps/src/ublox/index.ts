@@ -29,8 +29,11 @@ const simulation_testing = (me: any, publish: any, GPS: any, cf: any) => {
     }
 
     cf.virtually && Safe(() => {
+
+        log.success(`Connecting to ${cf.virtually}`)
         const remote = new Connection({ name: 'data', proxy: cf.virtually, rejectUnauthorized: false })
         remote.on('stream', Simulationhandler)
+
     }, `Simulate: ${cf.virtually}`)
 
 }
@@ -38,15 +41,13 @@ const simulation_testing = (me: any, publish: any, GPS: any, cf: any) => {
 export const start_ublox = (module: string) => {
 
     const cf = decodeENV()
-
-    console.log(cf)
     const { me, version, mode, type = [] } = cf
     log.success(`"${env.npm_package_name}"."${module}" <${version}> module is running on "${process.pid}" / [${mode}] [${me}] 🚀🚀🚀\n`)
 
     const DEV = cf.mode === 'development', PROD = !DEV
     const API_DATA = new Connection({ name: 'data', timeout: 500 })
     const GPS: any = { gps1: {}, gps2: {} } /** Temporary GPS data store **/
-    const Calculate = type[0] === 'boom_drill' ? new Boom_Drill_V4(cf) : new Default_Drill(cf)
+    const Calculate = type[0] === 'boom_drill' ? new Boom_Drill_V3(cf) : new Default_Drill(cf)
     const Process = new ProcessActivity({})
     const LOG: any = log
     const VAC = DEV ? 100000 : Number(cf.threshold[0])     /** Bad GPS Threshold (cm) **/
@@ -72,7 +73,6 @@ export const start_ublox = (module: string) => {
             }
         }
         GPS1.on((chunk: any) => ParseGPS1(chunk))
-        // DEV && offline_testing(1, (parsed: any) => { publish('data_gps1', { state: 'success', type: 'success', message: 'GPS1 connected!', data: parsed }); GPS.gps1 = parsed; })
 
         /** GPS-2-Initialize **/
         const GPS2 = new Serial()
@@ -88,7 +88,6 @@ export const start_ublox = (module: string) => {
             }
         }
         GPS2.on((chunk: any) => ParseGPS2(chunk))
-        // DEV && offline_testing(2, (parsed: any) => { publish('data_gps2', { state: 'success', type: 'success', message: 'GPS2 connected!', data: parsed }); GPS.gps2 = parsed; })
 
         /** RTCM-Initialize **/
         const base = { host: cf.host[0], port: Number(cf.host[1]), lastMessage: 0, reconnect: 0 }

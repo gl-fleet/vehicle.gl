@@ -204,7 +204,7 @@ export const PlanShotView = (cfg: iArgs & { cid?: string }) => {
 
                 if (typeof data_gps !== 'object') return
 
-                const { A, camera, status } = data_gps
+                const { K, A, camera, status } = data_gps
                 const { dist_act, dist_tar } = status
 
                 const x = (A[0] ?? 0).toFixed(2)
