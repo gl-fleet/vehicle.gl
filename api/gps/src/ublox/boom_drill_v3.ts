@@ -33,6 +33,42 @@ const drill2 = (A: Vec3, B: Vec3, X: number, Y: number, S: number, L: number, TR
 
 }
 
+const drill3 = (A: Vec3, B: Vec3, q: number[], S: number, L: number, TR: number, TF: number) => {
+    const add = (a: Vec3, b: Vec3, s = 1): Vec3 => [a[0] + s * b[0], a[1] + s * b[1], a[2] + s * b[2]]
+    const cross = (a: Vec3, b: Vec3): Vec3 => [a[1] * b[2] - a[2] * b[1], a[2] * b[0] - a[0] * b[2], a[0] * b[1] - a[1] * b[0]]
+
+    const M: Vec3 = [(A[0] + B[0]) / 2, (A[1] + B[1]) / 2, (A[2] + B[2]) / 2]
+    const hl = Math.hypot(B[0] - A[0], B[1] - A[1])
+    if (hl < 1e-9) return null                               // guard: coincident GPS
+    const u0: Vec3 = [(B[0] - A[0]) / hl, (B[1] - A[1]) / hl, 0]     // heading (East/North)
+    const f0: Vec3 = [-u0[1], u0[0], 0]
+
+    // --- tilt straight from the quaternion (no X/Y reconstruction) ---
+    const [q0, q1, q2, q3] = q
+    const n = Math.hypot(q0, q1, q2, q3) || 1
+    const w = q0 / n, x = q1 / n, y = q2 / n, z = q3 / n
+    // sensor "down the hole" axis in the sensor's own frame; heading comes from GPS
+    const heading = Math.atan2(u0[0], u0[1])                 // cw from North
+    const qyaw = Math.atan2(2 * (w * z + x * y), 1 - 2 * (y * y + z * z))
+    const d = heading - qyaw, cd = Math.cos(d), sd = Math.sin(d)
+    // drill axis = body -Z rotated by q, then yaw-aligned to GPS heading, into ENU
+    let dx = 2 * (x * z + w * y), dy = 2 * (y * z - w * x), dz = 1 - 2 * (x * x + y * y)
+    dx = -dx; dy = -dy; dz = -dz                             // -Z = down the hole
+    const nrm: Vec3 = [dx * cd - dy * sd, dx * sd + dy * cd, dz]     // yaw-align into ENU
+
+    // in-plane axes perpendicular to the drill axis, for the square
+    const f: Vec3 = ((): Vec3 => { const c = cross(nrm, [0, 0, 1]); const m = Math.hypot(c[0], c[1], c[2]) || 1; return [c[0] / m, c[1] / m, c[2] / m] })()
+    const uT = cross(f, nrm)
+
+    const h = S / 2, quad = [[-1, 1], [1, 1], [-1, -1], [1, -1]]
+    const top = quad.map(([a, b]) => add(add(M, uT, a * h), f, b * h))
+    const bottom = top.map(p => add(p, nrm, L))             // note: +L, nrm points down
+    const Pt = add(add(top[2], uT, TR), f, TF)
+    const Pb = add(Pt, nrm, L)
+    const camera = quad.map(([a, b]) => add(add(Pb, u0, a * S), f0, b * S))
+    return { top, bottom, Pt, Pb, camera }
+}
+
 export class Calculus {
 
     cfg: any = {}
@@ -47,8 +83,8 @@ export class Calculus {
         this.cfg.bit = Number(config.bit)
 
         const isDev = config.mode === 'development'
-        const IOT = new Connection({ name: 'iot', proxy: isDev ? config.virtually : undefined, rejectUnauthorized: false })
-        // const IOT = new Connection({ name: 'iot', rejectUnauthorized: false })
+        // const IOT = new Connection({ name: 'iot', proxy: isDev ? config.virtually : undefined, rejectUnauthorized: false })
+        const IOT = new Connection({ name: 'iot', rejectUnauthorized: false })
         IOT.on('sensors', (sensors: any) => { this.cfg.sensors = sensors })
 
     }
@@ -74,12 +110,17 @@ export class Calculus {
             this.cfg.g1 = `${gps1.fix},${gps1.hac}`
             this.cfg.g2 = `${gps2.fix},${gps2.hac}`
 
-            const { x, y, z } = this.cfg.sensors.axis
+            console.log(this.cfg.sensors)
+            const { x, y, cx, cy, q } = this.cfg.sensors.axis
             const { ok, n } = this.cfg.sensors.depth
+            const { prox1, prox2, len } = this.cfg.sensors.pipe
             let [to_right, to_front] = this.cfg.ofs
-            // to_right = 14; to_front = 0;
+            to_right = 45; to_front = 40;
 
-            const { top, bottom, Pt, Pb, camera: cm } = drill2(G1, G2, x, y, this.cfg.dst / 100, this.cfg.bit / 100, to_right / 100, to_front / 100)
+            const { Pt: Rt, Pb: Rb } = drill2(G1, G2, x, y, this.cfg.dst / 100, this.cfg.bit / 100, to_right / 100, to_front / 100)
+            const { top, bottom, Pt, Pb, camera: cm } = drill2(G1, G2, cx, cy, this.cfg.dst / 100, this.cfg.bit / 100, to_right / 100, to_front / 100)
+            const { Pt: Qt, Pb: Qb }: any = drill3(G1, G2, q, this.cfg.dst / 100, this.cfg.bit / 100, to_right / 100, to_front / 100)
+
             const { lat, lng } = Utm.convertUtmToLatLng(Pb[0], Pb[1], `${zoneNumber}`, zoneLetter)
 
             const bit = this.findPointInVector(Pt, Pb, (this.cfg.bit / 100) + (n / 100))
@@ -97,6 +138,8 @@ export class Calculus {
                     dist_act: this.distance3D(G1, G2) * 100,
                     dist_dif: Number((this.cfg.dst - (this.distance3D(G1, G2) * 100)).toFixed(1)),
                     depth: n,
+                    proxim: `${prox1},${prox2}`,
+                    pipe: len,
                     azimuth: 0,
                     inclination: 0,
                     zoneNumber,
@@ -105,9 +148,15 @@ export class Calculus {
                 },
                 shapes: {
                     colored: {
-                        'red': [G1],
-                        'green': [G2],
-                        'orange': [Pt, Pb]
+                        /** 
+                         * Rb - Previous
+                         * Pb - Custom
+                         * Qb - Direct Qtr
+                         **/
+                        'red': [G1, Rb],
+                        'green': [G2, Pb],
+                        'orange': [Pt, Pb],
+                        'Blue': [Qb]
                     },
                     lines: [
                         [top[0], top[1]],
@@ -115,6 +164,8 @@ export class Calculus {
                         [top[0], top[2]],
                         [top[1], top[3]],
                         [Pt, Pb],
+                        [Qt, Qb],
+                        [Rt, Rb],
                         [Pb, [bit.x, bit.y, bit.z]],
                     ]
                 },

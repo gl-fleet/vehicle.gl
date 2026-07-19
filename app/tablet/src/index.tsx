@@ -25,7 +25,7 @@ cfg.cloud?.cio.disconnect()
 
 cfg.api.on('stream', (args: any) => {
 
-    Date.now() % 10000 <= 1000 && console.log(args)
+    // Date.now() % 10000 <= 1000 && console.log(args)
     generateComonAndPersist(args)
     cfg.event.emit('stream', args)
 

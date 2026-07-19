@@ -12,7 +12,7 @@ import { CSV_GeoJson_Parser } from '../helper/parsers'
 
 const { useEffect, useState } = React
 
-const ShotPoller = ({ api, body, name, hid }: any) => {
+const ShotPoller = ({ event, api, body, name, hid }: any) => {
 
     const [init, setInit]: any = useState(false)
 
@@ -37,6 +37,7 @@ const ShotPoller = ({ api, body, name, hid }: any) => {
 
     return <DrillSession
         initialData={init}
+        event={event}
         {...body}
         onComplete={(summary: any) => {
             console.log(summary)
@@ -94,7 +95,7 @@ export const HelperShot = (cfg: iArgs & { half: boolean }) => {
                     return {
                         key: hid,
                         label: hid,
-                        children: <ShotPoller api={cfg.api} body={body} name={name} hid={hid} />
+                        children: <ShotPoller event={event} api={cfg.api} body={body} name={name} hid={hid} />
                     }
 
                 }))
@@ -172,10 +173,7 @@ export const HelperShot = (cfg: iArgs & { half: boolean }) => {
             open={open}
             placement='bottom'
             height="100vh"
-            styles={{
-                body: { padding: 0 },
-                mask: { backgroundColor: 'transparent' },
-            }}
+            styles={{ body: { padding: 0 }, mask: { backgroundColor: 'transparent' } }}
         >
             <Tabs
                 centered={true}
@@ -184,24 +182,6 @@ export const HelperShot = (cfg: iArgs & { half: boolean }) => {
                 tabPosition={'top'}
                 items={shots}
             />
-            {/* <Row>
-                <Col span={20}>
-                    <Tabs
-                        centered={true}
-                        activeKey={shot}
-                        onChange={(k) => setShot(k)}
-                        tabPosition={'top'}
-                        items={shots}
-                    />
-                </Col>
-                <Col span={24}>
-                    <Card style={{ marginBottom: 16 }}>
-                        <div style={{ position: 'relative', width: 320, height: 240 }}>
-                            <PlanShotView {...cfg} cid={'inside-drawer'} />
-                        </div>
-                    </Card>
-                </Col>
-            </Row> */}
         </Drawer>
     </>
 
@@ -260,7 +240,11 @@ export class PlanShot {
             const cm = KeyValue('common_gps')
             const p = JSON.parse(cm)
             const { B, A, C } = p.gps[2]
+
             B[2] = C[2] = A[2]
+            B[0] += 5
+            C[1] += 5
+
             const rows: any = [
                 ['D0', ...B, 10],
                 ['D1', ...A, 10],

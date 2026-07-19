@@ -1,14 +1,8 @@
 import React, { useState, useRef, useMemo, useEffect } from 'react'
-import {
-  Button, Card, Col, InputNumber, Popconfirm,
-  Row, Slider, Space, Tag, Tooltip, Typography, message, theme
-} from 'antd'
-import {
-  CaretRightOutlined, DeleteOutlined, HistoryOutlined,
-  PauseOutlined, ThunderboltOutlined
-} from '@ant-design/icons'
-import { Safe, Delay, Loop, KeyValue } from 'utils/web'
+import { Button, Card, Col, InputNumber, Popconfirm, Row, Slider, Space, Tag, Tooltip, Typography, message, theme } from 'antd'
+import { CaretRightOutlined, DeleteOutlined, HistoryOutlined, PauseOutlined, ThunderboltOutlined } from '@ant-design/icons'
 import styled from 'styled-components'
+import { Safe, Delay, KeyValue, Jfy } from 'utils/web'
 
 const { Title, Text } = Typography
 const { useToken } = theme
@@ -28,7 +22,8 @@ const LAYERS = [
   { name: 'Хоосон чулуулаг', icon: '🟧', color: '#d48806' },
   { name: 'Элсэн чулуу', icon: '🟨', color: '#a89030' },
   { name: 'Шавар', icon: '🟤', color: '#8c6a3f' },
-  { name: 'Нүүрс', icon: '⬛', color: '#262626' }, // Хүдэр
+  { name: 'Нүүрс', icon: '⬛', color: '#262626' },
+  { name: 'Хүдэр', icon: '🟡', color: '#d4af37' }, // Алтны хүдэр
   { name: 'Завсар үе', icon: '🟩', color: '#389e0d' },
   { name: 'Шавран чулуу', icon: '🔴', color: '#cf1322' },
   { name: 'Хатуу чулуулаг', icon: '⬜', color: '#434343' },
@@ -71,9 +66,10 @@ const PauseLabel = styled(Text)`
 
 const DepthCardFooter = styled.div`
   display: flex;
-  justify-content: space-between;
+  justify-content: flex-end;
   align-items: center;
   margin-top: 8px;
+  gap: 12px;
 `
 
 const LayerBtnCol = styled(Col)`
@@ -185,9 +181,7 @@ const DrillLabel = styled.div<{ $bg: string }>`
 
 // ─── HoleProfile ──────────────────────────────────────────────────────────────
 
-const HoleProfile = ({
-  entries, designDepth, drillDepth, layerDepth, activeLayer,
-}: {
+const HoleProfile = ({ entries, designDepth, drillDepth, layerDepth, activeLayer }: {
   entries: LogEntry[]
   designDepth: number
   drillDepth: number
@@ -290,7 +284,28 @@ export default function DrillSession({
   designDepth = 15.0,
   initialData = null,
   onComplete = (d: any) => console.log('Complete:', d),
+  event
 }: any) {
+
+  useEffect(() => {
+    console.log(`Render view for ${holeId}`)
+    return () => console.log(`Unrender view for ${holeId}`)
+  }, [])
+
+  const zone = useMemo(() => {
+
+    try {
+
+      const { zoneNumber }: any = Jfy(KeyValue('status'))
+      console.log(zoneNumber)
+      if (zoneNumber === 47) LAYERS.splice(3, 1)
+      if (zoneNumber === 48) LAYERS.splice(4, 1)
+      return zoneNumber
+
+    } catch (err) { return 0 }
+
+  }, [])
+
   const { token } = useToken()
   const [msg, ctx] = message.useMessage()
 
@@ -301,6 +316,7 @@ export default function DrillSession({
   const [drillDepth, setDrillDepth] = useState(initialData?.finalDepth ?? 0)
   const [layerDepth, setLayerDepth] = useState(initialData?.finalDepth ?? 0)
   const [activeLayer, setActiveLayer] = useState(DEFAULT_LAYER)
+  const [sensorStatus, setSensorStatus] = useState(KeyValue('sensorStatus') === 'enabled')
 
   const timerRef = useRef<any>(null)
   const pauseTimerRef = useRef<any>(null)
@@ -308,51 +324,103 @@ export default function DrillSession({
   const pauseStartTs = useRef(0)
   const pauseBaseMs = useRef(0)
 
-  const maxLogged = useMemo(() =>
-    entries.filter(e => e.type === 'depth').reduce((m, e) => Math.max(m, e.depth), 0),
-    [entries]
-  )
+  const shotRef = useRef<any>({})
+  const maxLogged = useMemo(() => entries.filter(e => e.type === 'depth').reduce((m, e) => Math.max(m, e.depth), 0), [entries])
 
   const fmt = (ms: number) => {
     const s = Math.floor(ms / 1000)
     return `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`
   }
 
-  const startTimer = () => { startTs.current = Date.now() - elapsedMs; timerRef.current = setInterval(() => setElapsedMs(Date.now() - startTs.current), 1000) }
+  const startTimer = () => {
+    startTs.current = Date.now() - elapsedMs;
+    timerRef.current = setInterval(() => setElapsedMs(Date.now() - startTs.current), 1000)
+    if (shotRef.current.zeroDepth === -2) shotRef.current.zeroDepth = -1
+  }
+
   const stopTimer = () => clearInterval(timerRef.current)
   const stopPauseTimer = () => clearInterval(pauseTimerRef.current)
   useEffect(() => () => { stopTimer(); stopPauseTimer() }, [])
 
+  shotRef.current.status = useMemo(() => state, [state])
+  shotRef.current.maxlgd = useMemo(() => maxLogged, [maxLogged])
+  shotRef.current.usesns = useMemo(() => {
+    KeyValue('sensorStatus', sensorStatus ? 'enabled' : 'disabled')
+    return sensorStatus
+  }, [sensorStatus])
+
   useEffect(() => {
 
-    return
-    Loop(() => {
+    const rf = shotRef.current
 
-      const status = KeyValue('status')
-      const parsed = JSON.parse(status)
-      const { depth } = parsed
-      const dpt = Number((depth / 100).toFixed(2))
+    const gapBetweenPipeChange = 120 // Seconds
+    rf.status = '-'
+    rf.zeroDepth = -2
+    rf.drillDepth = 0
+    rf.proximity = '-'
+    rf.canPipeAdded = 0
+    rf.pipeDepth = 0
+    rf.maxlgd = 0
 
-      console.log(holeId, dpt)
+    const drill_event = (e: any) => {
 
-      setDrillDepth((pdpt: number) => {
+      const status = e?.data_gps?.status ?? {}
+      const depth = Number(((status.depth ?? 0) / 100).toFixed(2))
+      const prxim = status.proxim ?? '-'
+      const pplen = (status.pipe ?? 0) / 100
 
-        if (dpt - pdpt >= 0.5) {
+      /** Setting Depth to zero & restrict pipe change in 30 seconds */
+      if (rf.zeroDepth === -1) {
+        rf.zeroDepth = depth
+        rf.canPipeAdded = Date.now() + (gapBetweenPipeChange * 1000)
+      }
+
+      /** Assume drilling started */
+      if (rf.zeroDepth >= 0 && rf.usesns) {
+
+        let dpt = Number((depth - rf.zeroDepth + (rf.pipeDepth)).toFixed(2))
+        setDrillDepth((c: number) => (Math.abs(dpt - c) >= 0.1) ? dpt : c)
+
+        if ((dpt - rf.drillDepth) <= -0.5) {
+
+          console.log(`${holeId} PAUSE`)
+          rf.drillDepth = dpt
+          rf.status === 'drilling' && handlePause()
+
+        }
+
+        if ((dpt - rf.drillDepth) >= +0.5) {
+
+          console.log(`${holeId} RESUME`)
+          rf.drillDepth = dpt
+          rf.status === 'paused' && handleResume()
+
+          console.log(`MAX ${rf.maxlgd} / DPT ${dpt}`)
           addEntry('depth', dpt)
-          return dpt
+
         }
 
-        if (dpt - pdpt <= -0.5) {
-          handlePause()
+        if (rf.proximity === '-') rf.proximity = prxim
+        else if (rf.proximity !== prxim) {
+
+          rf.proximity = prxim
+
+          if (Date.now() > rf.canPipeAdded) {
+
+            console.log(`${holeId} ADD PIPE`)
+            rf.canPipeAdded = Date.now() + (gapBetweenPipeChange * 1000)
+            rf.pipeDepth += pplen
+
+          }
+
         }
 
-        // if()
+      }
 
-        return pdpt
+    }
 
-      })
-
-    }, 2500)
+    event.on('stream', drill_event)
+    return () => event.off('stream', drill_event)
 
   }, [])
 
@@ -388,12 +456,16 @@ export default function DrillSession({
   }
 
   const addEntry = (type: 'depth' | 'layer', depth: number) => {
-    if (type === 'depth' && depth <= maxLogged) { msg.error(`Гүн ${maxLogged}м-ээс их байх ёстой!`); return }
+    const mxlg = shotRef.current.maxlgd
+    if (type === 'depth' && depth <= mxlg) {
+      msg.error(`Гүн ${mxlg}м-ээс их байх ёстой!`)
+      return
+    }
     setEntries(prev => [...prev, {
       id: Math.random().toString(36).slice(2, 9),
       type, depth, elapsedMs,
       layer: type === 'layer' ? activeLayer : '',
-      time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+      time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' }),
     }])
     msg.success(`${type === 'layer' ? 'Үе өөрчлөгдлөө' : 'Гүн бүртгэгдлээ'}: ${depth}м`)
   }
@@ -446,6 +518,7 @@ export default function DrillSession({
                   ? <Text type="danger" style={{ fontSize: 11 }}>{maxLogged}м-ээс их байх ёстой</Text>
                   : <span />
                 }
+                <Button onClick={() => setSensorStatus((s) => !s)}>{sensorStatus ? 'Гар бүртгэл' : 'Мэдрэгч ашиглах'}</Button>
                 <Button type="primary" icon={<ThunderboltOutlined />} onClick={() => addEntry('depth', drillDepth)} disabled={state !== 'drilling' && state !== 'paused'}>
                   Гүн бүртгэх: {drillDepth}м
                 </Button>
@@ -467,7 +540,7 @@ export default function DrillSession({
               <Row gutter={[8, 8]} style={{ marginBottom: 12 }}>
                 {LAYERS.map(l => (
                   <Col span={6} key={l.name}>
-                    <Button block size="small" type={activeLayer === l.name ? 'primary' : 'default'} onClick={() => setActiveLayer(l.name)}>
+                    <Button block size={"middle"} type={activeLayer === l.name ? 'primary' : 'default'} onClick={() => setActiveLayer(l.name)}>
                       <Space size={4}><LayerDot $color={l.color} />{l.name}</Space>
                     </Button>
                   </Col>

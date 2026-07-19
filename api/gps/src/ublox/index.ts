@@ -1,6 +1,7 @@
 import { Shell, Safe, Loop, decodeENV, log, env, AsyncWait } from 'utils'
 import { Connection, NetClient } from 'unet'
 import { Serial, F9P_Parser, NMEA, UTM } from 'ucan'
+const fs = require('node:fs')
 
 import { ProcessActivity } from './process'
 
@@ -15,7 +16,13 @@ const simulation_testing = (me: any, publish: any, GPS: any, cf: any) => {
 
     const Simulationhandler = (args: any) => {
 
+        // fs.writeFile(`./test.txt`, JSON.stringify(args), (err: any) => {})
+
         const { data_gps1, data_gps2, data_gsm, value, data_rtcm } = args
+
+        const time = Date.now()
+        data_gps1.data.time = `${time}`
+        data_gps2.data.time = `${time}`
 
         publish('data_gps1', data_gps1)
         publish('data_gps2', data_gps2)
@@ -27,6 +34,13 @@ const simulation_testing = (me: any, publish: any, GPS: any, cf: any) => {
         GPS.gps2 = data_gps2.data
 
     }
+
+    Loop(() => {
+
+        const arg = { "data_gps1": { "state": "success", "type": "success", "message": "GPS1 connected!", "data": { "time": "125201.50", "lat": 43.67109466666667, "lon": 105.49115783333333, "est": 539595.05, "nrt": 4835460.29, "fix": "rtk", "alt": 1419.9, "geo": -38.8, "ele": 1381.14, "spd": 0.008, "deg": 8.72, "vac": 1.2, "hac": 1.4, "sat": 31, "vco": "#52c41a", "hco": "#52c41a" } }, "data_gps2": { "state": "success", "type": "success", "message": "GPS2 connected!", "data": { "time": "125202.00", "lat": 43.671080333333336, "lon": 105.4911205, "est": 539592.05, "nrt": 4835458.69, "fix": "rtk", "alt": 1419.9, "geo": -38.8, "ele": 1381.16, "spd": 0.024, "deg": 350, "vac": 1.4, "hac": 1.4, "sat": 31, "vco": "#52c41a", "hco": "#52c41a" } }, "data_gps": { "R": 3.6315499797468442, "G": [43.67104123660685, 105.49118858541097, 1378.14], "A": [539597.560882369, 4835454.37580393, 1378.14], "B": [539596.5461940416, 4835453.834636822, 1378.150051901763], "C": [539594.5491176627, 4835460.022862753, 1378.143287312919], "status": { "dist_tar": 340, "dist_act": 340.01, "zoneNumber": 48, "zoneLetter": "T", "rtcm": "139.59.115.158:2101" }, "shapes": { "points": [[539595.05, 4835460.29, 1381.14], [539592.05, 4835458.69, 1381.16], [539593.55, 4835459.49, 1381.15], [539597.560882369, 4835454.37580393, 1378.14]], "colored": { "green": [[539595.05, 4835460.29, 1381.14], [539592.05, 4835458.69, 1381.16]], "red": [[539593.55, 4835459.49, 1381.15], [539597.560882369, 4835454.37580393, 1378.14]] }, "lines": [[[539595.05, 4835460.29, 1381.14], [539592.05, 4835458.69, 1381.16]], [[539593.55, 4835459.49, 1381.15], [539593.5344293353, 4835459.4816956455, 1378.1500519017682]], [[539593.5344293353, 4835459.4816956455, 1378.1500519017682], [539596.5461940416, 4835453.834636822, 1378.150051901763]], [[539596.5461940416, 4835453.834636822, 1378.150051901763], [539597.560882369, 4835454.37580393, 1378.1432873129143]], [[539597.560882369, 4835454.37580393, 1378.1432873129143], [539597.560882369, 4835454.37580393, 1378.14]]] }, "camera": { "TL": { "x": 539598.0461680903, "y": 4835454.634622983, "z": 1378.140052074769 }, "TM": { "x": 539596.5461940416, "y": 4835453.834636822, "z": 1378.150051901763 }, "TR": { "x": 539595.0462199923, "y": 4835453.034650663, "z": 1378.1600517287573 }, "BL": { "x": 539595.034403384, "y": 4835460.281681806, "z": 1378.1400520747734 }, "BM": { "x": 539593.5344293353, "y": 4835459.4816956455, "z": 1378.1500519017682 }, "BR": { "x": 539592.034455286, "y": 4835458.681709486, "z": 1378.1600517287632 } } }, "data_gsm": { "state": "success", "message": "Network connected!", "quality": 99, "operator": "Point-to-Point Protocol" }, "data_rtcm": { "state": "success", "message": "RTCM [139.59.115.158:2101]: Message size 798 bytes" }, "value": { "screen": 3, "shot_plan": { "d2": 0.15, "d3": 0.47, "dir": "E20" }, "rx": 2.06, "tx": 3.22, "pw": "throttled=0xe0000" }, "inj_clients": ["http://10.42.0.1:8443"] }
+        Simulationhandler(arg)
+
+    }, 500)
 
     cf.virtually && Safe(() => {
 
